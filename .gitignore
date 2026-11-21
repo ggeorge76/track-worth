@@ -33,3 +33,6 @@ src-tauri/gen/schemas/
 
 # Updater signing key must never be committed (lives in ~/.tauri and GitHub secrets)
 *.key
+
+# Secrets backups
+.secrets
