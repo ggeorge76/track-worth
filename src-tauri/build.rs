@@ -8,6 +8,9 @@ const VARS: [&str; 2] = [
 
 fn main() {
     println!("cargo:rerun-if-changed=../.env.local");
+    // tauri-build only watches the config files, but `generate_context!` embeds the icons
+    // (the dev-mode Dock icon and the window icon). Rebuild when any icon changes.
+    println!("cargo:rerun-if-changed=icons");
     let local = std::fs::read_to_string("../.env.local").unwrap_or_default();
     for var in VARS {
         println!("cargo:rerun-if-env-changed={var}");
