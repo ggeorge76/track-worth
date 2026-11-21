@@ -1,11 +1,14 @@
 import { isDesktopApp } from '@/services/platform';
+import { logoUrl } from '@/config';
 import { useAuth } from './authContext';
 
 export function SignInScreen() {
   const { state, signIn } = useAuth();
 
   return (
-    <section className="mx-auto mt-24 max-w-md space-y-6 px-6 text-center">
+    <section className="mx-auto mt-16 max-w-md space-y-6 px-6 text-center">
+      {/* Decorative: the heading below carries the name for screen readers. */}
+      <img src={logoUrl} alt="" width={128} height={128} className="mx-auto h-32 w-32" />
       <h1 className="text-3xl font-semibold">TrackWorth</h1>
       <p className="text-slate-600">
         Track your account balances by hand. Your data is saved as one file in your own Google

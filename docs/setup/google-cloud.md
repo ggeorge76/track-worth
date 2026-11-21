@@ -13,6 +13,7 @@ You need this once so that sign-in works. It takes about 10 minutes.
 
 - User type: **External**.
 - App name **TrackWorth**, plus support email and developer contact.
+- App logo: upload `assets/branding/trackworth-logo-120.png` (120×120 px, about 20 KB).
 - **Data access / Scopes:** add `openid`, `.../auth/userinfo.profile`, `.../auth/userinfo.email`
   and `.../auth/drive.file`. All of these are non-sensitive, so no Google verification or
   security assessment is needed (ADR-0004).

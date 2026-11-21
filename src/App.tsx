@@ -1,4 +1,4 @@
-import { config } from './config';
+import { config, symbolUrl } from './config';
 import { AuthProvider } from './features/auth/AuthProvider';
 import { useAuth } from './features/auth/authContext';
 import { SignInScreen } from './features/auth/SignInScreen';
@@ -10,7 +10,10 @@ function Shell() {
   return (
     <div className="flex min-h-dvh flex-col bg-white text-slate-900">
       <header className="flex items-center justify-between border-b px-6 py-3">
-        <span className="font-semibold text-teal-800">TrackWorth</span>
+        <span className="flex items-center gap-2 font-semibold text-teal-800">
+          <img src={symbolUrl} alt="" width={28} height={28} className="h-7 w-7" />
+          TrackWorth
+        </span>
         {state.status === 'signed-in' && (
           <div className="flex items-center gap-3 text-sm">
             <span>{state.user.name}</span>

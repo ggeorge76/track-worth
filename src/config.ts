@@ -16,6 +16,15 @@ export const config = {
   },
 } as const;
 
+/**
+ * App logo for the UI (256 px, shown at up to 128 CSS px). Relative so it resolves inside the
+ * desktop app too. Source and other sizes: assets/branding/.
+ */
+export const logoUrl = `${import.meta.env.BASE_URL}logo.png`;
+
+/** Wordmark-free symbol for small spots (48 CSS px and below), e.g. the header. */
+export const symbolUrl = `${import.meta.env.BASE_URL}symbol.png`;
+
 export function releaseNotesUrl(version: string): string {
   return `https://github.com/${config.githubRepo}/releases/tag/v${version}`;
 }
