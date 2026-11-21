@@ -67,6 +67,8 @@ src-tauri/               Rust app shell
   src/config.rs          OAuth client compiled in by build.rs
   capabilities/          What the UI may do: URL allow-lists for HTTP/opener, updater, restart
   tauri.conf.json        Window, CSP, bundle targets, updater public key + endpoint
+site/                    Public website on GitHub Pages: homepage, privacy policy, terms
+assets/branding/         Logo + symbol masters and exports (see its README)
 e2e/                     Playwright specs (UI in a browser, signed-out flows only)
 docs/adr/                Architecture Decision Records (MADR 4). Read these before big changes.
 docs/                    Requirements, architecture, data model, setup and release guides, roadmap
@@ -142,6 +144,9 @@ it. See [ADR-0006](docs/adr/0006-data-file-schema-and-migrations.md) and
 **Ask the human first**
 
 - Adding or upgrading a major dependency or Tauri plugin.
+- Changing the privacy policy or terms (`site/`). These are legal commitments linked from
+  Google's consent screen. If you change what data the app accesses, flag that the policy
+  needs updating.
 - Changing OAuth scopes, the Drive folder or file name, the CSP, **capabilities** (URL
   allow-lists, permissions), the updater config, or the release workflow.
 - Changing the data-file schema.

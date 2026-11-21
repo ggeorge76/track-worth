@@ -60,6 +60,10 @@ TrackWorth (on your computer)
               ──► GitHub Releases: latest.json → signed update, installed when you confirm
 ```
 
+Website: [home](https://ggeorge76.github.io/track-worth/) ·
+[privacy policy](https://ggeorge76.github.io/track-worth/privacy/) ·
+[terms](https://ggeorge76.github.io/track-worth/terms/) (source in `site/`).
+
 More detail: [architecture](docs/architecture.md) · [data model](docs/data-model.md) ·
 [ADRs](docs/adr/README.md) · [security](SECURITY.md) · [releasing](docs/setup/releasing.md).
 

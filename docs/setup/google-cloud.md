@@ -13,7 +13,16 @@ You need this once so that sign-in works. It takes about 10 minutes.
 
 - User type: **External**.
 - App name **TrackWorth**, plus support email and developer contact.
-- App logo: upload `assets/branding/trackworth-logo-120.png` (120×120 px, about 20 KB).
+- **App domain links** (served by GitHub Pages from `site/`, see `site/README.md`):
+  - Home page: `https://ggeorge76.github.io/track-worth/`
+  - Privacy policy: `https://ggeorge76.github.io/track-worth/privacy/`
+  - Terms of service: `https://ggeorge76.github.io/track-worth/terms/`
+- **Authorized domains:** `ggeorge76.github.io`.
+- **App logo (optional):** `assets/branding/trackworth-logo-120.png` (120×120 px, about 20 KB).
+  Uploading a logo triggers Google's _brand verification_, which requires proving you own
+  `ggeorge76.github.io` in [Google Search Console](https://search.google.com/search-console)
+  (add a URL-prefix property for `https://ggeorge76.github.io/track-worth/` and verify it with
+  the HTML-file method by putting the file in `site/`). You can skip the logo and add it later.
 - **Data access / Scopes:** add `openid`, `.../auth/userinfo.profile`, `.../auth/userinfo.email`
   and `.../auth/drive.file`. All of these are non-sensitive, so no Google verification or
   security assessment is needed (ADR-0004).
