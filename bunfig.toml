@@ -1,0 +1,8 @@
+# Bun is the package manager and script runner. Tests run on Vitest, not Bun's built-in runner.
+[install]
+exact = false
+
+[test]
+# `bun test` would run Bun's own test runner, which doesn't understand our Vitest setup.
+# This preload stops it with a helpful message. Use `bun run test`.
+preload = ["./scripts/no-bun-test.ts"]
