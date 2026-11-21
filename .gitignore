@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dev-dist/
+*.tsbuildinfo
+
+# Tests
+coverage/
+playwright-report/
+test-results/
+blob-report/
+
+# Env (never commit real values; see .env.example)
+.env
+.env.*
+!.env.example
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.log
+
+# Claude Code local-only settings
+.claude/settings.local.json
+
+# Tauri / Rust
+src-tauri/target/
+src-tauri/gen/schemas/
+
+# Updater signing key must never be committed (lives in ~/.tauri and GitHub secrets)
+*.key

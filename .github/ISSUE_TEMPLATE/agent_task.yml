@@ -1,0 +1,41 @@
+name: Agent task
+description: A well-scoped task intended to be picked up by an AI coding agent
+labels: [agent-task]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Write this so an agent with no other context can finish it. One task, one PR.
+        Agents: read AGENTS.md first.
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: The outcome, in one or two sentences.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Relevant files, ADRs, docs, prior issues/PRs.
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Checkable statements. Tests that must exist/pass.
+      placeholder: "- [ ] …\n- [ ] Unit tests cover …"
+    validations:
+      required: true
+  - type: textarea
+    id: out_of_scope
+    attributes:
+      label: Out of scope
+      description: Things the agent must NOT change.
+  - type: dropdown
+    id: size
+    attributes:
+      label: Expected size
+      options: [XS (< 50 lines), S (< 200 lines), M (< 500 lines)]
+    validations:
+      required: true
