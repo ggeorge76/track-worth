@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-03-01T10:00:00.000Z",
+  "baseCurrency": "USD",
+  "accounts": [
+    {
+      "id": "acc-bank",
+      "name": "Everyday Checking 💳",
+      "kind": "asset",
+      "category": "bank",
+      "currency": "USD",
+      "archived": false,
+      "note": "Main account",
+      "createdAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "acc-loan",
+      "name": "Car loan",
+      "kind": "liability",
+      "category": "loan",
+      "currency": "USD",
+      "archived": false,
+      "createdAt": "2026-01-01T00:00:00.000Z"
+    }
+  ],
+  "balances": [
+    {
+      "id": "b1",
+      "accountId": "acc-bank",
+      "date": "2026-01-31",
+      "amountMinor": 150000,
+      "recordedAt": "2026-01-31T09:00:00.000Z"
+    },
+    {
+      "id": "b2",
+      "accountId": "acc-bank",
+      "date": "2026-02-28",
+      "amountMinor": 100000,
+      "recordedAt": "2026-02-28T09:00:00.000Z"
+    },
+    {
+      "id": "b3",
+      "accountId": "acc-bank",
+      "date": "2026-02-28",
+      "amountMinor": 120000,
+      "recordedAt": "2026-02-28T18:00:00.000Z"
+    },
+    {
+      "id": "b4",
+      "accountId": "acc-loan",
+      "date": "2026-02-28",
+      "amountMinor": 800000,
+      "recordedAt": "2026-02-28T09:00:00.000Z"
+    },
+    {
+      "id": "b5",
+      "accountId": "acc-loan",
+      "date": "2026-01-31",
+      "amountMinor": 0,
+      "recordedAt": "2026-01-31T09:00:00.000Z"
+    }
+  ]
+}

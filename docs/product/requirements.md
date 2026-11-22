@@ -21,45 +21,72 @@ in the user's own Google Drive. See [SOUL.md](../../SOUL.md).
 
 ### Authentication & storage
 
-| ID   | Requirement                                                                                            | Status                       |
-| ---- | ------------------------------------------------------------------------------------------------------ | ---------------------------- |
-| R-A1 | Sign in with Google in the system browser. The app is unusable without sign-in.                        | ✅                           |
-| R-A2 | Show the signed-in user's name (from the OAuth profile) in the header.                                 | ✅                           |
-| R-A3 | After sign-in, load the data file from `My Drive/TrackWorth/trackworth-data.json`.                     | ✅                           |
-| R-A4 | If the file doesn't exist, create it (with the folder) as an empty data file.                          | ✅                           |
-| R-A5 | Sign out revokes the token and clears all in-memory data.                                              | ✅                           |
-| R-A6 | Saving never silently overwrites changes made on another device. Detect the conflict and offer reload. | 🚧 (client done, UI pending) |
-| R-A7 | Access tokens are refreshed automatically before they expire, so sessions never break mid-use.         | ✅                           |
-| R-A8 | Stay signed in across app restarts (refresh token in the OS keychain), until the user signs out.       | ✅                           |
+| ID   | Requirement                                                                                            | Status |
+| ---- | ------------------------------------------------------------------------------------------------------ | ------ |
+| R-A1 | Sign in with Google in the system browser. The app is unusable without sign-in.                        | ✅     |
+| R-A2 | Show the signed-in user's name (from the OAuth profile) in the header.                                 | ✅     |
+| R-A3 | After sign-in, load the data file from `My Drive/TrackWorth/trackworth-data.json`.                     | ✅     |
+| R-A4 | If the file doesn't exist, create it (with the folder) as an empty data file.                          | ✅     |
+| R-A5 | Sign out revokes the token and clears all in-memory data.                                              | ✅     |
+| R-A6 | Saving never silently overwrites changes made on another device. Detect the conflict and offer reload. | ✅     |
+| R-A7 | Access tokens are refreshed automatically before they expire, so sessions never break mid-use.         | ✅     |
+| R-A8 | Stay signed in across app restarts (refresh token in the OS keychain), until the user signs out.       | ✅     |
 
 ### Accounts
 
-| ID   | Requirement                                                                                         | Status |
-| ---- | --------------------------------------------------------------------------------------------------- | ------ |
-| R-C1 | Create an account: name, kind (asset/liability), category, currency, optional note.                 | ⬜     |
-| R-C2 | Edit account details.                                                                               | ⬜     |
-| R-C3 | Archive or unarchive an account. Archived accounts are excluded from totals but keep their history. | ⬜     |
-| R-C4 | Delete an account and its history, with confirmation.                                               | ⬜     |
-| R-C5 | Accounts are grouped by category on the dashboard.                                                  | ⬜     |
+| ID   | Requirement                                                                                                                                                                                                                                                                                   | Status             |
+| ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| R-C1 | Create an account with: **name** (free text, emoji allowed), **type** (asset / liability), **tag** (exactly one, free text, emoji allowed, used like a category), **liquidity** (1–5, low → high), **currency**, **notes** (free text, optional) and **balance source** (optional, see R-C6). | 🚧 data layer done |
+| R-C2 | Edit an account's name, tag, liquidity, currency, notes and balance source from the details page by clicking the value. Type can't be changed after creation. Changing currency keeps the displayed amounts.                                                                                  | 🚧 data layer done |
+| R-C3 | Archive or unarchive an account. Archived accounts are excluded from totals but keep their history.                                                                                                                                                                                           | ⬜                 |
+| R-C4 | Delete an account and its history, with confirmation.                                                                                                                                                                                                                                         | ⬜                 |
+| R-C5 | Default tags: Equity, Fixed Income, Real Assets, Alternative Assets, Cash. Users can type a new tag, which is then offered for other accounts too.                                                                                                                                            | 🚧 data layer done |
+| R-C6 | **Balance source**: where the user reads the balance from. Free text, with a choice of previously entered sources. Accounts are ordered by balance source so all accounts from one source are consecutive when updating balances.                                                             | 🚧 data layer done |
 
-### Balances
-
-| ID   | Requirement                                                                                         | Status |
-| ---- | --------------------------------------------------------------------------------------------------- | ------ |
-| R-B1 | Record a balance for an account on a date (defaults to today), with an optional note.               | ⬜     |
-| R-B2 | "Update all" flow: step through every active account, entering today's balances quickly.            | ⬜     |
-| R-B3 | Edit or delete a past balance entry.                                                                | ⬜     |
-| R-B4 | Account detail: history list and line chart of balance over time, with change since previous entry. | ⬜     |
-
-### Dashboard & insights
+### Start page
 
 | ID   | Requirement                                                 | Status |
 | ---- | ----------------------------------------------------------- | ------ |
-| R-D1 | Show current net worth (assets − liabilities) per currency. | ✅     |
-| R-D2 | Show total assets and total liabilities.                    | ⬜     |
-| R-D3 | Net-worth-over-time chart with ranges (1M, 6M, 1Y, All).    | ⬜     |
-| R-D4 | Change versus previous period (absolute and %).             | ⬜     |
-| R-D5 | Breakdown by category.                                      | ⬜     |
+| R-P1 | List accounts with their current balance (latest entry).    | ⬜     |
+| R-P2 | Sort accounts by liquidity or by tag.                       | ⬜     |
+| R-P3 | Filter accounts by liquidity and/or tag, in a filter popup. | ⬜     |
+| R-P4 | Group accounts by tag.                                      | ⬜     |
+| R-P5 | Add a new account from the start page.                      | ⬜     |
+| R-P6 | Clicking an account opens its details page.                 | ⬜     |
+
+### Account details
+
+| ID   | Requirement                                                                                                                                                   | Status               |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
+| R-V1 | Title: account name. Subtitle: tag.                                                                                                                           | ⬜                   |
+| R-V2 | Current balance, with the change (+/−) since: the previous entry; the last entry of the previous month; the last entry of the previous financial year (R-S6). | 🚧 calculations done |
+| R-V3 | All-time high. For assets the highest balance; for liabilities the peak debt (most negative).                                                                 | 🚧 calculations done |
+| R-V4 | Show liquidity and currency.                                                                                                                                  | ⬜                   |
+| R-V5 | "Update balance" opens the update-balance popup (R-B1).                                                                                                       | ⬜                   |
+| R-V6 | Balance history: a short list, with an option to show all entries.                                                                                            | ⬜                   |
+| R-V7 | Show the balance source (R-C6).                                                                                                                               | ⬜                   |
+| R-V8 | Swipe left/right (and keyboard arrows / buttons on desktop) to go to the previous/next account, in balance-source order (R-C6).                               | 🚧 ordering done     |
+| R-V9 | The back button (browser, desktop back gesture/keys, Android back) returns to the previous screen.                                                            | ⬜                   |
+
+### Balances
+
+| ID   | Requirement                                                                                                                                                                                                                                                  | Status             |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------ |
+| R-B1 | Update-balance popup: **date** (defaults to today), **positive/negative** (defaults to positive for assets, negative for liabilities), **amount** (typed as a positive number, saved with the chosen sign, with the account's currency shown), and **Save**. | 🚧 data layer done |
+| R-B2 | "Update all" flow: step through every active account, entering today's balances quickly.                                                                                                                                                                     | ⬜                 |
+| R-B3 | Delete a past balance entry.                                                                                                                                                                                                                                 | ⬜                 |
+| R-B4 | Balance-over-time chart on the details page.                                                                                                                                                                                                                 | ⬜ next iteration  |
+| R-B5 | Saving a balance on a date that already has an entry updates that entry instead of adding another.                                                                                                                                                           | 🚧 data layer done |
+
+### Dashboard & insights
+
+| ID   | Requirement                                                   | Status            |
+| ---- | ------------------------------------------------------------- | ----------------- |
+| R-D1 | Show current net worth (sum of signed balances) per currency. | ✅                |
+| R-D2 | Show total assets and total liabilities.                      | ⬜                |
+| R-D3 | Net-worth-over-time chart with ranges (1M, 6M, 1Y, All).      | ⬜ next iteration |
+| R-D4 | Change versus previous period (absolute and %).               | ⬜ next iteration |
+| R-D5 | Breakdown by tag.                                             | ⬜ next iteration |
 
 ### App updates
 
@@ -73,13 +100,14 @@ in the user's own Google Drive. See [SOUL.md](../../SOUL.md).
 
 ### Settings & data
 
-| ID   | Requirement                                                                               | Status |
-| ---- | ----------------------------------------------------------------------------------------- | ------ |
-| R-S1 | Choose the base currency.                                                                 | ⬜     |
-| R-S2 | Export the data file (download JSON) and export balances as CSV.                          | ⬜     |
-| R-S3 | Light and dark theme, following the system by default.                                    | ⬜     |
-| R-S4 | "Open existing file" via Google Picker, to restore a manually uploaded backup (ADR-0005). | 💭     |
-| R-S5 | Multi-currency net worth with user-entered exchange rates.                                | 💭     |
+| ID   | Requirement                                                                               | Status             |
+| ---- | ----------------------------------------------------------------------------------------- | ------------------ |
+| R-S1 | Choose the base currency.                                                                 | ⬜                 |
+| R-S2 | Export the data file (download JSON) and export balances as CSV.                          | ⬜                 |
+| R-S3 | Light and dark theme, following the system by default.                                    | ⬜                 |
+| R-S4 | "Open existing file" via Google Picker, to restore a manually uploaded backup (ADR-0005). | 💭                 |
+| R-S5 | Multi-currency net worth with user-entered exchange rates.                                | 💭                 |
+| R-S6 | Financial year start month (default April, i.e. April–March). Used by R-V2.               | 🚧 data layer done |
 
 ## Non-functional requirements
 

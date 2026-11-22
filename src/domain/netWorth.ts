@@ -1,4 +1,4 @@
-import type { Account, BalanceEntry, DataFile } from './schema';
+import type { BalanceEntry, DataFile } from './schema';
 
 /** Latest balance entry for an account on or before `asOf` (YYYY-MM-DD), if any. */
 export function latestBalance(
@@ -22,14 +22,18 @@ export function latestBalance(
 }
 
 export interface CurrencyTotals {
+  /** Sum of asset accounts' current balances. */
   assetsMinor: number;
+  /** Sum of liability accounts' current balances (normally negative). */
   liabilitiesMinor: number;
+  /** assets + liabilities. */
   netMinor: number;
 }
 
 /**
- * Net worth grouped by currency. No FX conversion yet: mixing currencies into one
- * number needs exchange rates, which is a separate, deliberate decision (see roadmap).
+ * Net worth grouped by currency, from each active account's latest balance. Balances are signed
+ * (liabilities negative), so net worth is a plain sum. No FX conversion yet: mixing currencies
+ * needs exchange rates, which is a separate, deliberate decision (see roadmap).
  */
 export function netWorthByCurrency(
   data: Pick<DataFile, 'accounts' | 'balances'>,
@@ -41,17 +45,9 @@ export function netWorthByCurrency(
     const entry = latestBalance(account.id, data.balances, asOf);
     if (!entry) continue;
     const t = (totals[account.currency] ??= { assetsMinor: 0, liabilitiesMinor: 0, netMinor: 0 });
-    applyEntry(t, account, entry.amountMinor);
+    if (account.kind === 'asset') t.assetsMinor += entry.amountMinor;
+    else t.liabilitiesMinor += entry.amountMinor;
+    t.netMinor += entry.amountMinor;
   }
   return totals;
-}
-
-function applyEntry(t: CurrencyTotals, account: Account, amountMinor: number): void {
-  if (account.kind === 'asset') {
-    t.assetsMinor += amountMinor;
-    t.netMinor += amountMinor;
-  } else {
-    t.liabilitiesMinor += amountMinor;
-    t.netMinor -= amountMinor;
-  }
 }

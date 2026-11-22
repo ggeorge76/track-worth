@@ -5,7 +5,8 @@ const account = (over: Partial<Account>): Account => ({
   id: 'a',
   name: 'A',
   kind: 'asset',
-  category: 'bank',
+  tag: 'Cash',
+  liquidity: 3,
   currency: 'USD',
   archived: false,
   createdAt: '2026-01-01T00:00:00.000Z',
@@ -49,18 +50,18 @@ describe('netWorthByCurrency', () => {
   it('subtracts liabilities, skips archived accounts and groups by currency', () => {
     const accounts = [
       account({ id: 'bank' }),
-      account({ id: 'card', kind: 'liability', category: 'credit_card' }),
+      account({ id: 'card', kind: 'liability', tag: 'Debt' }),
       account({ id: 'old', archived: true }),
       account({ id: 'eur', currency: 'EUR' }),
     ];
     const balances = [
       entry({ accountId: 'bank', amountMinor: 10_000 }),
-      entry({ accountId: 'card', amountMinor: 2_500 }),
+      entry({ accountId: 'card', amountMinor: -2_500 }),
       entry({ accountId: 'old', amountMinor: 99_999 }),
       entry({ accountId: 'eur', amountMinor: 700 }),
     ];
     expect(netWorthByCurrency({ accounts, balances })).toEqual({
-      USD: { assetsMinor: 10_000, liabilitiesMinor: 2_500, netMinor: 7_500 },
+      USD: { assetsMinor: 10_000, liabilitiesMinor: -2_500, netMinor: 7_500 },
       EUR: { assetsMinor: 700, liabilitiesMinor: 0, netMinor: 700 },
     });
   });

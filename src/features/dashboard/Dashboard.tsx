@@ -1,6 +1,6 @@
 import { formatMoney } from '@/domain/money';
 import { latestBalance, netWorthByCurrency } from '@/domain/netWorth';
-import { useDataFile } from './useDataFile';
+import { useDataFile } from '@/features/data/useDataFile';
 
 export function Dashboard() {
   const query = useDataFile();

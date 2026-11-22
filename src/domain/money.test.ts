@@ -15,6 +15,10 @@ describe('parseMoneyInput', () => {
     expect(parseMoneyInput(input, 'USD')).toBeNull();
   });
 
+  it('rejects amounts too large to represent exactly', () => {
+    expect(parseMoneyInput('99999999999999999', 'USD')).toBeNull();
+  });
+
   it('rejects decimals for zero-decimal currencies', () => {
     expect(parseMoneyInput('5.5', 'JPY')).toBeNull();
   });
