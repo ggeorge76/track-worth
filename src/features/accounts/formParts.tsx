@@ -1,6 +1,8 @@
 import { useId, useState, type ReactNode } from 'react';
 import { Chip } from '@/components/Chip';
 import { PlusIcon } from '@/components/icons';
+import { Segmented } from '@/components/Segmented';
+import type { Sign } from '@/domain/balances';
 
 export const inputClass =
   'w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-base outline-none focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20';
@@ -152,5 +154,76 @@ export function BalanceSourceInput({
         ))}
       </datalist>
     </>
+  );
+}
+
+function currencySymbol(currency: string): string {
+  return (
+    new Intl.NumberFormat(undefined, {
+      style: 'currency',
+      currency,
+      currencyDisplay: 'narrowSymbol',
+    })
+      .formatToParts(0)
+      .find((p) => p.type === 'currency')?.value ?? currency
+  );
+}
+
+/**
+ * "+ / −" toggle plus a positive-only amount box showing the currency. Used by the
+ * update-balance popup and the opening balance on the create screen (R-B1).
+ */
+export function SignedAmountInput({
+  id,
+  currency,
+  sign,
+  onSignChange,
+  amount,
+  onAmountChange,
+  autoFocus = false,
+}: {
+  id: string;
+  currency: string;
+  sign: Sign;
+  onSignChange: (sign: Sign) => void;
+  amount: string;
+  onAmountChange: (amount: string) => void;
+  autoFocus?: boolean;
+}) {
+  return (
+    <div className="flex gap-2">
+      <div className="w-28 shrink-0">
+        <Segmented
+          label="Positive or negative"
+          value={sign}
+          onChange={onSignChange}
+          options={[
+            { value: 'positive', label: '+', ariaLabel: 'Positive' },
+            { value: 'negative', label: '−', ariaLabel: 'Negative' },
+          ]}
+        />
+      </div>
+      <div className="relative flex-1">
+        <input
+          id={id}
+          className={`${inputClass} pr-16 text-right tabular-nums`}
+          inputMode="decimal"
+          autoComplete="off"
+          autoFocus={autoFocus}
+          placeholder="0.00"
+          value={amount}
+          aria-describedby={`${id}-currency`}
+          onChange={(e) => {
+            onAmountChange(e.target.value);
+          }}
+        />
+        <span
+          id={`${id}-currency`}
+          className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-slate-500"
+        >
+          {currencySymbol(currency)} {currency}
+        </span>
+      </div>
+    </div>
   );
 }

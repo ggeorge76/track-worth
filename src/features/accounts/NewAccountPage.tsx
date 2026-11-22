@@ -1,15 +1,19 @@
 import { useId, useMemo, useState } from 'react';
 import { goBack, navigate } from '@/app/router';
+import { useToday } from '@/app/useToday';
 import { CloseIcon } from '@/components/icons';
 import { LiquidityPicker } from '@/components/LiquidityPicker';
 import { Segmented } from '@/components/Segmented';
 import { balanceSources, createAccount } from '@/domain/accounts';
+import { defaultSign, upsertBalance, type Sign } from '@/domain/balances';
 import { currencyCodes, currencyLabel, suggestedCurrency } from '@/domain/currencies';
 import { LIQUIDITY_LABELS, type Liquidity } from '@/domain/liquidity';
 import type { AccountKind, DataFile } from '@/domain/schema';
 import { availableTags } from '@/domain/tags';
 import { useUpdateDataFile } from '@/features/data/useDataFile';
-import { BalanceSourceInput, Field, inputClass, TagPicker } from './formParts';
+import { formatMoney } from '@/domain/money';
+import { BalanceSourceInput, Field, inputClass, SignedAmountInput, TagPicker } from './formParts';
+import { checkSignedAmount } from './amountInput';
 
 export function NewAccountPage({ data }: { data: DataFile }) {
   const save = useUpdateDataFile();
@@ -17,9 +21,8 @@ export function NewAccountPage({ data }: { data: DataFile }) {
     name: useId(),
     currency: useId(),
     source: useId(),
-    sources: useId(),
     notes: useId(),
-    newTag: useId(),
+    opening: useId(),
   };
 
   const tags = useMemo(() => availableTags(data), [data]);
@@ -38,15 +41,23 @@ export function NewAccountPage({ data }: { data: DataFile }) {
   );
   const [balanceSource, setBalanceSource] = useState('');
   const [note, setNote] = useState('');
-  const [errors, setErrors] = useState<{ name?: string; tag?: string; form?: string }>({});
+  const today = useToday();
+  // Opening balance (optional): sign follows the type until the user picks one themselves.
+  const [openingAmount, setOpeningAmount] = useState('');
+  const [openingSign, setOpeningSign] = useState<Sign | null>(null);
+  const sign = openingSign ?? defaultSign(kind);
+  const opening = checkSignedAmount(openingAmount, sign, currency);
+  const [errors, setErrors] = useState<{ name?: string; tag?: string; opening?: string }>({});
 
   const onSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
     const next: typeof errors = {};
     if (!name.trim()) next.name = 'Give the account a name.';
     if (!tag) next.tag = 'Pick a tag, or add a new one.';
+    if (!opening.ok) next.opening = opening.error;
     setErrors(next);
-    if (next.name || next.tag || !tag) return;
+    if (next.name || next.tag || !tag || !opening.ok) return;
+    const openingMinor = opening.amountMinor;
 
     let createdId = '';
     try {
@@ -57,7 +68,14 @@ export function NewAccountPage({ data }: { data: DataFile }) {
           opts,
         );
         createdId = result.account.id;
-        return result.data;
+        // Account and opening balance are saved together, in one write.
+        return openingMinor === null
+          ? result.data
+          : upsertBalance(
+              result.data,
+              { accountId: result.account.id, date: today, amountMinor: openingMinor },
+              opts,
+            );
       });
     } catch {
       // The save status banner explains what went wrong.
@@ -135,6 +153,22 @@ export function NewAccountPage({ data }: { data: DataFile }) {
             </option>
           ))}
         </select>
+      </Field>
+
+      <Field label="Opening balance (optional)" htmlFor={ids.opening} error={errors.opening}>
+        <SignedAmountInput
+          id={ids.opening}
+          currency={currency}
+          sign={sign}
+          onSignChange={setOpeningSign}
+          amount={openingAmount}
+          onAmountChange={setOpeningAmount}
+        />
+        <p className="text-xs text-slate-500">
+          {opening.ok && opening.amountMinor !== null
+            ? `Saved as ${formatMoney(opening.amountMinor, currency)} for today.`
+            : 'Recorded as today’s balance. You can also add balances later.'}
+        </p>
       </Field>
 
       <Field label="Balance source (optional)" htmlFor={ids.source}>

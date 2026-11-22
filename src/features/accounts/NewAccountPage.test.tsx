@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { Routes } from '@/app/Routes';
 import type * as driveModule from '@/services/drive/driveClient';
 import type { DriveClient } from '@/services/drive/driveClient';
+import { localIsoDate } from '@/domain/dates';
 import { makeAccount, makeFile } from '@/test/builders';
 import { dataIn, renderWithData } from '@/test/renderWithData';
 
@@ -103,5 +104,71 @@ describe('NewAccountPage', () => {
     });
     expect(window.location.hash).toBe('#/accounts/new');
     expect(screen.getByRole('button', { name: 'Create account' })).toBeEnabled();
+  });
+
+  describe('opening balance', () => {
+    const fillBasics = async (user: ReturnType<typeof userEvent.setup>, name: string) => {
+      await user.type(screen.getByLabelText('Name'), name);
+      await user.click(screen.getByRole('button', { name: 'Cash' }));
+    };
+
+    it('records an opening balance dated today', async () => {
+      const user = userEvent.setup();
+      const { client } = renderWithData(<Routes />, file);
+      await fillBasics(user, 'Wallet');
+      await user.type(screen.getByLabelText('Opening balance (optional)'), '2,500');
+      expect(screen.getByText(/Saved as ₹2,500.00 for today/)).toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: 'Create account' }));
+      await screen.findByRole('heading', { name: 'Wallet' });
+
+      const data = dataIn(client);
+      const account = data?.accounts.find((a) => a.name === 'Wallet');
+      expect(data?.balances.filter((b) => b.accountId === account?.id)).toEqual([
+        expect.objectContaining({ date: localIsoDate(), amountMinor: 2_500_00 }),
+      ]);
+      expect(drive.save).toHaveBeenCalledOnce(); // account + balance in one write
+    });
+
+    it('defaults to negative for a liability, following the type until the sign is chosen', async () => {
+      const user = userEvent.setup();
+      const { client } = renderWithData(<Routes />, file);
+      await fillBasics(user, 'Card');
+      const negative = () => screen.getByRole('radio', { name: 'Negative' });
+      expect(negative()).toHaveAttribute('aria-checked', 'false');
+      await user.click(screen.getByRole('radio', { name: 'Liability' }));
+      expect(negative()).toHaveAttribute('aria-checked', 'true');
+
+      await user.type(screen.getByLabelText('Opening balance (optional)'), '645');
+      await user.click(screen.getByRole('button', { name: 'Create account' }));
+      await screen.findByRole('heading', { name: 'Card' });
+      expect(dataIn(client)?.balances.at(-1)?.amountMinor).toBe(-645_00);
+    });
+
+    it('keeps a sign the user picked when the type changes', async () => {
+      const user = userEvent.setup();
+      renderWithData(<Routes />, file);
+      await user.click(screen.getByRole('radio', { name: 'Negative' }));
+      await user.click(screen.getByRole('radio', { name: 'Liability' }));
+      await user.click(screen.getByRole('radio', { name: 'Asset' }));
+      expect(screen.getByRole('radio', { name: 'Negative' })).toHaveAttribute(
+        'aria-checked',
+        'true',
+      );
+    });
+
+    it('creates no balance when left empty, and rejects unreadable amounts', async () => {
+      const user = userEvent.setup();
+      const { client } = renderWithData(<Routes />, file);
+      await fillBasics(user, 'Empty');
+      await user.type(screen.getByLabelText('Opening balance (optional)'), 'abc');
+      await user.click(screen.getByRole('button', { name: 'Create account' }));
+      expect(screen.getByText(/Enter an amount/)).toBeInTheDocument();
+      expect(drive.save).not.toHaveBeenCalled();
+
+      await user.clear(screen.getByLabelText('Opening balance (optional)'));
+      await user.click(screen.getByRole('button', { name: 'Create account' }));
+      await screen.findByRole('heading', { name: 'Empty' });
+      expect(dataIn(client)?.balances).toEqual([]);
+    });
   });
 });
