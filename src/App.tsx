@@ -1,16 +1,16 @@
+import { Routes } from './app/Routes';
 import { config, symbolUrl } from './config';
 import { AuthProvider } from './features/auth/AuthProvider';
 import { useAuth } from './features/auth/authContext';
 import { SignInScreen } from './features/auth/SignInScreen';
-import { Dashboard } from './features/dashboard/Dashboard';
 import { SaveStatus } from './features/data/SaveStatus';
 
 function Shell() {
   const { state, signOut } = useAuth();
 
   return (
-    <div className="flex min-h-dvh flex-col bg-white text-slate-900">
-      <header className="flex items-center justify-between border-b px-6 py-3">
+    <div className="flex min-h-dvh flex-col bg-slate-50 text-slate-900">
+      <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3">
         <span className="flex items-center gap-2 font-semibold text-teal-800">
           <img src={symbolUrl} alt="" width={28} height={28} className="h-7 w-7" />
           TrackWorth
@@ -31,7 +31,7 @@ function Shell() {
       {state.status === 'signed-in' && <SaveStatus />}
       <main className="flex-1">
         {state.status === 'signed-in' ? (
-          <Dashboard />
+          <Routes />
         ) : state.status === 'restoring' ? (
           <p className="p-6 text-slate-500">Signing you in…</p>
         ) : (
