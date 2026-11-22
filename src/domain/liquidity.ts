@@ -9,3 +9,12 @@ export const LIQUIDITY_LABELS: Record<Liquidity, string> = {
   4: 'High',
   5: 'Very high',
 };
+
+/** Colour per level (low → high), used for the bar beside each account and the pickers. */
+export const LIQUIDITY_COLORS: Record<Liquidity, string> = {
+  1: '#c4b5fd', // violet-300
+  2: '#818cf8', // indigo-400
+  3: '#38bdf8', // sky-400
+  4: '#22d3ee', // cyan-400
+  5: '#14b8a6', // teal-500
+};

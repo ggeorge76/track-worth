@@ -1,0 +1,138 @@
+import { act, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { Routes } from '@/app/Routes';
+import { localIsoDate } from '@/domain/dates';
+import { makeAccount, makeEntry, makeFile } from '@/test/builders';
+import { renderWithData } from '@/test/renderWithData';
+
+const today = localIsoDate();
+
+const file = makeFile({
+  accounts: [
+    makeAccount({ id: 'hdfc', name: '💵 HDFC', tag: 'Cash', liquidity: 5 }),
+    makeAccount({ id: 'ppf', name: 'PPF', tag: 'Fixed Income', liquidity: 1 }),
+    makeAccount({ id: 'card', name: 'Axis card', tag: 'Debt', liquidity: 4, kind: 'liability' }),
+  ],
+  balances: [
+    makeEntry({ accountId: 'hdfc', date: today, amountMinor: 1_234_50 }),
+    makeEntry({ accountId: 'card', date: today, amountMinor: -645_00 }),
+  ],
+});
+
+// Queried directly: while the filter popup is open, the list behind it is (correctly) hidden
+// from assistive technology, so role queries can't name it.
+const rowNames = () =>
+  [...document.querySelectorAll('ul[aria-label="Accounts"] a span.block')].map(
+    (el) => el.textContent,
+  );
+
+beforeEach(() => {
+  window.history.replaceState(null, '', '#/');
+});
+
+describe('StartPage', () => {
+  it('lists accounts with their current balance and net worth', () => {
+    renderWithData(<Routes />, file);
+    expect(rowNames()).toEqual(['Axis card', '💵 HDFC', 'PPF']); // emoji prefix ignored
+    expect(
+      screen.getByRole('link', { name: /💵 HDFC.*Cash.*Updated today.*1,234\.50/ }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /PPF.*No balance yet/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Axis card.*-\$645\.00/ })).toBeInTheDocument();
+    // Net worth = 1,234.50 − 645.00
+    expect(screen.getByRole('heading', { name: 'Net worth' }).nextElementSibling).toHaveTextContent(
+      '$589.50',
+    );
+  });
+
+  it('sorts and filters in the filter popup, and resets', async () => {
+    const user = userEvent.setup();
+    renderWithData(<Routes />, file);
+    await user.click(screen.getByRole('button', { name: /Filter/ }));
+    const dialog = screen.getByRole('dialog', { name: 'Sort & filter' });
+
+    await user.click(within(dialog).getByRole('button', { name: 'Sort by Liquidity' }));
+    expect(rowNames()).toEqual(['💵 HDFC', 'Axis card', 'PPF']); // most liquid first
+    await user.click(within(dialog).getByRole('button', { name: /Sort by Liquidity, descending/ }));
+    expect(rowNames()).toEqual(['PPF', 'Axis card', '💵 HDFC']);
+
+    // Any of the chosen tags…
+    await user.click(within(dialog).getByRole('button', { name: 'Cash' }));
+    await user.click(within(dialog).getByRole('button', { name: 'Fixed Income' }));
+    expect(rowNames()).toEqual(['PPF', '💵 HDFC']);
+    expect(
+      screen.getByRole('button', { name: /2 of 3 accounts/, hidden: true }),
+    ).toBeInTheDocument();
+    // …and any of the chosen liquidity levels.
+    await user.click(within(dialog).getByRole('button', { name: 'Liquidity 1: Very low' }));
+    expect(rowNames()).toEqual(['PPF']);
+
+    await user.click(within(dialog).getByRole('button', { name: 'Reset' }));
+    expect(screen.getByRole('button', { name: /^3 accounts/, hidden: true })).toBeInTheDocument();
+
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('shows a way out when filters match nothing', async () => {
+    const user = userEvent.setup();
+    renderWithData(<Routes />, file);
+    await user.click(screen.getByRole('button', { name: /Filter/ }));
+    await user.click(screen.getByRole('button', { name: 'Fixed Income' }));
+    await user.click(screen.getByRole('button', { name: 'Liquidity 5: Very high' }));
+    await user.click(screen.getByRole('button', { name: 'Close' }));
+    expect(screen.getByText(/No accounts match/)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Clear filters' }));
+    expect(rowNames()).toHaveLength(3);
+  });
+
+  it('groups by tag', async () => {
+    const user = userEvent.setup();
+    renderWithData(<Routes />, file);
+    await user.click(screen.getByRole('button', { name: 'Group by tag' }));
+    expect(screen.getByRole('button', { name: 'Group by tag' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    const groups = screen
+      .getAllByRole('region')
+      .map((r) => r.getAttribute('aria-label'))
+      .filter(Boolean);
+    expect(groups).toEqual(['Cash', 'Debt', 'Fixed Income']);
+  });
+
+  it('opens account details when an account is clicked, and goes back', async () => {
+    const user = userEvent.setup();
+    renderWithData(<Routes />, file);
+    await user.click(screen.getByRole('link', { name: /PPF/ }));
+    expect(await screen.findByRole('heading', { name: 'PPF' })).toBeInTheDocument();
+    expect(screen.getByText('Fixed Income')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Back' }));
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Net worth' })).toBeInTheDocument();
+    });
+  });
+
+  it('invites you to add the first account when there are none', () => {
+    renderWithData(<Routes />, makeFile());
+    expect(screen.getByText('No accounts yet.')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Add your first account' })).toHaveAttribute(
+      'href',
+      '#/accounts/new',
+    );
+    expect(screen.getByRole('link', { name: 'Add account' })).toHaveAttribute(
+      'href',
+      '#/accounts/new',
+    );
+  });
+
+  it('shows a message for an account that no longer exists', async () => {
+    window.history.replaceState(null, '', '#/accounts/gone');
+    renderWithData(<Routes />, file);
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(screen.getByRole('alert')).toHaveTextContent('doesn’t exist');
+  });
+});

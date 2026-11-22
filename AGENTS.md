@@ -53,6 +53,8 @@ Framework-level dependencies (router, state library, UI kit, new Tauri plugin) n
 
 ```
 src/                     React UI (runs in the Tauri webview)
+  app/                   Router (hash routes + back button, ADR-0013), Routes, useToday
+  components/            Shared UI: Sheet (popup), Chip, Segmented, LiquidityPicker, icons
   config.ts              Frontend constants: fixed Drive path, GitHub repo
   domain/                Pure TypeScript: schema (Zod), money, net-worth math. No React, no I/O.
   services/              Side effects, each with an injectable fetch for tests:
@@ -61,7 +63,7 @@ src/                     React UI (runs in the Tauri webview)
     drive/               Drive v3 REST client for the one data file
     update/              Wraps the Tauri updater + relaunch
   features/data/         useDataFile (load) + useUpdateDataFile (optimistic, serial, conflict-safe save)
-  features/<feature>/    React components + hooks for one feature (auth, dashboard, update, …)
+  features/<feature>/    Screens + hooks for one feature (accounts, auth, data, update, …)
   App.tsx, main.tsx      Composition root
 src-tauri/               Rust app shell
   src/auth/              Google OAuth: loopback + PKCE, keychain storage, token refresh

@@ -36,37 +36,37 @@ in the user's own Google Drive. See [SOUL.md](../../SOUL.md).
 
 | ID   | Requirement                                                                                                                                                                                                                                                                                   | Status             |
 | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
-| R-C1 | Create an account with: **name** (free text, emoji allowed), **type** (asset / liability), **tag** (exactly one, free text, emoji allowed, used like a category), **liquidity** (1–5, low → high), **currency**, **notes** (free text, optional) and **balance source** (optional, see R-C6). | 🚧 data layer done |
+| R-C1 | Create an account with: **name** (free text, emoji allowed), **type** (asset / liability), **tag** (exactly one, free text, emoji allowed, used like a category), **liquidity** (1–5, low → high), **currency**, **notes** (free text, optional) and **balance source** (optional, see R-C6). | ✅                 |
 | R-C2 | Edit an account's name, tag, liquidity, currency, notes and balance source from the details page by clicking the value. Type can't be changed after creation. Changing currency keeps the displayed amounts.                                                                                  | 🚧 data layer done |
 | R-C3 | Archive or unarchive an account. Archived accounts are excluded from totals but keep their history.                                                                                                                                                                                           | ⬜                 |
 | R-C4 | Delete an account and its history, with confirmation.                                                                                                                                                                                                                                         | ⬜                 |
-| R-C5 | Default tags: Equity, Fixed Income, Real Assets, Alternative Assets, Cash. Users can type a new tag, which is then offered for other accounts too.                                                                                                                                            | 🚧 data layer done |
-| R-C6 | **Balance source**: where the user reads the balance from. Free text, with a choice of previously entered sources. Accounts are ordered by balance source so all accounts from one source are consecutive when updating balances.                                                             | 🚧 data layer done |
+| R-C5 | Default tags: Equity, Fixed Income, Real Assets, Alternative Assets, Cash. Users can type a new tag, which is then offered for other accounts too.                                                                                                                                            | ✅                 |
+| R-C6 | **Balance source**: where the user reads the balance from. Free text, with a choice of previously entered sources. Accounts are ordered by balance source so all accounts from one source are consecutive when updating balances.                                                             | ✅                 |
 
 ### Start page
 
-| ID   | Requirement                                                 | Status |
-| ---- | ----------------------------------------------------------- | ------ |
-| R-P1 | List accounts with their current balance (latest entry).    | ⬜     |
-| R-P2 | Sort accounts by liquidity or by tag.                       | ⬜     |
-| R-P3 | Filter accounts by liquidity and/or tag, in a filter popup. | ⬜     |
-| R-P4 | Group accounts by tag.                                      | ⬜     |
-| R-P5 | Add a new account from the start page.                      | ⬜     |
-| R-P6 | Clicking an account opens its details page.                 | ⬜     |
+| ID   | Requirement                                                                                                                                | Status |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
+| R-P1 | List accounts with their current balance (latest entry).                                                                                   | ✅     |
+| R-P2 | Sort accounts by name, liquidity or tag (tap again to reverse). Names sort by their first letter or digit, ignoring a leading emoji.       | ✅     |
+| R-P3 | Filter accounts by liquidity and/or tag, in a filter popup. Shows accounts matching any selected tag **and** any selected liquidity level. | ✅     |
+| R-P4 | Group accounts by tag.                                                                                                                     | ✅     |
+| R-P5 | Add a new account from the start page.                                                                                                     | ✅     |
+| R-P6 | Clicking an account opens its details page.                                                                                                | ✅     |
 
 ### Account details
 
 | ID   | Requirement                                                                                                                                                   | Status               |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
-| R-V1 | Title: account name. Subtitle: tag.                                                                                                                           | ⬜                   |
+| R-V1 | Title: account name. Subtitle: tag.                                                                                                                           | ✅                   |
 | R-V2 | Current balance, with the change (+/−) since: the previous entry; the last entry of the previous month; the last entry of the previous financial year (R-S6). | 🚧 calculations done |
 | R-V3 | All-time high. For assets the highest balance; for liabilities the peak debt (most negative).                                                                 | 🚧 calculations done |
-| R-V4 | Show liquidity and currency.                                                                                                                                  | ⬜                   |
+| R-V4 | Show liquidity and currency.                                                                                                                                  | ✅                   |
 | R-V5 | "Update balance" opens the update-balance popup (R-B1).                                                                                                       | ⬜                   |
 | R-V6 | Balance history: a short list, with an option to show all entries.                                                                                            | ⬜                   |
 | R-V7 | Show the balance source (R-C6).                                                                                                                               | ⬜                   |
 | R-V8 | Swipe left/right (and keyboard arrows / buttons on desktop) to go to the previous/next account, in balance-source order (R-C6).                               | 🚧 ordering done     |
-| R-V9 | The back button (browser, desktop back gesture/keys, Android back) returns to the previous screen.                                                            | ⬜                   |
+| R-V9 | The back button (browser, desktop back gesture/keys, Android back) returns to the previous screen.                                                            | ✅                   |
 
 ### Balances
 

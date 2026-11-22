@@ -19,3 +19,4 @@ this index. Accepted ADRs are immutable. Supersede them with a new ADR instead o
 | [0010](0010-versioning-and-release.md)                   | SemVer via Conventional Commits and release-please                  | Accepted |
 | [0011](0011-testing-strategy-and-quality-gates.md)       | Testing strategy and automated quality gates                        | Accepted |
 | [0012](0012-ai-agent-development-workflow.md)            | AI-agent-first development workflow                                 | Accepted |
+| [0013](0013-in-app-navigation-with-hash-routes.md)       | In-app navigation with hash routes and back-button support          | Accepted |
