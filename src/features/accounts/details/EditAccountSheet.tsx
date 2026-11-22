@@ -1,19 +1,22 @@
 import { useId, useMemo, useState } from 'react';
 import { LiquidityPicker } from '@/components/LiquidityPicker';
+import { Segmented } from '@/components/Segmented';
 import { Sheet } from '@/components/Sheet';
 import { balanceSources, updateAccount, type AccountPatch } from '@/domain/accounts';
+import { accountHistory, allEntriesHaveDefaultSign } from '@/domain/balances';
 import { currencyCodes, currencyLabel } from '@/domain/currencies';
 import { LIQUIDITY_LABELS, type Liquidity } from '@/domain/liquidity';
-import { fractionDigits } from '@/domain/money';
-import type { Account, DataFile } from '@/domain/schema';
+import { formatMoney, fractionDigits } from '@/domain/money';
+import type { Account, AccountKind, DataFile } from '@/domain/schema';
 import { availableTags } from '@/domain/tags';
 import { useUpdateDataFile } from '@/features/data/useDataFile';
 import { BalanceSourceInput, Field, inputClass, TagPicker } from '../formParts';
 
-export type EditableField = 'name' | 'liquidity' | 'currency' | 'balanceSource' | 'note';
+export type EditableField = 'name' | 'kind' | 'liquidity' | 'currency' | 'balanceSource' | 'note';
 
 const TITLES: Record<EditableField, string> = {
   name: 'Name & tag',
+  kind: 'Type',
   liquidity: 'Liquidity',
   currency: 'Currency',
   balanceSource: 'Balance source',
@@ -38,6 +41,15 @@ export function EditAccountSheet({
   const sources = useMemo(() => balanceSources(data.accounts), [data.accounts]);
   const currencies = useMemo(() => currencyCodes(), []);
 
+  const history = useMemo(
+    () => accountHistory(data.balances, account.id),
+    [data.balances, account.id],
+  );
+  const [kind, setKind] = useState<AccountKind>(account.kind);
+  // Pre-tick when the balances look like they were entered with the old type's default sign.
+  const [flipSigns, setFlipSigns] = useState(() =>
+    allEntriesHaveDefaultSign(history, account.kind),
+  );
   const [name, setName] = useState(account.name);
   const [tag, setTag] = useState(account.tag);
   const [liquidity, setLiquidity] = useState(account.liquidity as Liquidity);
@@ -54,6 +66,8 @@ export function EditAccountSheet({
           return null;
         }
         return { name, tag };
+      case 'kind':
+        return { kind };
       case 'liquidity':
         return { liquidity };
       case 'currency':
@@ -69,7 +83,8 @@ export function EditAccountSheet({
     const changes = patch();
     if (!changes) return;
     try {
-      await save.mutateAsync((file) => updateAccount(file, account.id, changes));
+      const options = { flipSigns: field === 'kind' && flipSigns };
+      await save.mutateAsync((file) => updateAccount(file, account.id, changes, options));
       onClose();
     } catch {
       // The save status banner explains what went wrong.
@@ -105,6 +120,55 @@ export function EditAccountSheet({
             <Field label="Tag">
               <TagPicker tags={tags} value={tag} onChange={setTag} />
             </Field>
+          </>
+        )}
+
+        {field === 'kind' && (
+          <>
+            <Segmented
+              label="Type"
+              value={kind}
+              onChange={setKind}
+              options={[
+                { value: 'asset', label: 'Asset' },
+                { value: 'liability', label: 'Liability' },
+              ]}
+            />
+            {kind !== account.kind && history.length > 0 && (
+              <div className="space-y-2 rounded-xl bg-white p-3 ring-1 ring-slate-200">
+                <label className="flex items-start gap-3 text-sm text-slate-700">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5 h-5 w-5 shrink-0 accent-teal-700"
+                    checked={flipSigns}
+                    onChange={(e) => {
+                      setFlipSigns(e.target.checked);
+                    }}
+                  />
+                  <span>
+                    Also flip the sign of the{' '}
+                    {history.length === 1
+                      ? 'existing balance'
+                      : `${String(history.length)} existing balances`}
+                  </span>
+                </label>
+                {history[0] && (
+                  <p className="pl-8 text-sm text-slate-500">
+                    Current balance: {formatMoney(history[0].amountMinor, account.currency)} →{' '}
+                    <span className="font-medium text-slate-700">
+                      {formatMoney(
+                        flipSigns ? -history[0].amountMinor || 0 : history[0].amountMinor,
+                        account.currency,
+                      )}
+                    </span>
+                  </p>
+                )}
+                <p className="pl-8 text-xs text-slate-500">
+                  Tick this if the type was chosen wrongly and balances were saved with the wrong
+                  sign. New balances will default to {kind === 'asset' ? 'positive' : 'negative'}.
+                </p>
+              </div>
+            )}
           </>
         )}
 

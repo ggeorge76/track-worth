@@ -250,11 +250,12 @@ export function AccountDetailsPage({ data, accountId }: { data: DataFile; accoun
         <InfoCard label="Currency" onEdit={edit('currency')}>
           {account.currency}
         </InfoCard>
-        <div className="col-span-2">
-          <InfoCard label="Balance source" onEdit={edit('balanceSource')}>
-            {account.balanceSource ?? <span className="text-slate-400">Not set</span>}
-          </InfoCard>
-        </div>
+        <InfoCard label="Type" onEdit={edit('kind')}>
+          {account.kind === 'asset' ? 'Asset' : 'Liability'}
+        </InfoCard>
+        <InfoCard label="Balance source" onEdit={edit('balanceSource')}>
+          {account.balanceSource ?? <span className="text-slate-400">Not set</span>}
+        </InfoCard>
         <div className="col-span-2">
           <InfoCard label="Notes" onEdit={edit('note')}>
             {account.note ? (

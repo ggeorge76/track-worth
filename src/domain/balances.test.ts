@@ -1,5 +1,12 @@
 import { idSequence, makeAccount, makeEntry, makeFile, NOW } from '@/test/builders';
-import { accountHistory, defaultSign, signedAmount, signOf, upsertBalance } from './balances';
+import {
+  accountHistory,
+  allEntriesHaveDefaultSign,
+  defaultSign,
+  signedAmount,
+  signOf,
+  upsertBalance,
+} from './balances';
 
 describe('signs', () => {
   it('defaults by account type', () => {
@@ -107,5 +114,15 @@ describe('same-day details', () => {
     );
     expect(next.balances[0]).toEqual(other);
     expect(next.balances[1]?.amountMinor).toBe(2);
+  });
+});
+
+describe('allEntriesHaveDefaultSign', () => {
+  it('ignores zero and checks the rest against the type’s default sign', () => {
+    const entries = [makeEntry({ amountMinor: 5 }), makeEntry({ amountMinor: 0 })];
+    expect(allEntriesHaveDefaultSign(entries, 'asset')).toBe(true);
+    expect(allEntriesHaveDefaultSign(entries, 'liability')).toBe(false);
+    expect(allEntriesHaveDefaultSign([makeEntry({ amountMinor: -5 })], 'liability')).toBe(true);
+    expect(allEntriesHaveDefaultSign([], 'asset')).toBe(true);
   });
 });

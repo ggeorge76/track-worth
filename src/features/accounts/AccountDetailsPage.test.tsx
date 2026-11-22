@@ -67,6 +67,7 @@ describe('AccountDetailsPage', () => {
     expect(screen.getByText('All-time high').parentElement).toHaveTextContent('$3,000.00');
     expect(screen.getByRole('button', { name: 'Edit liquidity' })).toHaveTextContent('Very high');
     expect(screen.getByRole('button', { name: 'Edit currency' })).toHaveTextContent('USD');
+    expect(screen.getByRole('button', { name: 'Edit type' })).toHaveTextContent('Asset');
     expect(screen.getByRole('button', { name: 'Edit balance source' })).toHaveTextContent('ESAF');
     expect(screen.getByRole('button', { name: 'Edit notes' })).toHaveTextContent('Thrissur branch');
   });
@@ -145,6 +146,51 @@ describe('AccountDetailsPage', () => {
       expect(dataIn(client)?.accounts[0]?.note).toBe('Thrissur branch · joint account');
     });
     expect(fakeDrive.save).toHaveBeenCalledTimes(4);
+  });
+
+  it('changes the type and flips existing balances (pre-ticked when they used the default sign)', async () => {
+    const user = userEvent.setup();
+    const { client } = open('esaf');
+    await user.click(screen.getByRole('button', { name: 'Edit type' }));
+    const dialog = screen.getByRole('dialog', { name: 'Type' });
+    await user.click(within(dialog).getByRole('radio', { name: 'Liability' }));
+    const flip = within(dialog).getByRole('checkbox', {
+      name: /flip the sign of the 4 existing balances/,
+    });
+    expect(flip).toBeChecked();
+    expect(within(dialog).getByText(/Current balance:/)).toHaveTextContent(
+      '$2,000.00 → -$2,000.00',
+    );
+    await user.click(within(dialog).getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => {
+      expect(dataIn(client)?.accounts[0]?.kind).toBe('liability');
+    });
+    expect(
+      dataIn(client)
+        ?.balances.filter((b) => b.accountId === 'esaf')
+        .every((b) => b.amountMinor < 0),
+    ).toBe(true);
+    expect(screen.getByRole('button', { name: 'Edit type' })).toHaveTextContent('Liability');
+    expect(screen.getByText('All-time high (peak debt)')).toBeInTheDocument();
+  });
+
+  it('changes the type without touching balances when the box is unticked', async () => {
+    const user = userEvent.setup();
+    const { client } = open('esaf');
+    await user.click(screen.getByRole('button', { name: 'Edit type' }));
+    await user.click(screen.getByRole('radio', { name: 'Liability' }));
+    await user.click(screen.getByRole('checkbox', { name: /flip the sign/ }));
+    expect(screen.getByText(/Current balance:/)).toHaveTextContent('$2,000.00 → $2,000.00');
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    await waitFor(() => {
+      expect(dataIn(client)?.accounts[0]?.kind).toBe('liability');
+    });
+    expect(
+      dataIn(client)
+        ?.balances.filter((b) => b.accountId === 'esaf')
+        .every((b) => b.amountMinor > 0),
+    ).toBe(true);
   });
 
   it('moves between accounts in balance-source order with buttons, arrow keys and swipes', async () => {
