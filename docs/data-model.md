@@ -87,18 +87,18 @@ plain sum.
 
 ### Account
 
-| Field           | Type                    | Notes                                                                                     |
-| --------------- | ----------------------- | ----------------------------------------------------------------------------------------- |
-| `id`            | string (UUID)           | Never reused.                                                                             |
-| `name`          | string, 1–100 chars     | Free text, emoji allowed.                                                                 |
-| `kind`          | `asset` \| `liability`  | Fixed after creation. Decides the default sign of new balances.                           |
-| `tag`           | string, 1–40 chars      | One per account, free text, emoji allowed.                                                |
-| `liquidity`     | integer 1–5             | 1 = low (hard to turn into cash) … 5 = high (cash-like).                                  |
-| `currency`      | ISO 4217 code           | All balances of this account are in this currency.                                        |
-| `balanceSource` | string ≤ 60, optional   | Where the balance is read from. Orders accounts so one source's accounts are consecutive. |
-| `archived`      | boolean                 | Hidden from totals, history kept.                                                         |
-| `note`          | string ≤ 2000, optional | Notes.                                                                                    |
-| `createdAt`     | ISO-8601 UTC            |                                                                                           |
+| Field           | Type                    | Notes                                                                                                    |
+| --------------- | ----------------------- | -------------------------------------------------------------------------------------------------------- |
+| `id`            | string (UUID)           | Never reused.                                                                                            |
+| `name`          | string, 1–100 chars     | Free text, emoji allowed.                                                                                |
+| `kind`          | `asset` \| `liability`  | Decides the default sign of new balances. Editable; changing it can optionally negate existing balances. |
+| `tag`           | string, 1–40 chars      | One per account, free text, emoji allowed.                                                               |
+| `liquidity`     | integer 1–5             | 1 = low (hard to turn into cash) … 5 = high (cash-like).                                                 |
+| `currency`      | ISO 4217 code           | All balances of this account are in this currency.                                                       |
+| `balanceSource` | string ≤ 60, optional   | Where the balance is read from. Orders accounts so one source's accounts are consecutive.                |
+| `archived`      | boolean                 | Hidden from totals, history kept.                                                                        |
+| `note`          | string ≤ 2000, optional | Notes.                                                                                                   |
+| `createdAt`     | ISO-8601 UTC            |                                                                                                          |
 
 **Default tags** (always offered, not stored): Equity, Fixed Income, Real Assets, Alternative
 Assets, Cash. A tag typed for an account that isn't a default is added to

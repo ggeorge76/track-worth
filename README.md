@@ -10,7 +10,10 @@ file in **your own Google Drive**. There's no server, no bank connection and no 
 - Installed app for macOS, Windows and Linux (Tauri: small and fast). Android is planned.
 - Sign in with Google in your browser. You stay signed in, and your name is shown in the app.
 - Data loads from `My Drive/TrackWorth/trackworth-data.json`, which is created on first use.
-- Manual balance entries for assets and liabilities. Net worth over time _(in progress)_.
+- Accounts with tags, liquidity (1–5), currency, balance source and notes. Sort, filter and
+  group the list; swipe between accounts in balance-source order.
+- Manual balance entries for assets and liabilities, with change since the last entry, last
+  month and last financial year, plus all-time high. Charts _(next)_.
 - **Self-updating from GitHub Releases.** When a new release is published, the app offers it and
   installs only after you confirm. Updates are signature-verified.
 

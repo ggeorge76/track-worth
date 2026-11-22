@@ -11,17 +11,17 @@ refer to [product/requirements.md](product/requirements.md).
 - Signed, user-confirmed self-update from the latest GitHub Release
 - Agent docs and ADRs
 
-## M1: Core tracking (MVP)
+## M1: Core tracking (MVP) ✅ (pending first release)
 
 Delivered as three PRs, each merged before the next:
 
-1. **Data format v2 + saving** 🚧: tags, liquidity, balance source, signed balances, settings
+1. **Data format v2 + saving** ✅ (#2): tags, liquidity, balance source, signed balances, settings
    (financial year, custom tags), v1 → v2 migration, account/balance operations, balance
    stats, conflict-safe save pipeline (R-A6, R-B5, R-C1/2/5/6 data, R-S6 data, R-V2/3/8 logic).
-2. **Start page + create account**: account list with current balances, sort / filter popup /
+2. **Start page + create account** ✅ (#3): account list with current balances, sort / filter popup /
    group by tag, add-account screen, hash-based navigation with back-button support (ADR)
    (R-P1–R-P6, R-C1, R-V9).
-3. **Account details + update balance**: details page with stats, click-to-edit fields,
+3. **Account details + update balance** ✅: details page with stats, click-to-edit fields,
    balance history, update-balance popup, swipe/keyboard previous/next, settings for the
    financial year (R-V1–R-V8, R-B1, R-C2, R-S6).
 

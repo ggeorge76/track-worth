@@ -12,8 +12,16 @@ export interface AccountInput {
   balanceSource?: string | undefined;
 }
 
-/** Fields editable after creation. `kind` is fixed: it decides the sign of every balance. */
-export type AccountPatch = Partial<Omit<AccountInput, 'kind'>>;
+/** Fields editable after creation. */
+export type AccountPatch = Partial<AccountInput>;
+
+export interface UpdateOptions {
+  /**
+   * When the type (asset/liability) changes, also negate this account's existing balances.
+   * Use when the type was picked wrong and balances were entered with its default sign.
+   */
+  flipSigns?: boolean;
+}
 
 export interface ChangeOptions {
   now: Date;
@@ -32,6 +40,7 @@ function cleanAccountFields(data: DataFile, input: AccountPatch): Partial<Accoun
   if (input.tag !== undefined) out.tag = canonicalTag(data, input.tag);
   if (input.liquidity !== undefined) out.liquidity = input.liquidity;
   if (input.currency !== undefined) out.currency = input.currency.toUpperCase();
+  if (input.kind !== undefined) out.kind = input.kind;
   return out;
 }
 
@@ -80,8 +89,15 @@ export function createAccount(
  * Edit an account. Changing the currency keeps the displayed amounts (e.g. 1,234.50 USD becomes
  * 1,234.50 EUR) by rescaling minor units when the currencies use different decimal places
  * (USD has 2, JPY has 0). Going to fewer decimals rounds to the nearest whole unit.
+ *
+ * Changing the type keeps balances as they are unless `flipSigns` is set.
  */
-export function updateAccount(data: DataFile, accountId: string, patch: AccountPatch): DataFile {
+export function updateAccount(
+  data: DataFile,
+  accountId: string,
+  patch: AccountPatch,
+  { flipSigns = false }: UpdateOptions = {},
+): DataFile {
   const existing = data.accounts.find((a) => a.id === accountId);
   if (!existing) throw new Error(`Unknown account ${accountId}`);
 
@@ -98,6 +114,11 @@ export function updateAccount(data: DataFile, accountId: string, patch: AccountP
       b.accountId === accountId
         ? { ...b, amountMinor: Math.round(b.amountMinor * factor) || 0 }
         : b,
+    );
+  }
+  if (flipSigns && account.kind !== existing.kind) {
+    balances = balances.map((b) =>
+      b.accountId === accountId ? { ...b, amountMinor: -b.amountMinor || 0 } : b,
     );
   }
 

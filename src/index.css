@@ -1,1 +1,19 @@
 @import 'tailwindcss';
+
+@layer base {
+  /*
+   * Tailwind v4 no longer gives buttons a pointer cursor. Restore it for everything clickable,
+   * so the desktop app shows the hand cursor consistently (touch devices ignore it).
+   */
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  a[href],
+  select:not(:disabled),
+  summary,
+  label:has(input:not(:disabled)),
+  input[type='checkbox']:not(:disabled),
+  input[type='radio']:not(:disabled),
+  input[type='date']:not(:disabled) {
+    cursor: pointer;
+  }
+}

@@ -34,14 +34,14 @@ in the user's own Google Drive. See [SOUL.md](../../SOUL.md).
 
 ### Accounts
 
-| ID   | Requirement                                                                                                                                                                                                                                                                                   | Status             |
-| ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
-| R-C1 | Create an account with: **name** (free text, emoji allowed), **type** (asset / liability), **tag** (exactly one, free text, emoji allowed, used like a category), **liquidity** (1–5, low → high), **currency**, **notes** (free text, optional) and **balance source** (optional, see R-C6). | ✅                 |
-| R-C2 | Edit an account's name, tag, liquidity, currency, notes and balance source from the details page by clicking the value. Type can't be changed after creation. Changing currency keeps the displayed amounts.                                                                                  | 🚧 data layer done |
-| R-C3 | Archive or unarchive an account. Archived accounts are excluded from totals but keep their history.                                                                                                                                                                                           | ⬜                 |
-| R-C4 | Delete an account and its history, with confirmation.                                                                                                                                                                                                                                         | ⬜                 |
-| R-C5 | Default tags: Equity, Fixed Income, Real Assets, Alternative Assets, Cash. Users can type a new tag, which is then offered for other accounts too.                                                                                                                                            | ✅                 |
-| R-C6 | **Balance source**: where the user reads the balance from. Free text, with a choice of previously entered sources. Accounts are ordered by balance source so all accounts from one source are consecutive when updating balances.                                                             | ✅                 |
+| ID   | Requirement                                                                                                                                                                                                                                                                                                                                                                | Status |
+| ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| R-C1 | Create an account with: **name** (free text, emoji allowed), **type** (asset / liability), **tag** (exactly one, free text, emoji allowed, used like a category), **liquidity** (1–5, low → high), **currency**, **notes** (free text, optional), **balance source** (optional, see R-C6) and an optional **opening balance** (+/− and amount, recorded as today's entry). | ✅     |
+| R-C2 | Edit an account's name, tag, type, liquidity, currency, notes and balance source from the details page by clicking the value. **Type** (asset/liability) can also be changed, optionally flipping the sign of existing balances. Changing currency keeps the displayed amounts.                                                                                            | ✅     |
+| R-C3 | Archive or unarchive an account. Archived accounts are excluded from totals but keep their history.                                                                                                                                                                                                                                                                        | ⬜     |
+| R-C4 | Delete an account and its history, with confirmation.                                                                                                                                                                                                                                                                                                                      | ⬜     |
+| R-C5 | Default tags: Equity, Fixed Income, Real Assets, Alternative Assets, Cash. Users can type a new tag, which is then offered for other accounts too.                                                                                                                                                                                                                         | ✅     |
+| R-C6 | **Balance source**: where the user reads the balance from. Free text, with a choice of previously entered sources. Accounts are ordered by balance source so all accounts from one source are consecutive when updating balances.                                                                                                                                          | ✅     |
 
 ### Start page
 
@@ -56,27 +56,27 @@ in the user's own Google Drive. See [SOUL.md](../../SOUL.md).
 
 ### Account details
 
-| ID   | Requirement                                                                                                                                                   | Status               |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
-| R-V1 | Title: account name. Subtitle: tag.                                                                                                                           | ✅                   |
-| R-V2 | Current balance, with the change (+/−) since: the previous entry; the last entry of the previous month; the last entry of the previous financial year (R-S6). | 🚧 calculations done |
-| R-V3 | All-time high. For assets the highest balance; for liabilities the peak debt (most negative).                                                                 | 🚧 calculations done |
-| R-V4 | Show liquidity and currency.                                                                                                                                  | ✅                   |
-| R-V5 | "Update balance" opens the update-balance popup (R-B1).                                                                                                       | ⬜                   |
-| R-V6 | Balance history: a short list, with an option to show all entries.                                                                                            | ⬜                   |
-| R-V7 | Show the balance source (R-C6).                                                                                                                               | ⬜                   |
-| R-V8 | Swipe left/right (and keyboard arrows / buttons on desktop) to go to the previous/next account, in balance-source order (R-C6).                               | 🚧 ordering done     |
-| R-V9 | The back button (browser, desktop back gesture/keys, Android back) returns to the previous screen.                                                            | ✅                   |
+| ID   | Requirement                                                                                                                                                   | Status |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| R-V1 | Title: account name. Subtitle: tag.                                                                                                                           | ✅     |
+| R-V2 | Current balance, with the change (+/−) since: the previous entry; the last entry of the previous month; the last entry of the previous financial year (R-S6). | ✅     |
+| R-V3 | All-time high. For assets the highest balance; for liabilities the peak debt (most negative).                                                                 | ✅     |
+| R-V4 | Show liquidity, currency and type (asset/liability).                                                                                                          | ✅     |
+| R-V5 | "Update balance" opens the update-balance popup (R-B1).                                                                                                       | ✅     |
+| R-V6 | Balance history: a short list, with an option to show all entries.                                                                                            | ✅     |
+| R-V7 | Show the balance source (R-C6).                                                                                                                               | ✅     |
+| R-V8 | Swipe left/right (and keyboard arrows / buttons on desktop) to go to the previous/next account, in balance-source order (R-C6).                               | ✅     |
+| R-V9 | The back button (browser, desktop back gesture/keys, Android back) returns to the previous screen.                                                            | ✅     |
 
 ### Balances
 
-| ID   | Requirement                                                                                                                                                                                                                                                  | Status             |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------ |
-| R-B1 | Update-balance popup: **date** (defaults to today), **positive/negative** (defaults to positive for assets, negative for liabilities), **amount** (typed as a positive number, saved with the chosen sign, with the account's currency shown), and **Save**. | 🚧 data layer done |
-| R-B2 | "Update all" flow: step through every active account, entering today's balances quickly.                                                                                                                                                                     | ⬜                 |
-| R-B3 | Delete a past balance entry.                                                                                                                                                                                                                                 | ⬜                 |
-| R-B4 | Balance-over-time chart on the details page.                                                                                                                                                                                                                 | ⬜ next iteration  |
-| R-B5 | Saving a balance on a date that already has an entry updates that entry instead of adding another.                                                                                                                                                           | 🚧 data layer done |
+| ID   | Requirement                                                                                                                                                                                                                                                  | Status            |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------- |
+| R-B1 | Update-balance popup: **date** (defaults to today), **positive/negative** (defaults to positive for assets, negative for liabilities), **amount** (typed as a positive number, saved with the chosen sign, with the account's currency shown), and **Save**. | ✅                |
+| R-B2 | "Update all" flow: step through every active account, entering today's balances quickly.                                                                                                                                                                     | ⬜                |
+| R-B3 | Delete a past balance entry. (Editing a past entry is done by tapping it in the history.)                                                                                                                                                                    | ⬜                |
+| R-B4 | Balance-over-time chart on the details page.                                                                                                                                                                                                                 | ⬜ next iteration |
+| R-B5 | Saving a balance on a date that already has an entry updates that entry instead of adding another.                                                                                                                                                           | ✅                |
 
 ### Dashboard & insights
 
@@ -100,14 +100,14 @@ in the user's own Google Drive. See [SOUL.md](../../SOUL.md).
 
 ### Settings & data
 
-| ID   | Requirement                                                                               | Status             |
-| ---- | ----------------------------------------------------------------------------------------- | ------------------ |
-| R-S1 | Choose the base currency.                                                                 | ⬜                 |
-| R-S2 | Export the data file (download JSON) and export balances as CSV.                          | ⬜                 |
-| R-S3 | Light and dark theme, following the system by default.                                    | ⬜                 |
-| R-S4 | "Open existing file" via Google Picker, to restore a manually uploaded backup (ADR-0005). | 💭                 |
-| R-S5 | Multi-currency net worth with user-entered exchange rates.                                | 💭                 |
-| R-S6 | Financial year start month (default April, i.e. April–March). Used by R-V2.               | 🚧 data layer done |
+| ID   | Requirement                                                                               | Status |
+| ---- | ----------------------------------------------------------------------------------------- | ------ |
+| R-S1 | Choose the base currency.                                                                 | ⬜     |
+| R-S2 | Export the data file (download JSON) and export balances as CSV.                          | ⬜     |
+| R-S3 | Light and dark theme, following the system by default.                                    | ⬜     |
+| R-S4 | "Open existing file" via Google Picker, to restore a manually uploaded backup (ADR-0005). | 💭     |
+| R-S5 | Multi-currency net worth with user-entered exchange rates.                                | 💭     |
+| R-S6 | Financial year start month (default April, i.e. April–March). Used by R-V2.               | ✅     |
 
 ## Non-functional requirements
 

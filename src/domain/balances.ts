@@ -66,3 +66,15 @@ export function upsertBalance(
       ];
   return dataFileSchema.parse({ ...data, balances });
 }
+
+/**
+ * True when every entry has the sign this type defaults to, i.e. the balances were probably
+ * entered with the default. Used to pre-tick "flip signs" when the type is changed.
+ */
+export function allEntriesHaveDefaultSign(
+  entries: readonly BalanceEntry[],
+  kind: AccountKind,
+): boolean {
+  const expected = defaultSign(kind);
+  return entries.every((e) => e.amountMinor === 0 || signOf(e.amountMinor) === expected);
+}

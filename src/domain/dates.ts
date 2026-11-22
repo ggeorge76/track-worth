@@ -24,3 +24,28 @@ export function financialYearStart(isoDate: string, startMonth: number): string 
   const month = Number(isoDate.slice(5, 7));
   return `${String(month >= startMonth ? year : year - 1)}-${pad(startMonth)}-01`;
 }
+
+/** "9 Nov 2026" (locale-dependent) for a `YYYY-MM-DD` date. */
+export function formatIsoDate(isoDate: string, locale?: string): string {
+  const [y, m, d] = isoDate.split('-').map(Number);
+  return new Intl.DateTimeFormat(locale, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(Date.UTC(y ?? 1970, (m ?? 1) - 1, d ?? 1)));
+}
+
+/** Month names, index 0 = January. */
+export function monthNames(locale?: string): string[] {
+  const fmt = new Intl.DateTimeFormat(locale, { month: 'long', timeZone: 'UTC' });
+  return Array.from({ length: 12 }, (_, i) => fmt.format(new Date(Date.UTC(2026, i, 1))));
+}
+
+/** Last day of the financial year that starts on `start` (YYYY-MM-01). */
+export function financialYearEnd(start: string): string {
+  const y = Number(start.slice(0, 4));
+  const m = Number(start.slice(5, 7));
+  const end = new Date(Date.UTC(y + 1, m - 1, 0)); // day 0 = last day of the previous month
+  return end.toISOString().slice(0, 10);
+}

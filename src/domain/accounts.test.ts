@@ -160,3 +160,31 @@ describe('updateAccount: balance source and ordering ties', () => {
     expect(orderByBalanceSource([newer, older]).map((a) => a.id)).toEqual(['old', 'new']);
   });
 });
+
+describe('updateAccount: type', () => {
+  const file = makeFile({
+    accounts: [makeAccount({ id: 'a', kind: 'asset' }), makeAccount({ id: 'b', name: 'Other' })],
+    balances: [
+      makeEntry({ accountId: 'a', date: '2026-01-01', amountMinor: 64500 }),
+      makeEntry({ accountId: 'a', date: '2026-02-01', amountMinor: 0 }),
+      makeEntry({ accountId: 'b', date: '2026-01-01', amountMinor: 100 }),
+    ],
+  });
+
+  it('changes the type and keeps balances by default', () => {
+    const next = updateAccount(file, 'a', { kind: 'liability' });
+    expect(next.accounts[0]?.kind).toBe('liability');
+    expect(next.balances.map((b) => b.amountMinor)).toEqual([64500, 0, 100]);
+  });
+
+  it('can flip this account’s balances, leaving zero and other accounts alone', () => {
+    const next = updateAccount(file, 'a', { kind: 'liability' }, { flipSigns: true });
+    expect(next.balances.map((b) => b.amountMinor)).toEqual([-64500, 0, 100]);
+    expect(Object.is(next.balances[1]?.amountMinor, -0)).toBe(false);
+  });
+
+  it('does not flip when the type is unchanged', () => {
+    const next = updateAccount(file, 'a', { kind: 'asset' }, { flipSigns: true });
+    expect(next.balances.map((b) => b.amountMinor)).toEqual([64500, 0, 100]);
+  });
+});
