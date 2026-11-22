@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { goBack, navigate } from '@/app/router';
 import { useSwipe } from '@/app/useSwipe';
 import { useToday } from '@/app/useToday';
-import { BackIcon } from '@/components/icons';
+import { BackIcon, PencilIcon } from '@/components/icons';
 import { adjacentAccounts, orderByBalanceSource } from '@/domain/accounts';
 import { accountHistory } from '@/domain/balances';
 import { formatIsoDate } from '@/domain/dates';
@@ -21,7 +21,19 @@ type Popup =
   | { kind: 'edit'; field: EditableField }
   | { kind: 'balance'; entry?: BalanceEntry };
 
-/** A card that opens an editor when clicked ("editable on click", R-C2). */
+/** Always-visible edit affordance (no hover on touch devices). */
+function EditMark() {
+  return (
+    <span
+      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500"
+      aria-hidden="true"
+    >
+      <PencilIcon width={16} height={16} />
+    </span>
+  );
+}
+
+/** A card that opens an editor when clicked ("editable on click", R-C2), with a visible pencil. */
 function InfoCard({
   label,
   onEdit,
@@ -38,19 +50,22 @@ function InfoCard({
       type="button"
       onClick={onEdit}
       aria-label={`Edit ${label.toLocaleLowerCase()}`}
-      className="flex w-full items-stretch justify-between gap-3 rounded-2xl bg-white p-4 text-left shadow-sm ring-1 ring-slate-200 hover:ring-slate-300"
+      className="flex w-full items-start justify-between gap-3 rounded-2xl bg-white p-4 text-left shadow-sm ring-1 ring-slate-200 hover:ring-slate-300 active:bg-slate-50"
     >
-      <span className="min-w-0">
-        <span className="block text-sm text-slate-500">{label}</span>
-        <span className="mt-1 block break-words text-lg">{children}</span>
+      <span className="flex min-w-0 flex-1 items-stretch gap-3">
+        {accent && (
+          <span
+            className="w-1.5 shrink-0 rounded-full"
+            style={{ backgroundColor: accent }}
+            aria-hidden="true"
+          />
+        )}
+        <span className="min-w-0">
+          <span className="block text-sm text-slate-500">{label}</span>
+          <span className="mt-1 block break-words text-lg">{children}</span>
+        </span>
       </span>
-      {accent && (
-        <span
-          className="w-1.5 shrink-0 rounded-full"
-          style={{ backgroundColor: accent }}
-          aria-hidden="true"
-        />
-      )}
+      <EditMark />
     </button>
   );
 }
@@ -176,27 +191,21 @@ export function AccountDetailsPage({ data, accountId }: { data: DataFile; accoun
         </div>
       </div>
 
-      <header className="mt-3">
-        <h1 className="text-2xl font-semibold">
-          <button
-            type="button"
-            onClick={edit('name')}
-            className="text-left hover:underline"
-            aria-label={`${account.name}. Edit name and tag`}
-          >
-            {account.name}
-          </button>
-        </h1>
-        <p>
-          <button
-            type="button"
-            onClick={edit('name')}
-            className="text-slate-600 hover:underline"
-            aria-label={`Tag: ${account.tag}. Edit name and tag`}
-          >
-            {account.tag}
-          </button>
-        </p>
+      <header className="mt-3 flex items-start justify-between gap-3">
+        {/* Tapping the title also opens the editor; the pencil button is the accessible control. */}
+        <div className="min-w-0 cursor-pointer" onClick={edit('name')}>
+          <h1 className="break-words text-2xl font-semibold">{account.name}</h1>
+          <p className="text-slate-600">{account.tag}</p>
+        </div>
+        <button
+          type="button"
+          onClick={edit('name')}
+          aria-label="Edit name and tag"
+          title="Edit name and tag"
+          className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200"
+        >
+          <PencilIcon width={18} height={18} />
+        </button>
       </header>
 
       <p

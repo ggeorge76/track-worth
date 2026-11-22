@@ -54,7 +54,9 @@ describe('AccountDetailsPage', () => {
   it('shows name, tag, balance, changes, all-time high, liquidity, currency, source and notes', () => {
     open('esaf');
     expect(screen.getByRole('heading', { name: /💵 ESAF/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Tag: Cash/ })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '💵 ESAF' }).nextElementSibling).toHaveTextContent(
+      'Cash',
+    );
     expect(screen.getByText('Updated yesterday').previousElementSibling).toHaveTextContent(
       '$2,000.00',
     );
@@ -91,7 +93,7 @@ describe('AccountDetailsPage', () => {
   it('edits name and tag by clicking the title', async () => {
     const user = userEvent.setup();
     const { client } = open('esaf');
-    await user.click(screen.getByRole('button', { name: '💵 ESAF. Edit name and tag' }));
+    await user.click(screen.getByRole('button', { name: 'Edit name and tag' }));
     const dialog = screen.getByRole('dialog', { name: 'Name & tag' });
     const name = within(dialog).getByLabelText('Name');
     await user.clear(name);
@@ -106,6 +108,24 @@ describe('AccountDetailsPage', () => {
       tag: 'Fixed Income',
     });
     expect(screen.getByRole('heading', { name: /🏦 ESAF Savings/ })).toBeInTheDocument();
+  });
+
+  it('has a visible edit button on every editable field, and tapping the title also edits', async () => {
+    const user = userEvent.setup();
+    open('esaf');
+    for (const name of [
+      'name and tag',
+      'liquidity',
+      'currency',
+      'type',
+      'balance source',
+      'notes',
+    ]) {
+      const button = screen.getByRole('button', { name: `Edit ${name}` });
+      expect(button.querySelector('svg')).not.toBeNull(); // the pencil
+    }
+    await user.click(screen.getByRole('heading', { name: '💵 ESAF' }));
+    expect(screen.getByRole('dialog', { name: 'Name & tag' })).toBeInTheDocument();
   });
 
   it('edits liquidity, currency, balance source and notes', async () => {
