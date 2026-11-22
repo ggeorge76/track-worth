@@ -60,6 +60,7 @@ src/                     React UI (runs in the Tauri webview)
     auth/                Calls the Rust auth commands; fetches the user's profile
     drive/               Drive v3 REST client for the one data file
     update/              Wraps the Tauri updater + relaunch
+  features/data/         useDataFile (load) + useUpdateDataFile (optimistic, serial, conflict-safe save)
   features/<feature>/    React components + hooks for one feature (auth, dashboard, update, …)
   App.tsx, main.tsx      Composition root
 src-tauri/               Rust app shell
@@ -132,6 +133,8 @@ it. See [ADR-0006](docs/adr/0006-data-file-schema-and-migrations.md) and
 - The app must refuse to write a file whose `schemaVersion` is newer than it understands.
 - Writes use optimistic concurrency (Drive `version` check). Never "fix" a conflict by
   overwriting.
+- Change data only through `useUpdateDataFile()` with a pure function from `src/domain/`
+  (e.g. `createAccount`, `updateAccount`, `upsertBalance`). Never call `drive.save` directly.
 
 ## Boundaries
 

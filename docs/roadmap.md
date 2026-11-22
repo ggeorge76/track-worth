@@ -13,19 +13,24 @@ refer to [product/requirements.md](product/requirements.md).
 
 ## M1: Core tracking (MVP)
 
-- [ ] Save pipeline: `useSaveDataFile` mutation with conflict handling UI (R-A6)
-- [ ] Router (with an ADR): dashboard, account detail, settings
-- [ ] Create, edit and archive accounts (R-C1–C3)
-- [ ] Record a balance, and edit or delete entries (R-B1, R-B3)
-- [ ] Dashboard grouped by category with totals (R-C5, R-D2)
-- [ ] Account detail with history list and chart (R-B4)
-- [ ] Base currency setting (R-S1)
-- [ ] First release: secrets configured, installers tested on macOS, Windows and Linux
+Delivered as three PRs, each merged before the next:
+
+1. **Data format v2 + saving** 🚧: tags, liquidity, balance source, signed balances, settings
+   (financial year, custom tags), v1 → v2 migration, account/balance operations, balance
+   stats, conflict-safe save pipeline (R-A6, R-B5, R-C1/2/5/6 data, R-S6 data, R-V2/3/8 logic).
+2. **Start page + create account**: account list with current balances, sort / filter popup /
+   group by tag, add-account screen, hash-based navigation with back-button support (ADR)
+   (R-P1–R-P6, R-C1, R-V9).
+3. **Account details + update balance**: details page with stats, click-to-edit fields,
+   balance history, update-balance popup, swipe/keyboard previous/next, settings for the
+   financial year (R-V1–R-V8, R-B1, R-C2, R-S6).
+
+Then: first release (secrets configured, installers tested on macOS, Windows and Linux).
 
 ## M2: Insights and polish
 
-- [ ] Net-worth-over-time chart with ranges (R-D3), change vs previous period (R-D4)
-- [ ] Category breakdown (R-D5)
+- [ ] Charts: balance over time on details (R-B4), net worth over time (R-D3), change vs previous period (R-D4)
+- [ ] Breakdown by tag (R-D5)
 - [ ] "Update all" quick-entry flow (R-B2)
 - [ ] Export JSON and CSV (R-S2)
 - [ ] Dark mode (R-S3)

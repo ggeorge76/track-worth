@@ -3,6 +3,7 @@ import { AuthProvider } from './features/auth/AuthProvider';
 import { useAuth } from './features/auth/authContext';
 import { SignInScreen } from './features/auth/SignInScreen';
 import { Dashboard } from './features/dashboard/Dashboard';
+import { SaveStatus } from './features/data/SaveStatus';
 
 function Shell() {
   const { state, signOut } = useAuth();
@@ -27,6 +28,7 @@ function Shell() {
           </div>
         )}
       </header>
+      {state.status === 'signed-in' && <SaveStatus />}
       <main className="flex-1">
         {state.status === 'signed-in' ? (
           <Dashboard />
