@@ -1,7 +1,6 @@
-import { useId, useMemo, useState, type ReactNode } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { goBack, navigate } from '@/app/router';
-import { Chip } from '@/components/Chip';
-import { CloseIcon, PlusIcon } from '@/components/icons';
+import { CloseIcon } from '@/components/icons';
 import { LiquidityPicker } from '@/components/LiquidityPicker';
 import { Segmented } from '@/components/Segmented';
 import { balanceSources, createAccount } from '@/domain/accounts';
@@ -10,39 +9,7 @@ import { LIQUIDITY_LABELS, type Liquidity } from '@/domain/liquidity';
 import type { AccountKind, DataFile } from '@/domain/schema';
 import { availableTags } from '@/domain/tags';
 import { useUpdateDataFile } from '@/features/data/useDataFile';
-
-const inputClass =
-  'w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-base outline-none focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20';
-
-function Field({
-  label,
-  htmlFor,
-  children,
-  error,
-}: {
-  label: string;
-  htmlFor?: string;
-  children: ReactNode;
-  error?: string | undefined;
-}) {
-  return (
-    <div className="space-y-1.5">
-      {htmlFor ? (
-        <label htmlFor={htmlFor} className="block text-sm font-medium text-slate-700">
-          {label}
-        </label>
-      ) : (
-        <p className="text-sm font-medium text-slate-700">{label}</p>
-      )}
-      {children}
-      {error && (
-        <p role="alert" className="text-sm text-red-700">
-          {error}
-        </p>
-      )}
-    </div>
-  );
-}
+import { BalanceSourceInput, Field, inputClass, TagPicker } from './formParts';
 
 export function NewAccountPage({ data }: { data: DataFile }) {
   const save = useUpdateDataFile();
@@ -62,8 +29,6 @@ export function NewAccountPage({ data }: { data: DataFile }) {
   const [name, setName] = useState('');
   const [kind, setKind] = useState<AccountKind>('asset');
   const [tag, setTag] = useState<string | null>(null);
-  const [extraTags, setExtraTags] = useState<string[]>([]);
-  const [newTag, setNewTag] = useState<string | null>(null);
   const [liquidity, setLiquidity] = useState<Liquidity>(3);
   const [currency, setCurrency] = useState(() =>
     suggestedCurrency(
@@ -74,23 +39,6 @@ export function NewAccountPage({ data }: { data: DataFile }) {
   const [balanceSource, setBalanceSource] = useState('');
   const [note, setNote] = useState('');
   const [errors, setErrors] = useState<{ name?: string; tag?: string; form?: string }>({});
-
-  const tagOptions = [
-    ...tags,
-    ...extraTags.filter((t) => !tags.some((x) => x.toLocaleLowerCase() === t.toLocaleLowerCase())),
-  ];
-
-  const addNewTag = () => {
-    const value = newTag?.trim();
-    if (!value) {
-      setNewTag(null);
-      return;
-    }
-    const existing = tagOptions.find((t) => t.toLocaleLowerCase() === value.toLocaleLowerCase());
-    if (!existing) setExtraTags([...extraTags, value]);
-    setTag(existing ?? value);
-    setNewTag(null);
-  };
 
   const onSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
@@ -165,62 +113,7 @@ export function NewAccountPage({ data }: { data: DataFile }) {
       </Field>
 
       <Field label="Tag" error={errors.tag}>
-        <div role="radiogroup" aria-label="Tag" className="flex flex-wrap gap-2">
-          {tagOptions.map((t) => (
-            <Chip
-              key={t}
-              pressed={tag === t}
-              onClick={() => {
-                setTag(t);
-              }}
-            >
-              {t}
-            </Chip>
-          ))}
-          {newTag === null ? (
-            <button
-              type="button"
-              onClick={() => {
-                setNewTag('');
-              }}
-              className="flex items-center gap-1 rounded-full border border-dashed border-slate-400 px-3 py-1.5 text-sm text-slate-600"
-            >
-              <PlusIcon width={16} height={16} /> New tag
-            </button>
-          ) : (
-            <span className="flex items-center gap-1">
-              <label htmlFor={ids.newTag} className="sr-only">
-                New tag
-              </label>
-              <input
-                id={ids.newTag}
-                autoFocus
-                maxLength={40}
-                value={newTag}
-                placeholder="e.g. 🪙 Gold"
-                className="rounded-full border border-slate-300 px-3 py-1.5 text-sm"
-                onChange={(e) => {
-                  setNewTag(e.target.value);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addNewTag();
-                  } else if (e.key === 'Escape') {
-                    setNewTag(null);
-                  }
-                }}
-              />
-              <button
-                type="button"
-                onClick={addNewTag}
-                className="px-2 text-sm font-medium text-teal-700"
-              >
-                Add
-              </button>
-            </span>
-          )}
-        </div>
+        <TagPicker tags={tags} value={tag} onChange={setTag} />
       </Field>
 
       <Field label={`Liquidity: ${LIQUIDITY_LABELS[liquidity]}`}>
@@ -245,22 +138,12 @@ export function NewAccountPage({ data }: { data: DataFile }) {
       </Field>
 
       <Field label="Balance source (optional)" htmlFor={ids.source}>
-        <input
+        <BalanceSourceInput
           id={ids.source}
-          className={inputClass}
-          list={ids.sources}
           value={balanceSource}
-          maxLength={60}
-          placeholder="Where you check this balance, e.g. HDFC NetBanking"
-          onChange={(e) => {
-            setBalanceSource(e.target.value);
-          }}
+          onChange={setBalanceSource}
+          sources={sources}
         />
-        <datalist id={ids.sources}>
-          {sources.map((s) => (
-            <option key={s} value={s} />
-          ))}
-        </datalist>
         <p className="text-xs text-slate-500">
           Accounts with the same source are kept together when you update balances.
         </p>

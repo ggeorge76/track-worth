@@ -1,4 +1,6 @@
+import { hrefFor } from './app/router';
 import { Routes } from './app/Routes';
+import { SettingsIcon } from './components/icons';
 import { config, symbolUrl } from './config';
 import { AuthProvider } from './features/auth/AuthProvider';
 import { useAuth } from './features/auth/authContext';
@@ -18,6 +20,14 @@ function Shell() {
         {state.status === 'signed-in' && (
           <div className="flex items-center gap-3 text-sm">
             <span>{state.user.name}</span>
+            <a
+              href={hrefFor({ name: 'settings' })}
+              aria-label="Settings"
+              title="Settings"
+              className="rounded-full p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+            >
+              <SettingsIcon />
+            </a>
             <button
               type="button"
               onClick={() => void signOut()}

@@ -35,3 +35,42 @@ export function parseMoneyInput(input: string, currency: string): number | null 
   if (!Number.isSafeInteger(minor)) return null;
   return sign ? -minor : minor;
 }
+
+/** Amount with an explicit sign for changes: "+₹42.00", "−₹645.00", "₹0.00". */
+export function formatSignedMoney(amountMinor: number, currency: string, locale?: string): string {
+  const digits = fractionDigits(currency);
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency,
+    signDisplay: 'exceptZero',
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  }).format(amountMinor / 10 ** digits);
+}
+
+/** Magnitude typed by the user, as text for an input ("1234.5" → "1234.50"). */
+export function minorToInput(amountMinor: number, currency: string): string {
+  const digits = fractionDigits(currency);
+  const magnitude = Math.abs(amountMinor);
+  const whole = Math.floor(magnitude / 10 ** digits);
+  const frac = String(magnitude % 10 ** digits).padStart(digits, '0');
+  return digits === 0 ? String(whole) : `${String(whole)}.${frac}`;
+}
+
+/**
+ * Percentage change relative to the size of the base (so a debt shrinking from −1,000 to −800
+ * is +20%). `null` when the base is zero.
+ */
+export function percentChange(deltaMinor: number, baseMinor: number): number | null {
+  if (baseMinor === 0) return null;
+  return (deltaMinor / Math.abs(baseMinor)) * 100;
+}
+
+export function formatPercent(percent: number, locale?: string): string {
+  return (
+    new Intl.NumberFormat(locale, {
+      signDisplay: 'exceptZero',
+      maximumFractionDigits: 1,
+    }).format(percent) + '%'
+  );
+}
