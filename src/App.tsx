@@ -5,11 +5,12 @@ import { config, symbolUrl } from './config';
 import { AuthProvider } from './features/auth/AuthProvider';
 import { useAuth } from './features/auth/authContext';
 import { SignInScreen } from './features/auth/SignInScreen';
-import { OfflineNotice } from './features/data/OfflineNotice';
+import { SignOutButton } from './features/auth/SignOutButton';
+import { SyncStatus } from './features/data/SyncStatus';
 import { SaveStatus } from './features/data/SaveStatus';
 
 function Shell() {
-  const { state, signOut } = useAuth();
+  const { state } = useAuth();
 
   return (
     <div className="flex min-h-dvh flex-col bg-slate-50 text-slate-900">
@@ -29,17 +30,11 @@ function Shell() {
             >
               <SettingsIcon />
             </a>
-            <button
-              type="button"
-              onClick={() => void signOut()}
-              className="text-slate-500 hover:text-slate-900"
-            >
-              Sign out
-            </button>
+            <SignOutButton />
           </div>
         )}
       </header>
-      {state.status === 'signed-in' && <OfflineNotice />}
+      {state.status === 'signed-in' && <SyncStatus />}
       {state.status === 'signed-in' && <SaveStatus />}
       <main className="flex-1">
         {state.status === 'signed-in' ? (

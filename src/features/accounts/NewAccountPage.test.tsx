@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event';
 import { Routes } from '@/app/Routes';
 import { localIsoDate } from '@/domain/dates';
 import { makeAccount, makeFile } from '@/test/builders';
+import { DATA_FILE_KEY, type LoadedDataFile } from '@/features/data/useDataFile';
+import { DriveError } from '@/services/drive/driveClient';
 import { fakeStore } from '@/test/mockStore';
 import { dataIn, renderWithData } from '@/test/renderWithData';
 
@@ -18,8 +20,10 @@ const file = makeFile({
 beforeEach(() => {
   window.history.replaceState(null, '', '#/accounts/new');
 });
-afterEach(() => {
+afterEach(async () => {
   vi.clearAllMocks();
+  fakeStore.save.mockImplementation((snapshot) => Promise.resolve(snapshot));
+  await (await import('@/services/cache/workspace')).workspace.clear();
 });
 
 describe('NewAccountPage', () => {
@@ -87,18 +91,20 @@ describe('NewAccountPage', () => {
     ]);
   });
 
-  it('stays on the form if saving fails', async () => {
-    fakeStore.save.mockRejectedValueOnce(new Error('offline'));
+  it('keeps the new account on this device when it can’t be uploaded yet (ADR-0015)', async () => {
+    fakeStore.save.mockRejectedValue(new DriveError('Google Drive can’t be reached', 'offline'));
     const user = userEvent.setup();
-    renderWithData(<Routes />, file);
+    const { client } = renderWithData(<Routes />, file);
     await user.type(screen.getByLabelText('Name'), 'Wallet');
     await user.click(screen.getByRole('button', { name: 'Cash' }));
     await user.click(screen.getByRole('button', { name: 'Create account' }));
-    await waitFor(() => {
-      expect(fakeStore.save).toHaveBeenCalled();
+
+    expect(await screen.findByRole('heading', { name: 'Wallet' })).toBeInTheDocument();
+    expect(dataIn(client)?.accounts.some((a) => a.name === 'Wallet')).toBe(true);
+    expect(client.getQueryData<LoadedDataFile>(DATA_FILE_KEY)).toMatchObject({
+      pending: 1,
+      offline: true,
     });
-    expect(window.location.hash).toBe('#/accounts/new');
-    expect(screen.getByRole('button', { name: 'Create account' })).toBeEnabled();
   });
 
   describe('opening balance', () => {

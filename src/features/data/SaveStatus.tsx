@@ -1,7 +1,10 @@
 import { useMutationState, useQueryClient } from '@tanstack/react-query';
-import { DATA_FILE_KEY, SAVE_MUTATION_KEY, SaveError } from './useDataFile';
+import { SAVE_MUTATION_KEY, SaveError } from './useDataFile';
 
-/** Shows "Saving…" while a save is in flight, and a plain-language message if one failed. */
+/**
+ * "Saving…" while a change is being saved, and a message if it couldn't even be saved on this
+ * device. Upload status (offline, waiting, decisions) is shown by SyncStatus.
+ */
 export function SaveStatus() {
   const queryClient = useQueryClient();
   const states = useMutationState({
@@ -13,13 +16,7 @@ export function SaveStatus() {
   const latest = states.at(-1);
   const error = latest?.status === 'error' ? latest.error : null;
 
-  const clearSaveHistory = () => {
-    const cache = queryClient.getMutationCache();
-    for (const m of cache.findAll({ mutationKey: SAVE_MUTATION_KEY })) cache.remove(m);
-  };
-
   if (error) {
-    const conflict = error instanceof SaveError && error.code === 'conflict';
     const message =
       error instanceof SaveError ? error.message : "Couldn't save your change. Please try again.";
     return (
@@ -32,11 +29,11 @@ export function SaveStatus() {
           type="button"
           className="font-medium underline"
           onClick={() => {
-            clearSaveHistory();
-            if (conflict) void queryClient.invalidateQueries({ queryKey: DATA_FILE_KEY });
+            const cache = queryClient.getMutationCache();
+            for (const m of cache.findAll({ mutationKey: SAVE_MUTATION_KEY })) cache.remove(m);
           }}
         >
-          {conflict ? 'Reload' : 'Dismiss'}
+          Dismiss
         </button>
       </div>
     );
