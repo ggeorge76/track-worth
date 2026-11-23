@@ -1,5 +1,5 @@
 ---
-status: Accepted
+status: Superseded by ADR-0014
 date: 2026-11-21
 decision-makers: [project owner]
 ---
