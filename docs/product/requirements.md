@@ -110,16 +110,16 @@ how each account and their total net worth change over time. All data lives in r
 
 ## Non-functional requirements
 
-| ID  | Requirement                                                                                                             |
-| --- | ----------------------------------------------------------------------------------------------------------------------- |
-| N-1 | No server, analytics, telemetry or third-party trackers (ADR-0003, SOUL.md).                                            |
-| N-2 | No bank or aggregator integrations, ever. Manual entry only.                                                            |
-| N-3 | The refresh token is stored only in the OS keychain and never reaches the UI. Access tokens are memory-only (ADR-0004). |
-| N-4 | Responsive. Usable in a 380 px wide window (the same UI will run on Android).                                           |
-| N-5 | WCAG 2.2 AA: keyboard accessible, labelled controls, sufficient contrast.                                               |
-| N-6 | Money is exact (integer minor units, ADR-0006).                                                                         |
-| N-7 | Starts and is interactive in under 2 s on a mid-range laptop. Installer under 15 MB. JS bundle under 250 kB gzip.       |
-| N-8 | Viewing the last loaded data offline (planned). Writes require connectivity.                                            |
+| ID  | Requirement                                                                                                                             |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| N-1 | No server, analytics, telemetry or third-party trackers (ADR-0003, SOUL.md).                                                            |
+| N-2 | No bank or aggregator integrations, ever. Manual entry only.                                                                            |
+| N-3 | The refresh token is stored only in the OS keychain and never reaches the UI. Access tokens are memory-only (ADR-0004).                 |
+| N-4 | Responsive. Usable in a 380 px wide window (the same UI will run on Android).                                                           |
+| N-5 | WCAG 2.2 AA: keyboard accessible, labelled controls, sufficient contrast.                                                               |
+| N-6 | Money is exact (integer minor units, ADR-0006).                                                                                         |
+| N-7 | Starts and is interactive in under 2 s on a mid-range laptop. Installer under 15 MB. JS bundle under 250 kB gzip.                       |
+| N-8 | Works offline: view and edit with no connection; changes are kept on the device and uploaded automatically when back online (ADR-0015). |
 
 ## Out of scope
 
