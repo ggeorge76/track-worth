@@ -60,13 +60,15 @@ src/                     React UI (runs in the Tauri webview)
   config.ts              Frontend constants: fixed Drive path, GitHub repo
   domain/                Pure TypeScript: schema (Zod), money, net-worth math. No React, no I/O.
     storage/             How data maps to Drive files: year-file periods, split/assemble, write order
+    sync/                Three-way merge for offline changes (ADR-0015)
   services/              Side effects, each with an injectable fetch for tests:
     platform.ts          isDesktopApp(), httpFetch (routes through the Rust HTTP plugin)
     auth/                Calls the Rust auth commands; fetches the user's profile
     drive/               Drive v3 REST client (folders, JSON files, version checks, trash)
     storage/             Data store: load (only changed files), save (only touched files), v2 upgrade
+    sync/                Offline-first sync engine: save on device, upload, merge or ask (ADR-0015)
     cache/               On-device storage (IndexedDB): local copy of Drive files + workspace
-                         (last synced data, display name) for offline use; cleared on sign-out
+                         (last synced data, pending changes, display name); cleared on sign-out
     update/              Wraps the Tauri updater + relaunch
   features/data/         useDataFile (load) + useUpdateDataFile (optimistic, serial, conflict-safe save)
   features/<feature>/    Screens + hooks for one feature (accounts, auth, data, settings, update)

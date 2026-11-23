@@ -14,8 +14,9 @@ const signedIn: AuthContextValue = {
 };
 
 /**
- * Render signed-in UI with `file` already loaded, as if from Drive. Saving still goes through
- * the data store, so tests that save must mock '@/services/storage/dataStore' (see mockStore).
+ * Render signed-in UI with `file` already loaded and synced, as if from Drive. Saving still goes
+ * through the sync engine and data store, so tests that save must mock
+ * '@/services/storage/dataStore' (see mockStore).
  */
 export function renderWithData(ui: ReactElement, file: DataFile) {
   const client = new QueryClient({
@@ -23,7 +24,8 @@ export function renderWithData(ui: ReactElement, file: DataFile) {
   });
   client.setQueryData<LoadedDataFile>(DATA_FILE_KEY, {
     data: file,
-    snapshot: emptySnapshot,
+    synced: { data: file, snapshot: emptySnapshot },
+    pending: 0,
     offline: false,
   });
   const utils = render(

@@ -4,12 +4,13 @@ import { SettingsIcon } from './components/icons';
 import { config, symbolUrl } from './config';
 import { AuthProvider } from './features/auth/AuthProvider';
 import { useAuth } from './features/auth/authContext';
+import { SignOutButton } from './features/auth/SignOutButton';
 import { LandingPage } from './features/landing/LandingPage';
-import { OfflineNotice } from './features/data/OfflineNotice';
+import { SyncStatus } from './features/data/SyncStatus';
 import { SaveStatus } from './features/data/SaveStatus';
 
 function Shell() {
-  const { state, signOut } = useAuth();
+  const { state } = useAuth();
 
   // Before sign-in: the full landing page, with its own header and footer.
   if (state.status === 'signed-out' || state.status === 'signing-in') return <LandingPage />;
@@ -32,17 +33,11 @@ function Shell() {
             >
               <SettingsIcon />
             </a>
-            <button
-              type="button"
-              onClick={() => void signOut()}
-              className="text-slate-500 hover:text-slate-900"
-            >
-              Sign out
-            </button>
+            <SignOutButton />
           </div>
         )}
       </header>
-      {state.status === 'signed-in' && <OfflineNotice />}
+      {state.status === 'signed-in' && <SyncStatus />}
       {state.status === 'signed-in' && <SaveStatus />}
       <main className="flex-1">
         {state.status === 'signed-in' ? (

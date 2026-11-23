@@ -85,12 +85,16 @@ rules live as pure functions in `domain/storage/`.
    `conflict` and the UI offers a reload. It never overwrites blindly.
 5. **Financial-year change:** the current year's file follows the new setting immediately, the
    previous file is shortened or lengthened to meet it, and older files are untouched.
-6. **Offline (ADR-0015):** a request that gets no response at all (no connection, DNS, timeout),
-   or a token refresh that can't reach Google, is reported as `offline`. Loading then falls back
-   to the workspace (the data as last synced, kept in IndexedDB) and the header shows an
-   "Offline" notice. The app retries when the connection returns and every 30 seconds. At start,
-   if sign-in can't reach Google but this device has signed in before, the app opens in offline
-   mode with the saved name. Saving offline is not possible yet (editing offline comes next).
+6. **Offline-first (ADR-0015):** every change is saved to the workspace on the device first (it
+   survives restarts), then uploaded by `services/sync/syncEngine.ts`. A request that gets no
+   response at all, or a token refresh that can't reach Google, counts as `offline`: the change
+   waits, and the status line says "N changes saved on this device, waiting to upload". Uploads
+   are retried when the connection returns, every 30 seconds, and on start. If Drive changed in
+   the meantime, `domain/sync/merge.ts` merges three ways (last synced / this device / Drive):
+   balances per entry (later `recordedAt` wins); accounts changed on both sides, and settings,
+   become a "keep this device's or Drive's" question. At start, if sign-in can't reach Google but
+   this device has signed in before, the app opens offline with the saved name. Signing out with
+   changes waiting asks first.
 7. Every request asks Rust for an access token (`auth_access_token`), which refreshes it shortly
    before expiry.
 
