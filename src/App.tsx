@@ -1,10 +1,8 @@
-import { hrefFor } from './app/router';
 import { Routes } from './app/Routes';
-import { SettingsIcon } from './components/icons';
 import { config, symbolUrl } from './config';
 import { AuthProvider } from './features/auth/AuthProvider';
 import { useAuth } from './features/auth/authContext';
-import { SignOutButton } from './features/auth/SignOutButton';
+import { UserMenu } from './features/auth/UserMenu';
 import { LandingPage } from './features/landing/LandingPage';
 import { SyncStatus } from './features/data/SyncStatus';
 import { SaveStatus } from './features/data/SaveStatus';
@@ -22,20 +20,7 @@ function Shell() {
           <img src={symbolUrl} alt="" width={28} height={28} className="h-7 w-7" />
           TrackWorth
         </span>
-        {state.status === 'signed-in' && (
-          <div className="flex items-center gap-3 text-sm">
-            <span>{state.user.name}</span>
-            <a
-              href={hrefFor({ name: 'settings' })}
-              aria-label="Settings"
-              title="Settings"
-              className="rounded-full p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
-            >
-              <SettingsIcon />
-            </a>
-            <SignOutButton />
-          </div>
-        )}
+        {state.status === 'signed-in' && <UserMenu user={state.user} />}
       </header>
       {state.status === 'signed-in' && <SyncStatus />}
       {state.status === 'signed-in' && <SaveStatus />}
