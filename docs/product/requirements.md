@@ -69,13 +69,13 @@ how each account and their total net worth change over time. All data lives in r
 
 ### Balances
 
-| ID   | Requirement                                                                                                                                                                                                                                                  | Status            |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------- |
-| R-B1 | Update-balance popup: **date** (defaults to today), **positive/negative** (defaults to positive for assets, negative for liabilities), **amount** (typed as a positive number, saved with the chosen sign, with the account's currency shown), and **Save**. | ✅                |
-| R-B2 | "Update all" flow: step through every active account, entering today's balances quickly.                                                                                                                                                                     | ⬜                |
-| R-B3 | Delete a past balance entry (tap it in the history → Delete this entry → confirm; Undo for a few seconds). Editing works the same way.                                                                                                                       | ✅                |
-| R-B4 | Balance-over-time chart on the details page.                                                                                                                                                                                                                 | ⬜ next iteration |
-| R-B5 | Saving a balance on a date that already has an entry updates that entry instead of adding another.                                                                                                                                                           | ✅                |
+| ID   | Requirement                                                                                                                                                                                                                                                  | Status |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
+| R-B1 | Update-balance popup: **date** (defaults to today), **positive/negative** (defaults to positive for assets, negative for liabilities), **amount** (typed as a positive number, saved with the chosen sign, with the account's currency shown), and **Save**. | ✅     |
+| R-B2 | "Update all" flow: step through every active account, entering today's balances quickly.                                                                                                                                                                     | ⬜     |
+| R-B3 | Delete a past balance entry (tap it in the history → Delete this entry → confirm; Undo for a few seconds). Editing works the same way.                                                                                                                       | ✅     |
+| R-B4 | Balance-over-time chart on the details page (liabilities as amount owed, FY start marked).                                                                                                                                                                   | ✅     |
+| R-B5 | Saving a balance on a date that already has an entry updates that entry instead of adding another.                                                                                                                                                           | ✅     |
 
 ### Dashboard & insights
 

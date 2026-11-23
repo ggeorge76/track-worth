@@ -30,7 +30,7 @@ Then: first release (secrets configured, installers tested on macOS, Windows and
 ## M2: Insights and polish
 
 - [x] Net worth over time (R-D3), change over the period (R-D4), assets and liabilities (R-D2)
-- [ ] Balance over time on account details (R-B4)
+- [x] Balance over time on account details (R-B4)
 - [ ] Breakdown by tag (R-D5)
 - [ ] "Update all" quick-entry flow (R-B2)
 - [x] Export JSON and CSV (R-S2)

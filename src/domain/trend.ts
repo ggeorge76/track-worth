@@ -1,6 +1,6 @@
 import { addMonths, endOfMonth, financialYearStart, startOfMonth } from './dates';
 import { percentChange } from './money';
-import type { BalanceEntry, DataFile } from './schema';
+import type { AccountKind, BalanceEntry, DataFile } from './schema';
 
 /**
  * Net worth over time (R-D3) and the change over the shown period (R-D4).
@@ -42,7 +42,8 @@ export function trendCurrencies(data: Pick<DataFile, 'accounts' | 'balances' | '
   );
 }
 
-function rangeStart(range: TrendRange, today: string, earliest: string): string {
+/** First date shown for a range; `All` starts at the earliest entry. */
+export function rangeStart(range: TrendRange, today: string, earliest: string): string {
   switch (range) {
     case '1M':
       return addMonths(today, -1);
@@ -136,7 +137,61 @@ export function netWorthTrend(
       percent: percentChange(deltaMinor, first.netMinor),
     };
   }
-  const fy = financialYearStart(today, data.settings.financialYearStartMonth);
-  if (range !== 'All' && fy > start && fy <= today) trend.financialYearStart = fy;
+  const fy = financialYearMarker(range, start, today, data.settings.financialYearStartMonth);
+  if (fy) trend.financialYearStart = fy;
   return trend;
+}
+
+/** The current financial year's start, when it falls inside the range (never for All). */
+function financialYearMarker(range: TrendRange, start: string, today: string, startMonth: number) {
+  const fy = financialYearStart(today, startMonth);
+  return range !== 'All' && fy > start && fy <= today ? fy : undefined;
+}
+
+export interface AccountTrendPoint {
+  date: string;
+  /** Balance as charted: liabilities as the amount owed (positive). `null` before any entry. */
+  valueMinor: number | null;
+  /** True where the user entered a balance (drawn as a dot); false for carried-forward edges. */
+  entry: boolean;
+}
+
+/**
+ * One account's balance over time (R-B4): every entry in the range, plus the balance carried in
+ * at the range start and carried on to today, so the line spans the range without inventing
+ * values. Liabilities are charted as the amount owed, so paying a loan off reads as a fall.
+ */
+export function accountTrend(
+  entries: readonly BalanceEntry[],
+  options: { kind: AccountKind; range: TrendRange; today: string; financialYearStartMonth: number },
+): { points: AccountTrendPoint[]; financialYearStart?: string } {
+  const { kind, range, today } = options;
+  const sorted = entries
+    .filter((e) => e.date <= today)
+    .sort((a, b) => a.date.localeCompare(b.date));
+  const first = sorted[0];
+  if (!first) return { points: [] };
+  const value = (e: BalanceEntry | undefined) =>
+    e ? (kind === 'liability' ? -e.amountMinor : e.amountMinor) : null;
+
+  const start = rangeStart(range, today, first.date);
+  const inRange = sorted.filter((e) => e.date >= start);
+  const points: AccountTrendPoint[] = inRange.map((e) => ({
+    date: e.date,
+    valueMinor: value(e),
+    entry: true,
+  }));
+  if (inRange[0]?.date !== start) {
+    points.unshift({
+      date: start,
+      valueMinor: value(sorted.findLast((e) => e.date < start)),
+      entry: false,
+    });
+  }
+  const last = points.at(-1);
+  if (last && last.date !== today)
+    points.push({ date: today, valueMinor: last.valueMinor, entry: false });
+
+  const fy = financialYearMarker(range, start, today, options.financialYearStartMonth);
+  return fy ? { points, financialYearStart: fy } : { points };
 }

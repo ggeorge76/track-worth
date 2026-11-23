@@ -1,6 +1,6 @@
 import { makeAccount, makeEntry, makeFile } from '@/test/builders';
 import { netWorthByCurrency } from './netWorth';
-import { netWorthTrend, trendCurrencies } from './trend';
+import { accountTrend, netWorthTrend, trendCurrencies } from './trend';
 
 const TODAY = '2026-11-23';
 
@@ -149,5 +149,57 @@ describe('trendCurrencies', () => {
       balances: ['g', 'u', 'e', 'x'].map((accountId) => makeEntry({ accountId })),
     });
     expect(trendCurrencies(data)).toEqual(['USD', 'EUR', 'GBP']);
+  });
+});
+
+describe('accountTrend', () => {
+  const opts = {
+    kind: 'asset' as const,
+    range: '1Y' as const,
+    today: TODAY,
+    financialYearStartMonth: 4,
+  };
+
+  it('is empty without entries (future-dated ones ignored)', () => {
+    expect(accountTrend([], opts)).toEqual({ points: [] });
+    expect(accountTrend([makeEntry({ date: '2027-01-01' })], opts)).toEqual({ points: [] });
+  });
+
+  it('carries the balance in at the range start and on to today, marking real entries', () => {
+    const entries = [
+      makeEntry({ date: '2026-03-01', amountMinor: 300 }),
+      makeEntry({ date: '2025-01-01', amountMinor: 100 }),
+      makeEntry({ date: '2025-10-01', amountMinor: 200 }),
+    ];
+    expect(accountTrend(entries, opts)).toEqual({
+      points: [
+        { date: '2025-11-23', valueMinor: 200, entry: false },
+        { date: '2026-03-01', valueMinor: 300, entry: true },
+        { date: TODAY, valueMinor: 300, entry: false },
+      ],
+      financialYearStart: '2026-04-01',
+    });
+  });
+
+  it('starts with no value when the first entry is inside the range', () => {
+    const { points } = accountTrend([makeEntry({ date: TODAY, amountMinor: 5 })], opts);
+    expect(points).toEqual([
+      { date: '2025-11-23', valueMinor: null, entry: false },
+      { date: TODAY, valueMinor: 5, entry: true },
+    ]);
+  });
+
+  it('charts liabilities as the amount owed; All starts at the first entry', () => {
+    const entries = [
+      makeEntry({ date: '2024-05-01', amountMinor: -1000 }),
+      makeEntry({ date: '2026-05-01', amountMinor: -400 }),
+    ];
+    expect(accountTrend(entries, { ...opts, kind: 'liability', range: 'All' })).toEqual({
+      points: [
+        { date: '2024-05-01', valueMinor: 1000, entry: true },
+        { date: '2026-05-01', valueMinor: 400, entry: true },
+        { date: TODAY, valueMinor: 400, entry: false },
+      ],
+    });
   });
 });
