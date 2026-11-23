@@ -7,6 +7,9 @@ import { AuthContext, type AuthContextValue } from '@/features/auth/authContext'
 import { StoreError, type StoreSnapshot } from '@/services/storage/dataStore';
 import { makeFile } from '@/test/builders';
 import { emptySnapshot, fakeStore } from '@/test/mockStore';
+import { workspace } from '@/services/cache/workspace';
+import { DriveError } from '@/services/drive/driveClient';
+import { OfflineNotice } from './OfflineNotice';
 import { SaveStatus } from './SaveStatus';
 import { useDataFile, useUpdateDataFile, type DataChange } from './useDataFile';
 
@@ -47,9 +50,12 @@ beforeEach(() => {
   fakeStore.load.mockResolvedValue({ data: makeFile(), snapshot: snapshot('s0') });
   fakeStore.save.mockImplementation((snap) => Promise.resolve(snap));
 });
-afterEach(() => {
+afterEach(async () => {
   vi.clearAllMocks();
+  await workspace.clear();
 });
+
+const offlineError = () => new DriveError('Google Drive can’t be reached', 'offline');
 
 describe('useDataFile', () => {
   it('loads data from the store', async () => {
@@ -169,6 +175,59 @@ describe('useUpdateDataFile', () => {
       await expect(hook.result.current.update.mutateAsync(addAccount('   '))).rejects.toThrow();
     });
     expect(fakeStore.save).not.toHaveBeenCalled();
+    expect(hook.result.current.file.data?.data.accounts).toEqual([]);
+  });
+});
+
+describe('offline (ADR-0015)', () => {
+  it('shows the copy saved on this device, with a notice, and goes back online by itself', async () => {
+    // A successful load stores the synced copy on the device.
+    const first = setup();
+    await waitFor(() => {
+      expect(first.hook.result.current.file.data?.offline).toBe(false);
+    });
+    first.hook.unmount();
+
+    fakeStore.load.mockRejectedValue(offlineError());
+    const { hook, wrapper } = setup();
+    render(<OfflineNotice />, { wrapper });
+    await waitFor(() => {
+      expect(hook.result.current.file.data?.offline).toBe(true);
+    });
+    expect(hook.result.current.file.data?.snapshot.rootId).toBe('s0');
+    expect(screen.getByRole('status')).toHaveTextContent('Offline');
+
+    fakeStore.load.mockResolvedValue({ data: makeFile(), snapshot: snapshot('s1') });
+    act(() => {
+      window.dispatchEvent(new Event('online'));
+    });
+    await waitFor(() => {
+      expect(hook.result.current.file.data?.offline).toBe(false);
+    });
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+
+  it('explains when there is no copy on this device yet', async () => {
+    fakeStore.load.mockRejectedValue(offlineError());
+    const { hook } = setup();
+    await waitFor(() => {
+      expect(hook.result.current.file.error?.message).toMatch(
+        /doesn’t have a copy of your data yet/,
+      );
+    });
+  });
+
+  it('says plainly that a change can’t be saved while offline', async () => {
+    fakeStore.save.mockRejectedValue(offlineError());
+    const { hook, wrapper } = setup();
+    render(<SaveStatus />, { wrapper });
+    await waitFor(() => {
+      expect(hook.result.current.file.data).toBeDefined();
+    });
+    await act(async () => {
+      await hook.result.current.update.mutateAsync(addAccount('A')).catch(() => undefined);
+    });
+    expect(await screen.findByRole('alert')).toHaveTextContent('You’re offline');
     expect(hook.result.current.file.data?.data.accounts).toEqual([]);
   });
 });

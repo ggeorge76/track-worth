@@ -5,6 +5,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { fetch as tauriFetch } from '@tauri-apps/plugin-http';
 import { App } from '@/App';
 import { fileCache } from '@/services/cache/fileCache';
+import { workspace } from '@/services/cache/workspace';
 
 vi.mock('@tauri-apps/api/core', () => ({ isTauri: () => true, invoke: vi.fn() }));
 vi.mock('@tauri-apps/plugin-http', () => ({ fetch: vi.fn() }));
@@ -17,6 +18,12 @@ function mockRust(handlers: Record<string, () => unknown>) {
     if (!handler) return Promise.reject(new Error(`unexpected command ${cmd}`));
     return Promise.resolve().then(handler);
   });
+}
+
+/** Tauri commands reject with the serialized Rust error, a plain `{ code, message }` object. */
+function rustError(code: string, message: string) {
+  // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+  return Promise.reject({ code, message });
 }
 
 function mockProfile(name: string) {
@@ -40,8 +47,9 @@ function renderApp() {
   );
 }
 
-afterEach(() => {
+afterEach(async () => {
   vi.clearAllMocks();
+  await workspace.clear();
 });
 
 describe('desktop sign-in', () => {
@@ -77,16 +85,30 @@ describe('desktop sign-in', () => {
   it('shows the error message from Rust when sign-in fails', async () => {
     mockRust({
       auth_restore: () => null,
-      auth_sign_in: () =>
-        // Tauri commands reject with the serialized Rust error, a plain object.
-        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
-        Promise.reject({
-          code: 'scope-denied',
-          message: 'TrackWorth needs access to Google Drive.',
-        }),
+      auth_sign_in: () => rustError('scope-denied', 'TrackWorth needs access to Google Drive.'),
     });
     renderApp();
     await userEvent.click(await screen.findByRole('button', { name: 'Sign in with Google' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('needs access to Google Drive');
+  });
+
+  it('opens offline with the saved name when Google can’t be reached', async () => {
+    await workspace.saveUser({ name: 'Ada Lovelace', email: 'a@example.com' });
+    mockRust({
+      auth_restore: () => rustError('network', 'Couldn’t reach Google.'),
+    });
+    renderApp();
+    expect(await screen.findByText('Ada Lovelace')).toBeInTheDocument();
+    expect(await screen.findByRole('status')).toHaveTextContent('Offline');
+  });
+
+  it('still asks to sign in when the session has expired, even with a saved name', async () => {
+    await workspace.saveUser({ name: 'Ada Lovelace', email: 'a@example.com' });
+    mockRust({
+      auth_restore: () => rustError('session-expired', 'Please sign in again.'),
+    });
+    renderApp();
+    expect(await screen.findByRole('button', { name: 'Sign in with Google' })).toBeInTheDocument();
+    expect(screen.queryByText('Ada Lovelace')).not.toBeInTheDocument();
   });
 });

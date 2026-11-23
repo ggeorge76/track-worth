@@ -1,3 +1,4 @@
+import { AuthError } from '@/services/auth/desktopAuth';
 import { httpFetch } from '@/services/platform';
 
 /**
@@ -12,7 +13,8 @@ const API = 'https://www.googleapis.com/drive/v3';
 const UPLOAD = 'https://www.googleapis.com/upload/drive/v3';
 const FOLDER_MIME = 'application/vnd.google-apps.folder';
 
-export type DriveErrorCode = 'unauthorized' | 'conflict' | 'not-found' | 'http';
+/** `offline`: Drive (or Google sign-in) couldn't be reached at all, e.g. no connection. */
+export type DriveErrorCode = 'unauthorized' | 'conflict' | 'not-found' | 'http' | 'offline';
 
 export class DriveError extends Error {
   constructor(
@@ -53,6 +55,12 @@ export interface DriveClientOptions {
   fetchImpl?: typeof fetch;
 }
 
+function offline(cause: unknown): DriveError {
+  const error = new DriveError('Google Drive can’t be reached', 'offline');
+  error.cause = cause;
+  return error;
+}
+
 export function escapeQueryValue(value: string): string {
   return value.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
@@ -60,8 +68,22 @@ export function escapeQueryValue(value: string): string {
 export function createDriveClient({ getAccessToken, fetchImpl = httpFetch }: DriveClientOptions) {
   async function request(url: string, init: RequestInit = {}): Promise<Response> {
     const headers = new Headers(init.headers);
-    headers.set('Authorization', `Bearer ${await getAccessToken()}`);
-    const res = await fetchImpl(url, { ...init, headers });
+    let token: string;
+    try {
+      token = await getAccessToken();
+    } catch (err) {
+      // Refreshing the token needs Google; without a connection that's "offline", not signed out.
+      if (err instanceof AuthError && err.code === 'network') throw offline(err);
+      throw err;
+    }
+    headers.set('Authorization', `Bearer ${token}`);
+    let res: Response;
+    try {
+      res = await fetchImpl(url, { ...init, headers });
+    } catch (err) {
+      // fetch only rejects when no response arrived at all (no connection, DNS, timeout).
+      throw offline(err);
+    }
     if (res.status === 401) throw new DriveError('Google session expired', 'unauthorized', 401);
     if (res.status === 404) throw new DriveError('File not found in Drive', 'not-found', 404);
     if (!res.ok) throw new DriveError(`Drive request failed (${res.status})`, 'http', res.status);

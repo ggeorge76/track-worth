@@ -20,26 +20,14 @@ export interface FileCache {
 }
 
 export function createMemoryCache(): FileCache {
-  const files = new Map<string, CachedFile>();
-  return {
-    get: (path) => Promise.resolve(files.get(path)),
-    put: (path, file) => {
-      files.set(path, file);
-      return Promise.resolve();
-    },
-    remove: (path) => {
-      files.delete(path);
-      return Promise.resolve();
-    },
-    clear: () => {
-      files.clear();
-      return Promise.resolve();
-    },
-  };
+  return fileCacheOn(createMemoryStore());
 }
 
 const DB_NAME = 'trackworth';
-const STORE = 'drive-files';
+const DB_VERSION = 2;
+/** Object stores: the local copy of Drive files (ADR-0014) and the workspace (ADR-0015). */
+export const STORES = ['drive-files', 'workspace'] as const;
+export type StoreName = (typeof STORES)[number];
 
 function promisify<T>(request: IDBRequest<T>): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -52,61 +40,114 @@ function promisify<T>(request: IDBRequest<T>): Promise<T> {
   });
 }
 
-/**
- * IndexedDB-backed cache in the webview (private to the app). Any IndexedDB failure degrades to
- * "not cached": the file is simply read from Drive again, so the app keeps working.
- */
-export function createIndexedDbCache(factory: IDBFactory = indexedDB): FileCache {
-  let db: Promise<IDBDatabase> | undefined;
-  const open = () => {
-    db ??= new Promise((resolve, reject) => {
-      const request = factory.open(DB_NAME, 1);
+/** A tiny key-value store on one IndexedDB object store. */
+export interface KeyValueStore {
+  get(key: string): Promise<unknown>;
+  put(key: string, value: unknown): Promise<void>;
+  remove(key: string): Promise<void>;
+  clear(): Promise<void>;
+}
+
+const databases = new WeakMap<IDBFactory, Promise<IDBDatabase>>();
+
+function openDatabase(factory: IDBFactory): Promise<IDBDatabase> {
+  let db = databases.get(factory);
+  if (!db) {
+    db = new Promise((resolve, reject) => {
+      const request = factory.open(DB_NAME, DB_VERSION);
       request.onupgradeneeded = () => {
-        request.result.createObjectStore(STORE);
+        for (const name of STORES) {
+          if (!request.result.objectStoreNames.contains(name))
+            request.result.createObjectStore(name);
+        }
       };
       request.onsuccess = () => {
         resolve(request.result);
       };
       request.onerror = () => {
-        db = undefined;
+        databases.delete(factory);
         reject(request.error ?? new Error('Could not open IndexedDB'));
       };
     });
-    return db;
-  };
-  const store = async (mode: IDBTransactionMode) =>
-    (await open()).transaction(STORE, mode).objectStore(STORE);
+    databases.set(factory, db);
+  }
+  return db;
+}
 
+/**
+ * IndexedDB-backed key-value store in the webview (private to the app). Reads that fail return
+ * `undefined` and writes that fail are skipped, so the app keeps working without it.
+ */
+export function createIndexedDbStore(
+  name: StoreName,
+  factory: IDBFactory = indexedDB,
+): KeyValueStore {
+  const objectStore = async (mode: IDBTransactionMode) =>
+    (await openDatabase(factory)).transaction(name, mode).objectStore(name);
   return {
-    async get(path) {
+    async get(key) {
       try {
-        return (await promisify((await store('readonly')).get(path))) as CachedFile | undefined;
+        return (await promisify((await objectStore('readonly')).get(key))) as unknown;
       } catch {
         return undefined;
       }
     },
-    async put(path, file) {
+    async put(key, value) {
       try {
-        await promisify((await store('readwrite')).put(file, path));
+        await promisify((await objectStore('readwrite')).put(value, key));
       } catch {
-        // Not cached: the next load reads this file from Drive.
+        // Not stored: the app falls back to reading from Drive.
       }
     },
-    async remove(path) {
+    async remove(key) {
       try {
-        await promisify((await store('readwrite')).delete(path));
+        await promisify((await objectStore('readwrite')).delete(key));
       } catch {
-        // Ignore: a stale entry is detected by its version anyway.
+        // Ignore.
       }
     },
     async clear() {
       try {
-        await promisify((await store('readwrite')).clear());
+        await promisify((await objectStore('readwrite')).clear());
       } catch {
-        // Ignore: nothing we can do, and cached data is never trusted over Drive's version.
+        // Ignore.
       }
     },
   };
+}
+
+export function createMemoryStore(): KeyValueStore {
+  const values = new Map<string, unknown>();
+  return {
+    get: (key) => Promise.resolve(values.get(key)),
+    put: (key, value) => {
+      values.set(key, value);
+      return Promise.resolve();
+    },
+    remove: (key) => {
+      values.delete(key);
+      return Promise.resolve();
+    },
+    clear: () => {
+      values.clear();
+      return Promise.resolve();
+    },
+  };
+}
+
+/** The local copy of Drive files, on a key-value store. */
+export function fileCacheOn(kv: KeyValueStore): FileCache {
+  return {
+    get: async (path) => (await kv.get(path)) as CachedFile | undefined,
+    put: (path, file) => kv.put(path, file),
+    remove: (path) => kv.remove(path),
+    clear: () => kv.clear(),
+  };
+}
+
+/** IndexedDB-backed file cache (kept for callers/tests that pass a factory). */
+export function createIndexedDbCache(factory: IDBFactory = indexedDB): FileCache {
+  return fileCacheOn(createIndexedDbStore('drive-files', factory));
 }
 
 /** The app's cache: IndexedDB when available (desktop/Android webview), memory otherwise. */

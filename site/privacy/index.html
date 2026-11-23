@@ -43,8 +43,9 @@
         <li>
           <strong>Basic profile: name, email address and profile picture</strong>
           (<code>openid</code>, <code>email</code>, <code>profile</code>). Used only to show who is
-          signed in, for example your name in the app's header. This information is kept in memory
-          while the app runs and is not stored or sent anywhere else.
+          signed in, for example your name in the app's header. Your name and email are kept on this
+          device so the app can show them when you open it offline; they are deleted when you sign
+          out and are never sent anywhere else.
         </li>
         <li>
           <strong>Google Drive, files created by the app only</strong>
@@ -73,9 +74,10 @@
         </li>
         <li>
           A <strong>local copy of your TrackWorth files</strong> is kept in the app's private
-          storage on your device, so the app starts quickly and only downloads files that changed.
-          It is never sent anywhere else, and it is deleted when you sign out (and when you sign in
-          again, in case it's a different account). Your Google Drive stays the master copy.
+          storage on your device, so the app starts quickly, only downloads files that changed, and
+          can show your data when you're offline. It is never sent anywhere else, and it is deleted
+          when you sign out (and when you sign in again, in case it's a different account). Your
+          Google Drive stays the master copy.
         </li>
         <li>
           Short-lived <strong>access tokens</strong> are held in memory only and discarded when the

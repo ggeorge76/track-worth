@@ -21,7 +21,11 @@ export function renderWithData(ui: ReactElement, file: DataFile) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false, staleTime: Infinity } },
   });
-  client.setQueryData<LoadedDataFile>(DATA_FILE_KEY, { data: file, snapshot: emptySnapshot });
+  client.setQueryData<LoadedDataFile>(DATA_FILE_KEY, {
+    data: file,
+    snapshot: emptySnapshot,
+    offline: false,
+  });
   const utils = render(
     <QueryClientProvider client={client}>
       <AuthContext value={signedIn}>{ui}</AuthContext>

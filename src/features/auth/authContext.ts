@@ -5,7 +5,8 @@ export type AuthState =
   | { status: 'restoring' }
   | { status: 'signed-out'; error?: string }
   | { status: 'signing-in' }
-  | { status: 'signed-in'; user: GoogleUser };
+  /** `offline`: Google couldn't be reached at start; showing the device's copy (ADR-0015). */
+  | { status: 'signed-in'; user: GoogleUser; offline?: boolean };
 
 export interface AuthContextValue {
   state: AuthState;

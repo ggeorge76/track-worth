@@ -65,7 +65,8 @@ src/                     React UI (runs in the Tauri webview)
     auth/                Calls the Rust auth commands; fetches the user's profile
     drive/               Drive v3 REST client (folders, JSON files, version checks, trash)
     storage/             Data store: load (only changed files), save (only touched files), v2 upgrade
-    cache/               Local copy of the Drive files (IndexedDB), cleared on sign-out
+    cache/               On-device storage (IndexedDB): local copy of Drive files + workspace
+                         (last synced data, display name) for offline use; cleared on sign-out
     update/              Wraps the Tauri updater + relaunch
   features/data/         useDataFile (load) + useUpdateDataFile (optimistic, serial, conflict-safe save)
   features/<feature>/    Screens + hooks for one feature (accounts, auth, data, settings, update)

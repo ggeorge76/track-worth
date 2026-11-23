@@ -5,6 +5,7 @@ import { config, symbolUrl } from './config';
 import { AuthProvider } from './features/auth/AuthProvider';
 import { useAuth } from './features/auth/authContext';
 import { SignInScreen } from './features/auth/SignInScreen';
+import { OfflineNotice } from './features/data/OfflineNotice';
 import { SaveStatus } from './features/data/SaveStatus';
 
 function Shell() {
@@ -38,6 +39,7 @@ function Shell() {
           </div>
         )}
       </header>
+      {state.status === 'signed-in' && <OfflineNotice />}
       {state.status === 'signed-in' && <SaveStatus />}
       <main className="flex-1">
         {state.status === 'signed-in' ? (

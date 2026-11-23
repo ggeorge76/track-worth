@@ -163,3 +163,29 @@ describe('updating and trashing', () => {
     expect(JSON.parse(calls[0]?.body ?? '{}')).toEqual({ trashed: true });
   });
 });
+
+describe('offline detection', () => {
+  it('reports "offline" when no response arrives', async () => {
+    const fetchImpl = vi.fn(() => Promise.reject(new TypeError('Failed to fetch')));
+    await expect(client(fetchImpl).readJson('x')).rejects.toMatchObject({ code: 'offline' });
+  });
+
+  it('reports "offline" when the sign-in token can’t be refreshed for lack of a connection', async () => {
+    const { AuthError } = await import('@/services/auth/desktopAuth');
+    const drive = createDriveClient({
+      getAccessToken: () => Promise.reject(new AuthError('no network', 'network')),
+      fetchImpl: vi.fn(),
+    });
+    await expect(drive.readJson('x')).rejects.toMatchObject({ code: 'offline' });
+  });
+
+  it('passes other sign-in errors through unchanged', async () => {
+    const { AuthError } = await import('@/services/auth/desktopAuth');
+    const expired = new AuthError('expired', 'session-expired');
+    const drive = createDriveClient({
+      getAccessToken: () => Promise.reject(expired),
+      fetchImpl: vi.fn(),
+    });
+    await expect(drive.readJson('x')).rejects.toBe(expired);
+  });
+});
