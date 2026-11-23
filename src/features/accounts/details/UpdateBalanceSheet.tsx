@@ -22,7 +22,7 @@ export interface UpdateBalanceSheetProps {
 
 /**
  * Record a balance (R-B1). Saving on a date that already has an entry updates that entry
- * (R-B5). The sheet is mounted only while open, so its fields reset each time.
+ * (R-B5); picking such a date fills in its balance so it can be edited, not retyped. The sheet is mounted only while open, so its fields reset each time.
  */
 export function UpdateBalanceSheet({
   account,
@@ -34,22 +34,42 @@ export function UpdateBalanceSheet({
 }: UpdateBalanceSheetProps) {
   const save = useUpdateDataFile();
   const ids = { date: useId(), amount: useId() };
-  const [date, setDate] = useState(initial?.date ?? today);
+  // The entries as they were when the sheet opened. Saving shows the new entry at once (before
+  // the upload finishes), and it must not then be treated as one that was already there.
+  const [historyAtOpen] = useState(history);
+  const entryOn = (d: string) => historyAtOpen.find((e) => e.date === d);
+
+  // A date that already has a balance opens with that balance filled in, ready to edit.
+  const start = initial ?? entryOn(today);
+  const [date, setDate] = useState(start?.date ?? today);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [sign, setSign] = useState<Sign>(
-    initial ? signOf(initial.amountMinor) : defaultSign(account.kind),
+    start ? signOf(start.amountMinor) : defaultSign(account.kind),
   );
   const [amount, setAmount] = useState(
-    initial ? minorToInput(initial.amountMinor, account.currency) : '',
+    start ? minorToInput(start.amountMinor, account.currency) : '',
   );
+  /** The amount shown is a saved balance the user hasn't changed (so it can be swapped out). */
+  const [amountIsSaved, setAmountIsSaved] = useState(!!start);
   const [error, setError] = useState<string | null>(null);
 
-  // The entries as they were when the sheet opened. Saving shows the new entry at once (before
-  // the upload finishes), and it must not then be reported as one this save "replaces".
-  const [historyAtOpen] = useState(history);
+  const changeDate = (next: string) => {
+    setDate(next);
+    const entry = entryOn(next);
+    if (entry) {
+      setSign(signOf(entry.amountMinor));
+      setAmount(minorToInput(entry.amountMinor, account.currency));
+      setAmountIsSaved(true);
+    } else if (amountIsSaved) {
+      // Don't carry another date's balance over to a date without one; keep what was typed.
+      setSign(defaultSign(account.kind));
+      setAmount('');
+      setAmountIsSaved(false);
+    }
+  };
 
   const checked = checkSignedAmount(amount, sign, account.currency);
-  const existing = historyAtOpen.find((e) => e.date === date);
+  const existing = entryOn(date);
   const preview = checked.ok ? checked.amountMinor : null;
 
   const onSave = async () => {
@@ -96,13 +116,12 @@ export function UpdateBalanceSheet({
             value={date}
             max={today}
             onChange={(e) => {
-              setDate(e.target.value);
+              changeDate(e.target.value);
             }}
           />
           {existing && existing.id !== initial?.id && (
-            <p className="text-sm text-amber-800">
-              This replaces the {formatMoney(existing.amountMinor, account.currency)} already saved
-              for {formatIsoDate(existing.date)}.
+            <p className="text-sm text-slate-600">
+              {formatIsoDate(existing.date)} already has a balance. Saving updates it.
             </p>
           )}
         </Field>
@@ -114,7 +133,10 @@ export function UpdateBalanceSheet({
             sign={sign}
             onSignChange={setSign}
             amount={amount}
-            onAmountChange={setAmount}
+            onAmountChange={(value) => {
+              setAmount(value);
+              setAmountIsSaved(false);
+            }}
             autoFocus
           />
           <p className="text-sm text-slate-500" aria-live="polite">

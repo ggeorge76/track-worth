@@ -69,7 +69,7 @@ describe('UpdateBalanceSheet', () => {
     await waitFor(() => {
       expect(entriesFor(client, 'loan')).toHaveLength(1); // shown straight away
     });
-    expect(screen.queryByText(/This replaces/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/already has a balance/)).not.toBeInTheDocument();
   });
 
   it('defaults to negative for a liability and saves the amount as negative', async () => {
@@ -96,21 +96,58 @@ describe('UpdateBalanceSheet', () => {
     });
   });
 
-  it('updates the existing entry when the date already has one, and says so', async () => {
+  it('fills in the balance of a date that has one, and saving updates it', async () => {
     const user = userEvent.setup();
     const { client } = openUpdate('bank');
     await user.click(screen.getByRole('button', { name: 'Update' }));
     const date = screen.getByLabelText('Date');
+    const amount = screen.getByLabelText('Amount');
+    expect(amount).toHaveValue(''); // nothing saved for today
     await user.clear(date);
     await user.type(date, yesterday);
-    expect(screen.getByText(/This replaces the ₹1,000.00 already saved/)).toBeInTheDocument();
-    await user.type(screen.getByLabelText('Amount'), '1500');
+    expect(amount).toHaveValue('1000.00');
+    expect(screen.getByText(/already has a balance\. Saving updates it\./)).toBeInTheDocument();
+    await user.clear(amount);
+    await user.type(amount, '1500');
     await user.click(screen.getByRole('button', { name: 'Save' }));
     await waitFor(() => {
       expect(entriesFor(client, 'bank')).toEqual([
         expect.objectContaining({ id: 'y', date: yesterday, amountMinor: 1_500_00 }),
       ]);
     });
+  });
+
+  it('opens with today’s balance filled in when there is one', async () => {
+    const user = userEvent.setup();
+    window.history.replaceState({ idx: 1 }, '', '#/accounts/bank');
+    renderWithData(<Routes />, {
+      ...file,
+      balances: [
+        ...file.balances,
+        makeEntry({ accountId: 'bank', date: today, amountMinor: -250_00 }),
+      ],
+    });
+    await user.click(screen.getByRole('button', { name: 'Update' }));
+    expect(screen.getByLabelText('Amount')).toHaveValue('250.00');
+    expect(screen.getByRole('radio', { name: 'Negative' })).toHaveAttribute('aria-checked', 'true');
+
+    // Moving to a date without a balance clears the filled-in one…
+    const date = screen.getByLabelText('Date');
+    await user.clear(date);
+    await user.type(date, '2020-01-01');
+    expect(screen.getByLabelText('Amount')).toHaveValue('');
+    expect(screen.getByRole('radio', { name: 'Positive' })).toHaveAttribute('aria-checked', 'true');
+  });
+
+  it('keeps a typed amount when moving to a date without a balance', async () => {
+    const user = userEvent.setup();
+    openUpdate('bank');
+    await user.click(screen.getByRole('button', { name: 'Update' }));
+    await user.type(screen.getByLabelText('Amount'), '42');
+    const date = screen.getByLabelText('Date');
+    await user.clear(date);
+    await user.type(date, '2020-01-01');
+    expect(screen.getByLabelText('Amount')).toHaveValue('42');
   });
 
   it('edits a past entry from the history list', async () => {
@@ -120,7 +157,7 @@ describe('UpdateBalanceSheet', () => {
     const dialog = screen.getByRole('dialog', { name: 'Edit balance' });
     expect(within(dialog).getByLabelText('Date')).toHaveValue(yesterday);
     expect(within(dialog).getByLabelText('Amount')).toHaveValue('1000.00');
-    expect(within(dialog).queryByText(/This replaces/)).not.toBeInTheDocument();
+    expect(within(dialog).queryByText(/already has a balance/)).not.toBeInTheDocument();
     await user.clear(within(dialog).getByLabelText('Amount'));
     await user.type(within(dialog).getByLabelText('Amount'), '999');
     await user.click(within(dialog).getByRole('button', { name: 'Save' }));
