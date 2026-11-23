@@ -79,13 +79,13 @@ how each account and their total net worth change over time. All data lives in r
 
 ### Dashboard & insights
 
-| ID   | Requirement                                                   | Status            |
-| ---- | ------------------------------------------------------------- | ----------------- |
-| R-D1 | Show current net worth (sum of signed balances) per currency. | ✅                |
-| R-D2 | Show total assets and total liabilities.                      | ⬜                |
-| R-D3 | Net-worth-over-time chart with ranges (1M, 6M, 1Y, All).      | ⬜ next iteration |
-| R-D4 | Change versus previous period (absolute and %).               | ⬜ next iteration |
-| R-D5 | Breakdown by tag.                                             | ⬜ next iteration |
+| ID   | Requirement                                                           | Status            |
+| ---- | --------------------------------------------------------------------- | ----------------- |
+| R-D1 | Show current net worth (sum of signed balances) per currency.         | ✅                |
+| R-D2 | Show total assets and total liabilities.                              | ✅                |
+| R-D3 | Net-worth-over-time chart (1M, 6M, 1Y default, All), FY start marked. | ✅                |
+| R-D4 | Change over the shown period (absolute and %).                        | ✅                |
+| R-D5 | Breakdown by tag.                                                     | ⬜ next iteration |
 
 ### App updates
 

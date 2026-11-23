@@ -1,4 +1,7 @@
 import {
+  addMonths,
+  endOfMonth,
+  isoDateToUtcMs,
   financialYearEnd,
   financialYearStart,
   formatIsoDate,
@@ -45,5 +48,23 @@ describe('date display helpers', () => {
     expect(financialYearEnd('2026-04-01')).toBe('2027-03-31');
     expect(financialYearEnd('2026-01-01')).toBe('2026-12-31');
     expect(financialYearEnd('2027-03-01')).toBe('2028-02-29');
+  });
+});
+
+describe('addMonths / endOfMonth / isoDateToUtcMs', () => {
+  it('moves by months, clamping to the month end', () => {
+    expect(addMonths('2026-03-31', -1)).toBe('2026-02-28');
+    expect(addMonths('2026-11-23', -12)).toBe('2025-11-23');
+    expect(addMonths('2026-01-15', -1)).toBe('2025-12-15');
+    expect(addMonths('2026-12-15', 1)).toBe('2027-01-15');
+  });
+
+  it('finds the last day of a month', () => {
+    expect(endOfMonth('2028-02-10')).toBe('2028-02-29');
+    expect(endOfMonth('2026-12-01')).toBe('2026-12-31');
+  });
+
+  it('converts a date to UTC milliseconds', () => {
+    expect(isoDateToUtcMs('1970-01-02')).toBe(86_400_000);
   });
 });

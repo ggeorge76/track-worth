@@ -60,6 +60,26 @@ function toUtc(isoDate: string): Date {
   );
 }
 
+/** Milliseconds since the epoch at UTC midnight of `isoDate` (for chart axes). */
+export function isoDateToUtcMs(isoDate: string): number {
+  return toUtc(isoDate).getTime();
+}
+
+/** Same day `months` later (may be negative), clamped to the month's last day (31 Mar − 1 → 28 Feb). */
+export function addMonths(isoDate: string, months: number): string {
+  const total = Number(isoDate.slice(0, 4)) * 12 + Number(isoDate.slice(5, 7)) - 1 + months;
+  const y = Math.floor(total / 12);
+  const m = (total % 12) + 1;
+  const lastDay = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  const day = Math.min(Number(isoDate.slice(8, 10)), lastDay);
+  return `${String(y)}-${pad(m)}-${pad(day)}`;
+}
+
+/** Last day of the month containing `isoDate`. */
+export function endOfMonth(isoDate: string): string {
+  return addDays(addMonths(startOfMonth(isoDate), 1), -1);
+}
+
 /** `isoDate` plus `days` (may be negative). */
 export function addDays(isoDate: string, days: number): string {
   const d = toUtc(isoDate);

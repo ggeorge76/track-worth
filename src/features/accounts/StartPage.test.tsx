@@ -63,9 +63,15 @@ describe('StartPage', () => {
     expect(
       screen.getByRole('button', { name: /2 of 3 accounts/, hidden: true }),
     ).toBeInTheDocument();
-    // …and any of the chosen liquidity levels.
-    await user.click(within(dialog).getByRole('button', { name: 'Liquidity 1: Very low' }));
+    // …and the liquidity levels left on: all start on, and a click turns one off.
+    const veryLow = within(dialog).getByRole('button', { name: 'Liquidity 1: Very low' });
+    expect(veryLow).toHaveAttribute('aria-pressed', 'true');
+    await user.click(within(dialog).getByRole('button', { name: 'Liquidity 5: Very high' }));
     expect(rowNames()).toEqual(['PPF']);
+    await user.click(within(dialog).getByRole('button', { name: 'Liquidity 5: Very high' }));
+    expect(rowNames()).toEqual(['PPF', '💵 HDFC']);
+    await user.click(veryLow);
+    expect(rowNames()).toEqual(['💵 HDFC']);
 
     await user.click(within(dialog).getByRole('button', { name: 'Reset' }));
     expect(screen.getByRole('button', { name: /^3 accounts/, hidden: true })).toBeInTheDocument();
@@ -74,12 +80,30 @@ describe('StartPage', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
+  it('net worth follows the filter', async () => {
+    const user = userEvent.setup();
+    renderWithData(<Routes />, file);
+    await user.click(screen.getByRole('button', { name: /Filter/ }));
+    await user.click(screen.getByRole('button', { name: 'Debt' }));
+    await user.click(screen.getByRole('button', { name: 'Close' }));
+    const heading = screen.getByRole('heading', { name: 'Net worth · filtered' });
+    expect(heading.nextElementSibling).toHaveTextContent('-$645.00');
+    expect(screen.getByText(/Assets/)).toHaveTextContent('Assets $0.00 · Liabilities -$645.00');
+
+    await user.click(screen.getByRole('button', { name: /Filter/ }));
+    await user.click(screen.getByRole('button', { name: 'Reset' }));
+    await user.click(screen.getByRole('button', { name: 'Close' }));
+    expect(screen.getByRole('heading', { name: 'Net worth' }).nextElementSibling).toHaveTextContent(
+      '$589.50',
+    );
+  });
+
   it('shows a way out when filters match nothing', async () => {
     const user = userEvent.setup();
     renderWithData(<Routes />, file);
     await user.click(screen.getByRole('button', { name: /Filter/ }));
     await user.click(screen.getByRole('button', { name: 'Fixed Income' }));
-    await user.click(screen.getByRole('button', { name: 'Liquidity 5: Very high' }));
+    await user.click(screen.getByRole('button', { name: 'Liquidity 1: Very low' }));
     await user.click(screen.getByRole('button', { name: 'Close' }));
     expect(screen.getByText(/No accounts match/)).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Clear filters' }));
