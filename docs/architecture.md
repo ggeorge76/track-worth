@@ -85,7 +85,13 @@ rules live as pure functions in `domain/storage/`.
    `conflict` and the UI offers a reload. It never overwrites blindly.
 5. **Financial-year change:** the current year's file follows the new setting immediately, the
    previous file is shortened or lengthened to meet it, and older files are untouched.
-6. Every request asks Rust for an access token (`auth_access_token`), which refreshes it shortly
+6. **Offline (ADR-0015):** a request that gets no response at all (no connection, DNS, timeout),
+   or a token refresh that can't reach Google, is reported as `offline`. Loading then falls back
+   to the workspace (the data as last synced, kept in IndexedDB) and the header shows an
+   "Offline" notice. The app retries when the connection returns and every 30 seconds. At start,
+   if sign-in can't reach Google but this device has signed in before, the app opens in offline
+   mode with the saved name. Saving offline is not possible yet (editing offline comes next).
+7. Every request asks Rust for an access token (`auth_access_token`), which refreshes it shortly
    before expiry.
 
 ### Update (ADR-0007)
