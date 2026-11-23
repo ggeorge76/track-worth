@@ -19,6 +19,7 @@ import { describeDateAgo } from '@/domain/relativeDate';
 import type { Account, BalanceEntry, DataFile } from '@/domain/schema';
 import { balanceStats } from '@/domain/stats';
 import { BalanceHistory } from './details/BalanceHistory';
+import { BalanceChart } from './details/BalanceChart';
 import { ChangeSummary, DeltaBadge } from './details/ChangeSummary';
 import { DeleteAccountSheet } from './details/DeleteAccountSheet';
 import { EditAccountSheet, type EditableField } from './details/EditAccountSheet';
@@ -270,6 +271,13 @@ export function AccountDetailsPage({ data, accountId }: { data: DataFile; accoun
         sincePreviousMonth={stats.sincePreviousMonth}
         sincePreviousFinancialYear={stats.sincePreviousFinancialYear}
         currency={account.currency}
+      />
+
+      <BalanceChart
+        account={account}
+        entries={history}
+        today={today}
+        financialYearStartMonth={data.settings.financialYearStartMonth}
       />
 
       <div className="mt-6 grid grid-cols-2 gap-3">
