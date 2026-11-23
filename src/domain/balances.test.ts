@@ -2,9 +2,11 @@ import { idSequence, makeAccount, makeEntry, makeFile, NOW } from '@/test/builde
 import {
   accountHistory,
   allEntriesHaveDefaultSign,
+  deleteBalance,
   defaultSign,
   signedAmount,
   signOf,
+  restoreBalance,
   upsertBalance,
 } from './balances';
 
@@ -124,5 +126,30 @@ describe('allEntriesHaveDefaultSign', () => {
     expect(allEntriesHaveDefaultSign(entries, 'liability')).toBe(false);
     expect(allEntriesHaveDefaultSign([makeEntry({ amountMinor: -5 })], 'liability')).toBe(true);
     expect(allEntriesHaveDefaultSign([], 'asset')).toBe(true);
+  });
+});
+
+describe('deleteBalance / restoreBalance', () => {
+  const entry = makeEntry({ id: 'x', accountId: 'a', date: '2026-11-01', amountMinor: 5 });
+  const file = makeFile({ accounts: [makeAccount({ id: 'a' })], balances: [entry] });
+
+  it('deletes an entry and can put it back', () => {
+    const deleted = deleteBalance(file, 'x');
+    expect(deleted.balances).toEqual([]);
+    expect(restoreBalance(deleted, entry).balances).toEqual([entry]);
+  });
+
+  it('does not restore over a newer entry for the same day, or for a deleted account', () => {
+    const deleted = deleteBalance(file, 'x');
+    const replaced = {
+      ...deleted,
+      balances: [makeEntry({ id: 'y', accountId: 'a', date: '2026-11-01' })],
+    };
+    expect(restoreBalance(replaced, entry).balances.map((b) => b.id)).toEqual(['y']);
+    expect(restoreBalance({ ...deleted, accounts: [] }, entry).balances).toEqual([]);
+  });
+
+  it('rejects unknown entries', () => {
+    expect(() => deleteBalance(file, 'nope')).toThrow();
   });
 });

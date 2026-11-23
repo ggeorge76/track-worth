@@ -78,3 +78,22 @@ export function allEntriesHaveDefaultSign(
   const expected = defaultSign(kind);
   return entries.every((e) => e.amountMinor === 0 || signOf(e.amountMinor) === expected);
 }
+
+/** Remove one balance entry. */
+export function deleteBalance(data: DataFile, entryId: string): DataFile {
+  if (!data.balances.some((b) => b.id === entryId)) throw new Error(`Unknown balance ${entryId}`);
+  return dataFileSchema.parse({ ...data, balances: data.balances.filter((b) => b.id !== entryId) });
+}
+
+/**
+ * Put a deleted entry back (undo). If its account is gone, it isn't restored. If another entry now
+ * exists for that account and date, that newer entry is kept.
+ */
+export function restoreBalance(data: DataFile, entry: BalanceEntry): DataFile {
+  const accountExists = data.accounts.some((a) => a.id === entry.accountId);
+  const taken = data.balances.some(
+    (b) => b.id === entry.id || (b.accountId === entry.accountId && b.date === entry.date),
+  );
+  if (!accountExists || taken) return data;
+  return dataFileSchema.parse({ ...data, balances: [...data.balances, entry] });
+}

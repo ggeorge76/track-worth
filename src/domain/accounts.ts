@@ -173,3 +173,24 @@ export function adjacentAccounts(
   if (next) result.next = next;
   return result;
 }
+
+/** Archive (hide from the list and totals, keeping history) or unarchive an account. */
+export function setArchived(data: DataFile, accountId: string, archived: boolean): DataFile {
+  if (!data.accounts.some((a) => a.id === accountId))
+    throw new Error(`Unknown account ${accountId}`);
+  return checked({
+    ...data,
+    accounts: data.accounts.map((a) => (a.id === accountId ? { ...a, archived } : a)),
+  });
+}
+
+/** Delete an account and all of its balance history. */
+export function deleteAccount(data: DataFile, accountId: string): DataFile {
+  if (!data.accounts.some((a) => a.id === accountId))
+    throw new Error(`Unknown account ${accountId}`);
+  return checked({
+    ...data,
+    accounts: data.accounts.filter((a) => a.id !== accountId),
+    balances: data.balances.filter((b) => b.accountId !== accountId),
+  });
+}

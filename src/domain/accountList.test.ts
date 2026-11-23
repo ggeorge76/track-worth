@@ -122,3 +122,18 @@ describe('helpers', () => {
     expect(tagsInUse(accounts)).toEqual(['Cash', 'Debt', 'Equity', 'Fixed Income']);
   });
 });
+
+describe('archived accounts', () => {
+  it('are left out unless showArchived is set', () => {
+    const list = [
+      makeAccount({ id: 'a', name: 'A', archived: true }),
+      makeAccount({ id: 'b', name: 'B' }),
+    ];
+    const ids = (showArchived: boolean) =>
+      buildAccountList(list, [], { ...DEFAULT_LIST_OPTIONS, showArchived }).groups[0]?.rows.map(
+        (r) => r.account.id,
+      );
+    expect(ids(false)).toEqual(['b']);
+    expect(ids(true)).toEqual(['a', 'b']);
+  });
+});
