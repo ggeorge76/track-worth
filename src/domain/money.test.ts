@@ -2,6 +2,7 @@ import {
   formatMoney,
   formatPercent,
   formatSignedMoney,
+  minorToDecimal,
   minorToInput,
   parseMoneyInput,
   percentChange,
@@ -58,5 +59,14 @@ describe('signed amounts and percentages', () => {
     expect(formatPercent(4.666, 'en')).toBe('+4.7%');
     expect(formatPercent(-20, 'en')).toBe('-20%');
     expect(formatPercent(0, 'en')).toBe('0%');
+  });
+});
+
+describe('minorToDecimal', () => {
+  it('writes a signed plain number in the currency’s decimals', () => {
+    expect(minorToDecimal(123450, 'USD')).toBe('1234.50');
+    expect(minorToDecimal(-5, 'USD')).toBe('-0.05');
+    expect(minorToDecimal(0, 'USD')).toBe('0.00');
+    expect(minorToDecimal(-1500, 'JPY')).toBe('-1500');
   });
 });

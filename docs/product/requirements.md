@@ -102,7 +102,7 @@ how each account and their total net worth change over time. All data lives in r
 | ID   | Requirement                                                                               | Status |
 | ---- | ----------------------------------------------------------------------------------------- | ------ |
 | R-S1 | Choose the base currency.                                                                 | ⬜     |
-| R-S2 | Export the data file (download JSON) and export balances as CSV.                          | ⬜     |
+| R-S2 | Export everything as JSON and the balances as CSV, saved where the user picks (ADR-0016). | ✅     |
 | R-S3 | Light and dark theme, following the system by default.                                    | ⬜     |
 | R-S4 | "Open existing file" via Google Picker, to restore a manually uploaded backup (ADR-0005). | 💭     |
 | R-S5 | Multi-currency net worth with user-entered exchange rates.                                | 💭     |

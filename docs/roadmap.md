@@ -32,7 +32,7 @@ Then: first release (secrets configured, installers tested on macOS, Windows and
 - [ ] Charts: balance over time on details (R-B4), net worth over time (R-D3), change vs previous period (R-D4)
 - [ ] Breakdown by tag (R-D5)
 - [ ] "Update all" quick-entry flow (R-B2)
-- [ ] Export JSON and CSV (R-S2)
+- [x] Export JSON and CSV (R-S2)
 - [ ] Dark mode (R-S3)
 - [ ] Offline read-only mode from the last loaded data (N-8)
 - [ ] Publish releases only after all OS builds finish (draft → publish) (ADR-0007 follow-up)

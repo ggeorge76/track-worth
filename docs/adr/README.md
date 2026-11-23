@@ -22,3 +22,4 @@ this index. Accepted ADRs are immutable. Supersede them with a new ADR instead o
 | [0013](0013-in-app-navigation-with-hash-routes.md)       | In-app navigation with hash routes and back-button support                       | Accepted                                                           |
 | [0014](0014-split-data-into-financial-year-files.md)     | Split the Drive data into financial-year files, with a local copy on each device | Accepted                                                           |
 | [0015](0015-offline-editing-and-sync.md)                 | Offline editing: save on the device, upload when back online                     | Accepted                                                           |
+| [0016](0016-export-via-native-save-dialog.md)            | Save exports with the system "Save as…" dialog, written by Rust                  | Proposed                                                           |
