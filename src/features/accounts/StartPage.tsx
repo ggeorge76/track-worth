@@ -50,6 +50,14 @@ export function StartPage({ data }: { data: DataFile }) {
           ))
         )}
         <NetWorthTrend data={counted} />
+        {totals.length > 0 && (
+          <a
+            href={hrefFor({ name: 'insights' })}
+            className="mt-2 inline-block text-sm font-medium text-teal-700 underline"
+          >
+            See where your money is
+          </a>
+        )}
       </section>
 
       {data.accounts.length === 0 ? (
