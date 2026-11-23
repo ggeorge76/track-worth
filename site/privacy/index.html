@@ -17,7 +17,7 @@
     </header>
     <main>
       <h1>Privacy Policy</h1>
-      <p class="muted">Effective date: 22 November 2026</p>
+      <p class="muted">Effective date: 23 November 2026</p>
 
       <p>
         TrackWorth ("the app") is a free desktop application for manually tracking account balances
@@ -49,8 +49,9 @@
         <li>
           <strong>Google Drive, files created by the app only</strong>
           (<code>https://www.googleapis.com/auth/drive.file</code>). Used to create, read and update
-          a single file, <code>My Drive/TrackWorth/trackworth-data.json</code>, which holds the
-          accounts and balances you enter. With this permission the app
+          the app's own files in a <code>My Drive/TrackWorth</code> folder, which hold the accounts
+          and balances you enter: <code>settings.json</code>, <code>accounts.json</code>, and one
+          file per financial year in <code>TrackWorth/balances</code>. With this permission the app
           <strong>cannot see or access any other files</strong> in your Google Drive.
         </li>
       </ul>
@@ -58,8 +59,9 @@
       <h2>3. Information you enter</h2>
       <p>
         Account names, tags, liquidity ratings, balance sources, currencies, balances, dates and
-        notes that you type into the app are saved only in the data file in your Google Drive. You
-        can open, download, edit or delete that file at any time with Google Drive.
+        notes that you type into the app are saved in the <code>TrackWorth</code> folder in your
+        Google Drive, as readable JSON files, plus a local copy on your device (section 4). You can
+        open, download, edit or delete those files at any time with Google Drive.
       </p>
 
       <h2>4. Information stored on your device</h2>
@@ -70,8 +72,14 @@
           Credential Manager, or Linux Secret Service). It is removed when you sign out.
         </li>
         <li>
-          Short-lived <strong>access tokens</strong> and your loaded data are held in memory only
-          and discarded when the app closes.
+          A <strong>local copy of your TrackWorth files</strong> is kept in the app's private
+          storage on your device, so the app starts quickly and only downloads files that changed.
+          It is never sent anywhere else, and it is deleted when you sign out (and when you sign in
+          again, in case it's a different account). Your Google Drive stays the master copy.
+        </li>
+        <li>
+          Short-lived <strong>access tokens</strong> are held in memory only and discarded when the
+          app closes.
         </li>
       </ul>
 
@@ -134,17 +142,18 @@
       <h2>10. Retention and deletion</h2>
       <ul>
         <li>
-          <strong>Your data file:</strong> stays in your Google Drive until you delete it. Delete
+          <strong>Your data files:</strong> stay in your Google Drive until you delete them. Delete
           the <code>TrackWorth</code> folder in Google Drive to remove all app data.
         </li>
         <li>
-          <strong>Sign-in:</strong> choose "Sign out" in the app to revoke access and delete the
-          stored token. You can also remove TrackWorth's access at any time at
+          <strong>Sign-in and local copy:</strong> choose "Sign out" in the app to revoke access and
+          delete the stored token and the local copy of your data. You can also remove TrackWorth's
+          access at any time at
           <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>.
         </li>
         <li>
           <strong>Uninstalling</strong> the app removes it from your device. Sign out first to
-          remove the stored token from your credential store.
+          remove the stored token from your credential store and the local copy of your data.
         </li>
       </ul>
 

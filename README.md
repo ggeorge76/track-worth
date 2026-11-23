@@ -9,7 +9,8 @@ file in **your own Google Drive**. There's no server, no bank connection and no 
 
 - Installed app for macOS, Windows and Linux (Tauri: small and fast). Android is planned.
 - Sign in with Google in your browser. You stay signed in, and your name is shown in the app.
-- Data loads from `My Drive/TrackWorth/trackworth-data.json`, which is created on first use.
+- Data lives in `My Drive/TrackWorth/` as readable JSON files, one per financial year, created on
+  first use. Saves only touch the files that changed, and a local copy keeps start-up fast.
 - Accounts with tags, liquidity (1–5), currency, balance source and notes. Sort, filter and
   group the list; swipe between accounts in balance-source order.
 - Manual balance entries for assets and liabilities, with change since the last entry, last
@@ -59,7 +60,7 @@ reasoning.
 TrackWorth (on your computer)
  ├─ React UI (OS webview, no direct internet access)
  └─ Rust shell ──► Google sign-in (your browser) · refresh token in your OS keychain
-              ──► Google Drive: TrackWorth/trackworth-data.json
+              ──► Google Drive: TrackWorth/{settings,accounts}.json + balances/<year>.json
               ──► GitHub Releases: latest.json → signed update, installed when you confirm
 ```
 

@@ -112,10 +112,12 @@ My Drive/TrackWorth/
   Here the leftover Jan–Mar 2026 can't stay in its own file, because that file would also be
   named `2026`. So it joins `2025.json` (rule 4).
 
-- **Write order for a change:** first the file that gains entries, then the file that loses
-  them, then `settings.json` with the new periods. Until `settings.json` is written, the old
-  periods decide ownership, so an interrupted change shows the data exactly as before, with no
-  duplicates and no gaps. Repeating the change completes it.
+- **Write order for a change** _(corrected 2026-11-23, see More Information)_: first the file
+  that gains entries, then `settings.json` with the new periods, then the file that gives them
+  away. Before `settings.json` is written, the old periods decide ownership and the giving file
+  still holds the entries. After it, the new periods decide and the receiving file already holds
+  them. So an interrupted change never shows missing or duplicated data, and repeating the change
+  completes it.
 - **Earlier history** (dates before the first file, e.g. during an import) gets files of 12
   months each under the current setting, working backwards from the earliest existing file's
   start date.
@@ -128,7 +130,9 @@ My Drive/TrackWorth/
   history. Past years are almost never touched.
 - **Account changes rewrite only `accounts.json`.** **Settings changes rewrite only `settings.json`**, except a financial-year change, which also rewrites the current and previous balance files (see above).
 - **Multi-file changes** (creating an account with an opening balance, creating a new year file,
-  an import) write in this order: **balance files, then `accounts.json`, then `settings.json`**.
+  an import) write in this order: **balance files, then `accounts.json`, then `settings.json`**;
+  balance files that give entries away to another file come after `settings.json`, and files no
+  longer listed are trashed last.
   If a save is interrupted, the worst case is an entry whose account isn't listed yet, or a new
   year file not yet listed in `settings.json`. Readers ignore both, and the next successful save
   tidies them up. Nothing is ever referenced before it exists.
@@ -245,6 +249,13 @@ A v2 fixture test covers the split, including entries on both sides of a financi
    and all older files remain intact (examples A and B).
 2. **Local copy on the device**, with the matching privacy-policy update.
 3. **Delete the old v2 file** after a successful migration (moved to Drive's trash).
+
+**Correction (2026-11-23, during implementation):** the first version said to write the file that
+gives entries away _before_ `settings.json`. That leaves a moment where the old periods still
+assign those dates to the giving file, which no longer holds them, so they would briefly
+disappear if the save stopped there. The order is now: receiving file, `settings.json`, giving
+file. A test replays every intermediate state of a financial-year change and checks the data
+reads back complete each time.
 
 **Order of work:**
 

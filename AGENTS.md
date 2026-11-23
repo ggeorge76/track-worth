@@ -9,8 +9,9 @@ TrackWorth. This file follows the [agents.md](https://agents.md) convention. Hum
 TrackWorth is a personal net-worth tracker. Users **manually** enter account balances (assets
 and liabilities) and watch them change over time. It is an **installed desktop app** (Tauri 2:
 Rust shell + React UI in the OS webview), with **no server** of any kind. Users sign in with
-Google in their browser, and all data is one JSON file at a fixed path in their own Google Drive
-(`My Drive/TrackWorth/trackworth-data.json`). New GitHub Releases are offered in-app as signed
+Google in their browser, and all data lives in their own Google Drive as readable JSON files in
+`My Drive/TrackWorth/` (`settings.json`, `accounts.json`, one `balances/<year>.json` per financial
+year; ADR-0014), with a local copy on the device. New GitHub Releases are offered in-app as signed
 updates that install only after the user confirms. Android comes later, via Tauri mobile.
 
 ## Commands
@@ -55,13 +56,16 @@ Framework-level dependencies (router, state library, UI kit, new Tauri plugin) n
 src/                     React UI (runs in the Tauri webview)
   app/                   Router (hash routes + back button, ADR-0013), Routes, useToday
   components/            Shared UI: Sheet (popup), Chip, Segmented, LiquidityPicker, icons
-  test/                  Builders (made-up data), renderWithData, mockDrive for screen tests
+  test/                  Builders (made-up data), renderWithData, mockStore, fakeDriveApi
   config.ts              Frontend constants: fixed Drive path, GitHub repo
   domain/                Pure TypeScript: schema (Zod), money, net-worth math. No React, no I/O.
+    storage/             How data maps to Drive files: year-file periods, split/assemble, write order
   services/              Side effects, each with an injectable fetch for tests:
     platform.ts          isDesktopApp(), httpFetch (routes through the Rust HTTP plugin)
     auth/                Calls the Rust auth commands; fetches the user's profile
-    drive/               Drive v3 REST client for the one data file
+    drive/               Drive v3 REST client (folders, JSON files, version checks, trash)
+    storage/             Data store: load (only changed files), save (only touched files), v2 upgrade
+    cache/               Local copy of the Drive files (IndexedDB), cleared on sign-out
     update/              Wraps the Tauri updater + relaunch
   features/data/         useDataFile (load) + useUpdateDataFile (optimistic, serial, conflict-safe save)
   features/<feature>/    Screens + hooks for one feature (accounts, auth, data, settings, update)
@@ -137,7 +141,8 @@ it. See [ADR-0006](docs/adr/0006-data-file-schema-and-migrations.md) and
 - Writes use optimistic concurrency (Drive `version` check). Never "fix" a conflict by
   overwriting.
 - Change data only through `useUpdateDataFile()` with a pure function from `src/domain/`
-  (e.g. `createAccount`, `updateAccount`, `upsertBalance`). Never call `drive.save` directly.
+  (e.g. `createAccount`, `updateAccount`, `upsertBalance`). Never write Drive files directly: the
+  data store decides which files to write and in which order (ADR-0014).
 
 ## Boundaries
 
