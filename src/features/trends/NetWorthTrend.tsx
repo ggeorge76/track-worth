@@ -103,9 +103,6 @@ export function NetWorthTrend({ data }: { data: DataFile }) {
           <span className="tabular-nums">{formatMoney(totals.liabilitiesMinor, currency)}</span>
         </p>
       )}
-      <p className="mt-1 text-xs text-slate-400">
-        Months without an entry use the account’s last balance.
-      </p>
     </div>
   );
 }
