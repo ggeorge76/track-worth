@@ -74,7 +74,8 @@ describe('desktop sign-in', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Sign in with Google' }));
     expect(await screen.findByText('Grace Hopper')).toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole('button', { name: 'Sign out' }));
+    await userEvent.click(screen.getByRole('button', { name: /Grace Hopper/ }));
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Sign out' }));
     expect(await screen.findByRole('button', { name: 'Sign in with Google' })).toBeInTheDocument();
     expect(invoke).toHaveBeenCalledWith('auth_sign_out');
     // The local copy of the data is cleared at sign-in (maybe another account) and sign-out.

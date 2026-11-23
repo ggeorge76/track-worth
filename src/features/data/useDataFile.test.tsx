@@ -5,7 +5,7 @@ import type { ReactNode } from 'react';
 import { createAccount, updateAccount } from '@/domain/accounts';
 import type { DataFile } from '@/domain/schema';
 import { AuthContext, type AuthContextValue } from '@/features/auth/authContext';
-import { SignOutButton } from '@/features/auth/SignOutButton';
+import { UserMenu } from '@/features/auth/UserMenu';
 import { workspace } from '@/services/cache/workspace';
 import { DriveError } from '@/services/drive/driveClient';
 import { StoreError, type StoreSnapshot } from '@/services/storage/dataStore';
@@ -253,7 +253,7 @@ describe('editing offline (ADR-0015)', () => {
   it('warns before signing out with changes still waiting', async () => {
     const user = userEvent.setup();
     const { hook, wrapper } = await loaded();
-    render(<SignOutButton />, { wrapper });
+    render(<UserMenu user={{ name: 'Test User', email: 't@example.com' }} />, { wrapper });
     fakeStore.save.mockRejectedValue(offlineError());
     await act(async () => {
       await hook.result.current.update.mutateAsync(addAccount('Unsent'));
@@ -262,13 +262,15 @@ describe('editing offline (ADR-0015)', () => {
       expect(hook.result.current.file.data?.pending).toBe(1);
     });
 
-    await user.click(screen.getByRole('button', { name: 'Sign out' }));
+    await user.click(screen.getByRole('button', { name: /Test User/ }));
+    await user.click(screen.getByRole('menuitem', { name: 'Sign out' }));
     const dialog = screen.getByRole('dialog', { name: 'Sign out and lose changes?' });
     expect(dialog).toHaveTextContent('1 change hasn’t been uploaded');
     await user.click(within(dialog).getByRole('button', { name: 'Stay signed in' }));
     expect(signOut).not.toHaveBeenCalled();
 
-    await user.click(screen.getByRole('button', { name: 'Sign out' }));
+    await user.click(screen.getByRole('button', { name: /Test User/ }));
+    await user.click(screen.getByRole('menuitem', { name: 'Sign out' }));
     await user.click(screen.getByRole('button', { name: 'Sign out anyway' }));
     expect(signOut).toHaveBeenCalledOnce();
   });
@@ -276,8 +278,9 @@ describe('editing offline (ADR-0015)', () => {
   it('signs out straight away when everything is uploaded', async () => {
     const user = userEvent.setup();
     const { wrapper } = await loaded();
-    render(<SignOutButton />, { wrapper });
-    await user.click(screen.getByRole('button', { name: 'Sign out' }));
+    render(<UserMenu user={{ name: 'Test User', email: 't@example.com' }} />, { wrapper });
+    await user.click(screen.getByRole('button', { name: /Test User/ }));
+    await user.click(screen.getByRole('menuitem', { name: 'Sign out' }));
     expect(signOut).toHaveBeenCalledOnce();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
