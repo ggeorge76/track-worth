@@ -4,6 +4,8 @@ import {
   DEFAULT_LIST_OPTIONS,
   isFiltered,
   matchesFilter,
+  shownLiquidity,
+  toggleLiquidity,
   nameSortKey,
   tagsInUse,
   type ListOptions,
@@ -147,5 +149,24 @@ describe('matchesFilter', () => {
     expect(matchesFilter(account, { ...DEFAULT_LIST_OPTIONS, tags: ['Debt'] })).toBe(false);
     expect(matchesFilter(account, { ...DEFAULT_LIST_OPTIONS, liquidity: [5] })).toBe(true);
     expect(matchesFilter(account, { ...DEFAULT_LIST_OPTIONS, liquidity: [1] })).toBe(false);
+  });
+});
+
+describe('toggleLiquidity', () => {
+  const opts = (liquidity: number[]) => ({ ...DEFAULT_LIST_OPTIONS, liquidity });
+
+  it('starts with all levels shown; a click turns one off', () => {
+    expect(shownLiquidity(DEFAULT_LIST_OPTIONS)).toEqual([1, 2, 3, 4, 5]);
+    expect(toggleLiquidity(DEFAULT_LIST_OPTIONS, 3).liquidity).toEqual([1, 2, 4, 5]);
+  });
+
+  it('turns a level back on, in order, and clears the filter when all are on again', () => {
+    expect(toggleLiquidity(opts([1, 5]), 3).liquidity).toEqual([1, 3, 5]);
+    expect(toggleLiquidity(opts([1, 2, 4, 5]), 3).liquidity).toEqual([]);
+  });
+
+  it('keeps the last level on', () => {
+    const only = opts([2]);
+    expect(toggleLiquidity(only, 2)).toBe(only);
   });
 });

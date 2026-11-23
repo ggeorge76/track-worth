@@ -27,8 +27,9 @@ export function LiquidityPicker({
       >
         {LIQUIDITY_LEVELS.map((level) => {
           const on = selected.includes(level);
-          // In the filter, fade levels that aren't selected; in a form, keep all colours vivid.
-          const dim = multiple && selected.length > 0 && !on;
+          // In the filter, selected levels are vivid and the rest faded; in a form, all colours
+          // stay vivid and the choice gets a ring.
+          const dim = multiple && !on;
           return (
             <button
               key={level}
@@ -40,7 +41,7 @@ export function LiquidityPicker({
               }}
               style={{ backgroundColor: LIQUIDITY_COLORS[level], opacity: dim ? 0.3 : 1 }}
               className={`h-10 flex-1 text-sm font-semibold text-white outline-offset-[-3px] ${
-                on ? 'ring-[3px] ring-inset ring-slate-900' : ''
+                on && !multiple ? 'ring-[3px] ring-inset ring-slate-900' : ''
               }`}
             >
               {on && !multiple ? `✓ ${String(level)}` : level}

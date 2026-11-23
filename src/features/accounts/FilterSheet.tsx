@@ -1,7 +1,13 @@
 import { Chip } from '@/components/Chip';
 import { LiquidityPicker } from '@/components/LiquidityPicker';
 import { Sheet } from '@/components/Sheet';
-import { DEFAULT_DIRECTION, type ListOptions, type SortKey } from '@/domain/accountList';
+import {
+  DEFAULT_DIRECTION,
+  shownLiquidity,
+  toggleLiquidity,
+  type ListOptions,
+  type SortKey,
+} from '@/domain/accountList';
 
 const SORTS: { key: SortKey; label: string }[] = [
   { key: 'name', label: 'Name' },
@@ -110,9 +116,9 @@ export function FilterSheet({
           <p className="mb-2 text-sm text-slate-700">Liquidity</p>
           <LiquidityPicker
             multiple
-            selected={options.liquidity}
+            selected={shownLiquidity(options)}
             onToggle={(level) => {
-              onChange({ ...options, liquidity: toggle(options.liquidity, level) });
+              onChange(toggleLiquidity(options, level));
             }}
           />
         </div>

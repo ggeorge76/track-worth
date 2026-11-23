@@ -1,4 +1,5 @@
 import { latestBalance } from './netWorth';
+import { LIQUIDITY_LEVELS } from './liquidity';
 import type { Account, BalanceEntry } from './schema';
 
 /** Start page view options (sort, filter, group). UI state, not stored in the data file. */
@@ -73,6 +74,25 @@ export function matchesFilter(account: Account, options: ListOptions): boolean {
   const liquidityOk =
     options.liquidity.length === 0 || options.liquidity.includes(account.liquidity);
   return tagOk && liquidityOk;
+}
+
+/** Liquidity levels currently shown: an empty filter means all of them. */
+export function shownLiquidity(options: ListOptions): readonly number[] {
+  return options.liquidity.length === 0 ? LIQUIDITY_LEVELS : options.liquidity;
+}
+
+/**
+ * The liquidity filter starts with every level selected; clicking a level turns it off (or back
+ * on). Selecting all five again clears the filter, and the last level can't be turned off (that
+ * would hide everything).
+ */
+export function toggleLiquidity(options: ListOptions, level: number): ListOptions {
+  const shown = shownLiquidity(options);
+  const next = shown.includes(level)
+    ? shown.filter((l) => l !== level)
+    : LIQUIDITY_LEVELS.filter((l) => l === level || shown.includes(l));
+  if (next.length === 0) return options;
+  return { ...options, liquidity: next.length === LIQUIDITY_LEVELS.length ? [] : next };
 }
 
 export function isFiltered(options: ListOptions): boolean {
