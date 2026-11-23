@@ -44,8 +44,12 @@ export function UpdateBalanceSheet({
   );
   const [error, setError] = useState<string | null>(null);
 
+  // The entries as they were when the sheet opened. Saving shows the new entry at once (before
+  // the upload finishes), and it must not then be reported as one this save "replaces".
+  const [historyAtOpen] = useState(history);
+
   const checked = checkSignedAmount(amount, sign, account.currency);
-  const existing = history.find((e) => e.date === date);
+  const existing = historyAtOpen.find((e) => e.date === date);
   const preview = checked.ok ? checked.amountMinor : null;
 
   const onSave = async () => {
@@ -95,7 +99,7 @@ export function UpdateBalanceSheet({
               setDate(e.target.value);
             }}
           />
-          {existing && existing !== initial && (
+          {existing && existing.id !== initial?.id && (
             <p className="text-sm text-amber-800">
               This replaces the {formatMoney(existing.amountMinor, account.currency)} already saved
               for {formatIsoDate(existing.date)}.

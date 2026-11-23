@@ -59,6 +59,19 @@ describe('UpdateBalanceSheet', () => {
     expect(fakeStore.save).toHaveBeenCalledOnce();
   });
 
+  it('doesn’t warn about replacing the entry it is saving while the upload runs', async () => {
+    const user = userEvent.setup();
+    fakeStore.save.mockReturnValue(new Promise(() => undefined)); // upload still in progress
+    const { client } = openUpdate('loan'); // no entries yet
+    await user.click(screen.getByRole('button', { name: 'Update' }));
+    await user.type(screen.getByLabelText('Amount'), '500');
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    await waitFor(() => {
+      expect(entriesFor(client, 'loan')).toHaveLength(1); // shown straight away
+    });
+    expect(screen.queryByText(/This replaces/)).not.toBeInTheDocument();
+  });
+
   it('defaults to negative for a liability and saves the amount as negative', async () => {
     const user = userEvent.setup();
     const { client } = openUpdate('loan');
