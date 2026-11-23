@@ -10,17 +10,22 @@ function renderApp() {
   );
 }
 
-// jsdom is not the desktop app, so this covers the browser-preview shell.
-describe('App (browser preview)', () => {
-  it('shows the sign-in screen with a desktop-app hint', () => {
+// jsdom is not the desktop app, so this covers the browser preview of the landing page.
+describe('App before sign-in (browser preview)', () => {
+  it('shows the landing page with a desktop-app hint', () => {
     renderApp();
-    expect(screen.getByRole('heading', { name: 'TrackWorth' })).toBeInTheDocument();
-    expect(screen.getByText(/never connects to your bank/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', {
+        level: 1,
+        name: 'See Your Complete Financial Life in One Place',
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText(/never connects to your bank/i).length).toBeGreaterThan(0);
     expect(screen.getByRole('note')).toHaveTextContent(/only works in the desktop app/i);
   });
 
-  it('shows the app version', () => {
+  it('shows the app version in the footer', () => {
     renderApp();
-    expect(screen.getByText(`v${__APP_VERSION__}`)).toBeInTheDocument();
+    expect(screen.getByRole('contentinfo')).toHaveTextContent(`v${__APP_VERSION__}`);
   });
 });

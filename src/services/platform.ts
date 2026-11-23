@@ -13,3 +13,16 @@ export function isDesktopApp(): boolean {
  */
 export const httpFetch: typeof fetch = (input, init) =>
   isDesktopApp() ? tauriFetch(input, init) : fetch(input, init);
+
+/**
+ * Open a web page in the user's browser. Inside the desktop app this goes through the opener
+ * plugin, which only allows the URLs listed in src-tauri/capabilities/default.json.
+ */
+export async function openExternal(url: string): Promise<void> {
+  if (isDesktopApp()) {
+    const { openUrl } = await import('@tauri-apps/plugin-opener');
+    await openUrl(url);
+  } else {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+}

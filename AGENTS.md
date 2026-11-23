@@ -70,6 +70,7 @@ src/                     React UI (runs in the Tauri webview)
     update/              Wraps the Tauri updater + relaunch
   features/data/         useDataFile (load) + useUpdateDataFile (optimistic, serial, conflict-safe save)
   features/<feature>/    Screens + hooks for one feature (accounts, auth, data, settings, update)
+  features/landing/      Page shown before sign-in. Claims must match what the app does today
   App.tsx, main.tsx      Composition root
 src-tauri/               Rust app shell
   src/auth/              Google OAuth: loopback + PKCE, keychain storage, token refresh
