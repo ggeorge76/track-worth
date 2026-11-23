@@ -76,27 +76,57 @@ My Drive/TrackWorth/
 
 ### Periods, and changing the financial year
 
-- New balance files follow the **current financial-year setting**.
-- **Changing the setting never touches existing files.** Their periods stay exactly as recorded;
-  old data remains intact. The new setting applies from the next new file onwards.
-- **The first file after a change starts the day after the last file ends** and runs to the end
-  of the first financial year (under the new setting) that starts after that day. So it is
-  **12–23 months long, never shorter than 12**. Every file starts at least 12 months after the
-  previous one, so **no two files start in the same year** and year-based names never clash.
-  - Example: with a January year, the last file is `2026.json` (Jan–Dec 2026). After switching
-    to April, `2027.json` covers 1 Jan 2027 – 31 Mar 2028 (15 months), and `2028.json` starts on
-    1 Apr 2028.
+- New balance files follow the **current financial-year setting**. When a new financial year
+  begins, its file starts the day after the previous file ends.
+- **A file only owns the entries dated within its recorded period** (from `settings.json`).
+  Readers ignore any entry outside its file's period, and the next write of that file removes it.
+  This makes moving entries between files safe even if a save is interrupted (see below).
+- **Changing the financial-year setting applies from the current financial year onwards:**
+  1. The **current financial year under the new setting** (the one containing today) gets its own
+     file, named by the year it starts, covering exactly that year. All entries dated from its
+     start onwards move into it.
+  2. The **immediately previous file** is shortened or lengthened so it ends the day before the
+     new current year starts. Entries in the gap move between these two files.
+  3. **Every older file stays exactly as it is.** Only the current and previous files (plus
+     `settings.json`) are ever rewritten.
+  4. **Name clash:** a shortened previous file could start in the same year as the new current
+     file. In that case its leftover months join the file before it instead, which then becomes
+     longer than 12 months. This happens when moving the financial year start later in the
+     calendar.
+- **Example A, Apr–Mar → Jan–Dec**, changed in Nov 2026:
+
+  | File                  | Before (Apr–Mar)    | After (Jan–Dec)                              |
+  | --------------------- | ------------------- | -------------------------------------------- |
+  | `2024.json` and older | Apr 2024 – Mar 2025 | unchanged                                    |
+  | `2025.json`           | Apr 2025 – Mar 2026 | **Apr 2025 – Dec 2025** (shortened)          |
+  | `2026.json` (current) | Apr 2026 – Mar 2027 | **Jan 2026 – Dec 2026** (gains Jan–Mar 2026) |
+
+- **Example B, Jan–Dec → Apr–Mar**, changed in Nov 2026:
+
+  | File                  | Before (Jan–Dec)    | After (Apr–Mar)                                         |
+  | --------------------- | ------------------- | ------------------------------------------------------- |
+  | `2024.json` and older | Jan 2024 – Dec 2024 | unchanged                                               |
+  | `2025.json`           | Jan 2025 – Dec 2025 | **Jan 2025 – Mar 2026** (15 months, gains Jan–Mar 2026) |
+  | `2026.json` (current) | Jan 2026 – Dec 2026 | **Apr 2026 – Mar 2027**                                 |
+
+  Here the leftover Jan–Mar 2026 can't stay in its own file, because that file would also be
+  named `2026`. So it joins `2025.json` (rule 4).
+
+- **Write order for a change:** first the file that gains entries, then the file that loses
+  them, then `settings.json` with the new periods. Until `settings.json` is written, the old
+  periods decide ownership, so an interrupted change shows the data exactly as before, with no
+  duplicates and no gaps. Repeating the change completes it.
 - **Earlier history** (dates before the first file, e.g. during an import) gets files of 12
-  months each, working backwards from the earliest existing file's start date.
-- Stats such as "This financial year" always use the **current setting**, independent of how
-  files are split. The file split is a storage detail only.
+  months each under the current setting, working backwards from the earliest existing file's
+  start date.
+- Stats such as "This financial year" always use the **current setting**. The file split is a
+  storage detail only.
 
 ### Writes
 
 - **Editing a balance rewrites only its year file**, a few KB to tens of KB regardless of total
   history. Past years are almost never touched.
-- **Account changes rewrite only `accounts.json`.** **Settings changes rewrite only
-  `settings.json`.**
+- **Account changes rewrite only `accounts.json`.** **Settings changes rewrite only `settings.json`**, except a financial-year change, which also rewrites the current and previous balance files (see above).
 - **Multi-file changes** (creating an account with an opening balance, creating a new year file,
   an import) write in this order: **balance files, then `accounts.json`, then `settings.json`**.
   If a save is interrupted, the worst case is an entry whose account isn't listed yet, or a new
@@ -145,7 +175,8 @@ A v2 fixture test covers the split, including entries on both sides of a financi
   fetches what changed.
 - Good, because data stays as plain readable JSON in the user's Drive, browsable by year, with
   Drive version history per file.
-- Good, because changing the financial-year setting never rewrites history.
+- Good, because changing the financial-year setting rewrites at most two balance files. Older
+  history is never touched.
 - Good, because reports get fast in-memory queries through one layer that can be swapped later.
 - Good, because it needs no new dependencies and works the same on desktop and Android.
 - Bad, because the code is more complex than one file: separate settings and accounts files,
@@ -161,8 +192,9 @@ A v2 fixture test covers the split, including entries on both sides of a financi
 
 - Tests for the storage module:
   - which file a date belongs to, including financial-year boundaries;
-  - a financial-year change mid-history (no overlap, no name clash, no file shorter than 12
-    months);
+  - financial-year changes in both directions (examples A and B): only the current and
+    previous files change, there is no overlap, gap or name clash, and an interrupted change
+    shows the data unchanged;
   - backwards file creation for imports;
   - write ordering and orphan handling;
   - per-file conflict refusal;
@@ -208,7 +240,9 @@ A v2 fixture test covers the split, including entries on both sides of a financi
 
 1. Files per **financial year**, using the current setting. Files are **named by the year their
    period starts**, with the periods recorded in a **separate settings file**. A
-   financial-year change applies from the current year onwards; old data remains intact.
+   financial-year change applies from the **current financial year** onwards. The current year
+   follows the new setting immediately, the previous file is shortened or lengthened to meet it,
+   and all older files remain intact (examples A and B).
 2. **Local copy on the device**, with the matching privacy-policy update.
 3. **Delete the old v2 file** after a successful migration (moved to Drive's trash).
 
