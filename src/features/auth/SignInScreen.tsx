@@ -11,8 +11,8 @@ export function SignInScreen() {
       <img src={logoUrl} alt="" width={128} height={128} className="mx-auto h-32 w-32" />
       <h1 className="text-3xl font-semibold">TrackWorth</h1>
       <p className="text-slate-600">
-        Track your account balances by hand. Your data is saved as one file in your own Google
-        Drive. TrackWorth never connects to your bank.
+        Track your account balances by hand. Your data is saved in a TrackWorth folder in your own
+        Google Drive. TrackWorth never connects to your bank.
       </p>
       {isDesktopApp() ? (
         <>

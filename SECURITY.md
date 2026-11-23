@@ -15,17 +15,17 @@ Only the latest release is supported. The app offers updates in-app (ADR-0007).
 
 TrackWorth is a local desktop app with **no server** (ADR-0003).
 
-| Asset                      | Protection                                                                                                                          |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Google refresh token       | Stored only in the OS keychain by Rust. It never reaches the UI. Revoked on sign-out (ADR-0004).                                    |
-| Google access token        | About 1 h lifetime, cached in Rust memory, handed to the UI on demand, never persisted.                                             |
-| OAuth flow                 | System browser + loopback redirect on 127.0.0.1 + PKCE (S256) + random `state` check.                                               |
-| Access to the user's Drive | `drive.file` scope only: the app sees only files it created (ADR-0005).                                                             |
-| Financial data             | Stays in the user's Drive and in memory. Never logged or sent elsewhere. There are no analytics.                                    |
-| Data integrity             | Zod validation on load, refusal of newer schemas, Drive version check before every write (ADR-0006).                                |
-| UI compromise (XSS)        | React escaping, a strict CSP with no direct network access (`connect-src` is IPC only), and least-privilege Tauri capabilities.     |
-| Updates                    | Every update bundle is signed. The app verifies it against the embedded public key before installing (ADR-0007).                    |
-| Supply chain               | Lockfiles (`bun.lock`, `Cargo.lock`), Dependabot (bun, cargo, actions), minimal dependencies, least-privilege workflow permissions. |
+| Asset                      | Protection                                                                                                                                                                                         |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Google refresh token       | Stored only in the OS keychain by Rust. It never reaches the UI. Revoked on sign-out (ADR-0004).                                                                                                   |
+| Google access token        | About 1 h lifetime, cached in Rust memory, handed to the UI on demand, never persisted.                                                                                                            |
+| OAuth flow                 | System browser + loopback redirect on 127.0.0.1 + PKCE (S256) + random `state` check.                                                                                                              |
+| Access to the user's Drive | `drive.file` scope only: the app sees only files it created (ADR-0005).                                                                                                                            |
+| Financial data             | Stays in the user's Drive, in memory, and in a local copy in the app's private storage (IndexedDB) that is deleted on sign-out (ADR-0014). Never logged or sent elsewhere. There are no analytics. |
+| Data integrity             | Zod validation on load, refusal of newer schemas, Drive version check before every write (ADR-0006).                                                                                               |
+| UI compromise (XSS)        | React escaping, a strict CSP with no direct network access (`connect-src` is IPC only), and least-privilege Tauri capabilities.                                                                    |
+| Updates                    | Every update bundle is signed. The app verifies it against the embedded public key before installing (ADR-0007).                                                                                   |
+| Supply chain               | Lockfiles (`bun.lock`, `Cargo.lock`), Dependabot (bun, cargo, actions), minimal dependencies, least-privilege workflow permissions.                                                                |
 
 ### What the UI is allowed to reach
 

@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { invoke } from '@tauri-apps/api/core';
 import { fetch as tauriFetch } from '@tauri-apps/plugin-http';
 import { App } from '@/App';
+import { fileCache } from '@/services/cache/fileCache';
 
 vi.mock('@tauri-apps/api/core', () => ({ isTauri: () => true, invoke: vi.fn() }));
 vi.mock('@tauri-apps/plugin-http', () => ({ fetch: vi.fn() }));
@@ -58,6 +59,7 @@ describe('desktop sign-in', () => {
   });
 
   it('signs in through the browser flow and then signs out', async () => {
+    const clearCache = vi.spyOn(fileCache, 'clear');
     mockRust({ auth_restore: () => null, auth_sign_in: () => token, auth_sign_out: () => null });
     mockProfile('Grace Hopper');
     renderApp();
@@ -67,6 +69,8 @@ describe('desktop sign-in', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Sign out' }));
     expect(await screen.findByRole('button', { name: 'Sign in with Google' })).toBeInTheDocument();
     expect(invoke).toHaveBeenCalledWith('auth_sign_out');
+    // The local copy of the data is cleared at sign-in (maybe another account) and sign-out.
+    expect(clearCache).toHaveBeenCalledTimes(2);
     expect(screen.queryByText('Grace Hopper')).not.toBeInTheDocument();
   });
 

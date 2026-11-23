@@ -3,12 +3,12 @@ import userEvent from '@testing-library/user-event';
 import { Routes } from '@/app/Routes';
 import { localIsoDate } from '@/domain/dates';
 import { makeAccount, makeEntry, makeFile } from '@/test/builders';
-import { fakeDrive } from '@/test/mockDrive';
+import { fakeStore } from '@/test/mockStore';
 import { dataIn, renderWithData } from '@/test/renderWithData';
 
 // vi.mock is hoisted above imports, so load the helper inside the factory.
-vi.mock('@/services/drive/driveClient', async (importOriginal) =>
-  (await import('@/test/mockDrive')).mockDriveModule(importOriginal),
+vi.mock('@/services/storage/dataStore', async (importOriginal) =>
+  (await import('@/test/mockStore')).mockStoreModule(importOriginal),
 );
 
 const today = localIsoDate();
@@ -56,7 +56,7 @@ describe('UpdateBalanceSheet', () => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
     expect(entriesFor(client, 'bank').find((b) => b.date === today)?.amountMinor).toBe(1_234_50);
-    expect(fakeDrive.save).toHaveBeenCalledOnce();
+    expect(fakeStore.save).toHaveBeenCalledOnce();
   });
 
   it('defaults to negative for a liability and saves the amount as negative', async () => {
@@ -127,7 +127,7 @@ describe('UpdateBalanceSheet', () => {
     if (amount) await user.type(screen.getByLabelText('Amount'), amount);
     await user.click(screen.getByRole('button', { name: 'Save' }));
     expect(screen.getByRole('alert')).toHaveTextContent(message);
-    expect(fakeDrive.save).not.toHaveBeenCalled();
+    expect(fakeStore.save).not.toHaveBeenCalled();
   });
 
   it('rejects future dates', async () => {

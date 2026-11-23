@@ -49,3 +49,29 @@ export function financialYearEnd(start: string): string {
   const end = new Date(Date.UTC(y + 1, m - 1, 0)); // day 0 = last day of the previous month
   return end.toISOString().slice(0, 10);
 }
+
+function toUtc(isoDate: string): Date {
+  return new Date(
+    Date.UTC(
+      Number(isoDate.slice(0, 4)),
+      Number(isoDate.slice(5, 7)) - 1,
+      Number(isoDate.slice(8, 10)),
+    ),
+  );
+}
+
+/** `isoDate` plus `days` (may be negative). */
+export function addDays(isoDate: string, days: number): string {
+  const d = toUtc(isoDate);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+/** Same day `years` later (29 Feb maps to 28 Feb in non-leap years). */
+export function addYears(isoDate: string, years: number): string {
+  const y = Number(isoDate.slice(0, 4)) + years;
+  const m = Number(isoDate.slice(5, 7));
+  const lastDay = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  const day = Math.min(Number(isoDate.slice(8, 10)), lastDay);
+  return `${String(y)}-${isoDate.slice(5, 7)}-${String(day).padStart(2, '0')}`;
+}

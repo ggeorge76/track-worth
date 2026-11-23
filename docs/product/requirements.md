@@ -9,8 +9,7 @@ Status key: ✅ done · 🚧 in progress · ⬜ planned · 💭 idea (not commit
 ## Vision
 
 A calm, private net-worth tracker that runs as an installed desktop app. Users manually record balances for their accounts and see
-how each account and their total net worth change over time. All data lives in one JSON file
-in the user's own Google Drive. See [SOUL.md](../../SOUL.md).
+how each account and their total net worth change over time. All data lives in readable JSON files in the user's own Google Drive (ADR-0014). See [SOUL.md](../../SOUL.md).
 
 ## Users
 
@@ -21,16 +20,16 @@ in the user's own Google Drive. See [SOUL.md](../../SOUL.md).
 
 ### Authentication & storage
 
-| ID   | Requirement                                                                                            | Status |
-| ---- | ------------------------------------------------------------------------------------------------------ | ------ |
-| R-A1 | Sign in with Google in the system browser. The app is unusable without sign-in.                        | ✅     |
-| R-A2 | Show the signed-in user's name (from the OAuth profile) in the header.                                 | ✅     |
-| R-A3 | After sign-in, load the data file from `My Drive/TrackWorth/trackworth-data.json`.                     | ✅     |
-| R-A4 | If the file doesn't exist, create it (with the folder) as an empty data file.                          | ✅     |
-| R-A5 | Sign out revokes the token and clears all in-memory data.                                              | ✅     |
-| R-A6 | Saving never silently overwrites changes made on another device. Detect the conflict and offer reload. | ✅     |
-| R-A7 | Access tokens are refreshed automatically before they expire, so sessions never break mid-use.         | ✅     |
-| R-A8 | Stay signed in across app restarts (refresh token in the OS keychain), until the user signs out.       | ✅     |
+| ID   | Requirement                                                                                                                                       | Status |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| R-A1 | Sign in with Google in the system browser. The app is unusable without sign-in.                                                                   | ✅     |
+| R-A2 | Show the signed-in user's name (from the OAuth profile) in the header.                                                                            | ✅     |
+| R-A3 | After sign-in, load the data from `My Drive/TrackWorth/` (settings, accounts, one file per financial year).                                       | ✅     |
+| R-A4 | If no data exists, create the folder and empty files. An older single data file is upgraded automatically, verified, then moved to Drive's trash. | ✅     |
+| R-A5 | Sign out revokes the token and clears all in-memory data.                                                                                         | ✅     |
+| R-A6 | Saving never silently overwrites changes made on another device. Detect the conflict and offer reload.                                            | ✅     |
+| R-A7 | Access tokens are refreshed automatically before they expire, so sessions never break mid-use.                                                    | ✅     |
+| R-A8 | Stay signed in across app restarts (refresh token in the OS keychain), until the user signs out.                                                  | ✅     |
 
 ### Accounts
 

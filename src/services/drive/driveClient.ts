@@ -1,12 +1,11 @@
-import { config } from '@/config';
 import { httpFetch } from '@/services/platform';
 
 /**
- * Thin Google Drive v3 REST client for the single data file (ADR-0005).
- * Uses fetch directly (no gapi) to keep the bundle small and the code testable.
+ * Thin Google Drive v3 REST client: generic folder and JSON-file operations used by the data
+ * store (ADR-0014). Uses fetch directly (no gapi) to keep the bundle small and testable.
  *
- * Concurrency: every write checks the file's Drive `version` first. If it changed since we
- * read it (another device saved), we throw a `conflict` instead of overwriting.
+ * Concurrency: `updateJson` checks the file's Drive `version` first. If it changed since we read
+ * it (another device saved), it throws a `conflict` instead of overwriting.
  */
 
 const API = 'https://www.googleapis.com/drive/v3';
@@ -26,16 +25,27 @@ export class DriveError extends Error {
   }
 }
 
-export interface DriveFileContent {
-  fileId: string;
+/** A file or folder as listed by Drive. */
+export interface DriveItem {
+  id: string;
+  name: string;
   version: string;
-  content: unknown;
+  isFolder: boolean;
 }
 
-interface FileMeta {
+interface RawItem {
   id: string;
+  name?: string;
   version?: string;
+  mimeType?: string;
 }
+
+const toItem = (raw: RawItem): DriveItem => ({
+  id: raw.id,
+  name: raw.name ?? '',
+  version: raw.version ?? '',
+  isFolder: raw.mimeType === FOLDER_MIME,
+});
 
 export interface DriveClientOptions {
   /** Returns a valid access token (refreshed by the Rust side when needed). */
@@ -58,98 +68,82 @@ export function createDriveClient({ getAccessToken, fetchImpl = httpFetch }: Dri
     return res;
   }
 
-  async function findOne(q: string): Promise<FileMeta | undefined> {
-    const params = new URLSearchParams({
-      q,
-      fields: 'files(id,version)',
-      spaces: 'drive',
-      pageSize: '1',
-      orderBy: 'createdTime',
-    });
-    const res = await request(`${API}/files?${params.toString()}`);
-    const body = (await res.json()) as { files?: FileMeta[] };
-    return body.files?.[0];
+  const ITEM_FIELDS = 'id,name,version,mimeType';
+
+  async function list(q: string): Promise<DriveItem[]> {
+    const items: DriveItem[] = [];
+    let pageToken: string | undefined;
+    do {
+      const params = new URLSearchParams({
+        q,
+        fields: `nextPageToken,files(${ITEM_FIELDS})`,
+        spaces: 'drive',
+        pageSize: '1000',
+        orderBy: 'createdTime',
+      });
+      if (pageToken) params.set('pageToken', pageToken);
+      const res = await request(`${API}/files?${params.toString()}`);
+      const body = (await res.json()) as { files?: RawItem[]; nextPageToken?: string };
+      items.push(...(body.files ?? []).map(toItem));
+      pageToken = body.nextPageToken;
+    } while (pageToken);
+    return items;
   }
 
-  async function findFolder(): Promise<FileMeta | undefined> {
-    const name = escapeQueryValue(config.drive.folderName);
-    return findOne(
-      `name = '${name}' and mimeType = '${FOLDER_MIME}' and 'root' in parents and trashed = false`,
-    );
-  }
-
-  async function findDataFile(folderId: string): Promise<FileMeta | undefined> {
-    const name = escapeQueryValue(config.drive.fileName);
-    const parent = escapeQueryValue(folderId);
-    return findOne(`name = '${name}' and '${parent}' in parents and trashed = false`);
-  }
-
-  async function createFolder(): Promise<FileMeta> {
-    const res = await request(`${API}/files?fields=id`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: config.drive.folderName,
-        mimeType: FOLDER_MIME,
-        parents: ['root'],
-      }),
-    });
-    return (await res.json()) as FileMeta;
-  }
-
-  async function createDataFile(folderId: string, content: unknown): Promise<FileMeta> {
-    const boundary = `trackworth-${crypto.randomUUID()}`;
-    const metadata = {
-      name: config.drive.fileName,
-      parents: [folderId],
-      mimeType: 'application/json',
-    };
-    const body =
-      `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n` +
-      `--${boundary}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(content, null, 2)}\r\n` +
-      `--${boundary}--`;
-    const res = await request(`${UPLOAD}/files?uploadType=multipart&fields=id,version`, {
-      method: 'POST',
-      headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
-      body,
-    });
-    return (await res.json()) as FileMeta;
-  }
+  const inFolder = (parentId: string) =>
+    `'${escapeQueryValue(parentId)}' in parents and trashed = false`;
 
   async function getVersion(fileId: string): Promise<string> {
     const res = await request(`${API}/files/${encodeURIComponent(fileId)}?fields=version`);
-    const meta = (await res.json()) as FileMeta;
-    return meta.version ?? '';
-  }
-
-  async function readContent(fileId: string): Promise<unknown> {
-    const res = await request(`${API}/files/${encodeURIComponent(fileId)}?alt=media`);
-    return (await res.json()) as unknown;
+    return ((await res.json()) as RawItem).version ?? '';
   }
 
   return {
-    /**
-     * Load the data file at the fixed path, creating folder and file on first run.
-     * `createInitial` is only called when no file exists.
-     */
-    async loadOrCreate(createInitial: () => unknown): Promise<DriveFileContent> {
-      const folder = (await findFolder()) ?? (await createFolder());
-      const existing = await findDataFile(folder.id);
-      if (!existing) {
-        const content = createInitial();
-        const created = await createDataFile(folder.id, content);
-        return { fileId: created.id, version: created.version ?? '', content };
-      }
-      const version = await getVersion(existing.id);
-      const content = await readContent(existing.id);
-      return { fileId: existing.id, version, content };
+    /** Everything (not trashed) directly inside a folder; `'root'` is My Drive. */
+    listChildren(parentId: string): Promise<DriveItem[]> {
+      return list(inFolder(parentId));
     },
 
-    /** Overwrite the data file if nobody else changed it since `expectedVersion`. */
-    async save(fileId: string, content: unknown, expectedVersion: string): Promise<string> {
+    /** The oldest child with this name, if any (duplicates can exist in Drive). */
+    async findChild(parentId: string, name: string): Promise<DriveItem | undefined> {
+      const items = await list(`name = '${escapeQueryValue(name)}' and ${inFolder(parentId)}`);
+      return items[0];
+    },
+
+    async createFolder(name: string, parentId: string): Promise<DriveItem> {
+      const res = await request(`${API}/files?fields=${ITEM_FIELDS}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, mimeType: FOLDER_MIME, parents: [parentId] }),
+      });
+      return toItem((await res.json()) as RawItem);
+    },
+
+    async createJson(name: string, parentId: string, content: unknown): Promise<DriveItem> {
+      const boundary = `trackworth-${crypto.randomUUID()}`;
+      const metadata = { name, parents: [parentId], mimeType: 'application/json' };
+      const body =
+        `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n` +
+        `--${boundary}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(content, null, 2)}\r\n` +
+        `--${boundary}--`;
+      const res = await request(`${UPLOAD}/files?uploadType=multipart&fields=${ITEM_FIELDS}`, {
+        method: 'POST',
+        headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
+        body,
+      });
+      return toItem((await res.json()) as RawItem);
+    },
+
+    async readJson(fileId: string): Promise<unknown> {
+      const res = await request(`${API}/files/${encodeURIComponent(fileId)}?alt=media`);
+      return (await res.json()) as unknown;
+    },
+
+    /** Overwrite a JSON file if nobody else changed it since `expectedVersion`; returns the new version. */
+    async updateJson(fileId: string, content: unknown, expectedVersion: string): Promise<string> {
       const current = await getVersion(fileId);
       if (current !== expectedVersion) {
-        throw new DriveError('The data file was changed on another device', 'conflict');
+        throw new DriveError('The file was changed on another device', 'conflict');
       }
       const res = await request(
         `${UPLOAD}/files/${encodeURIComponent(fileId)}?uploadType=media&fields=version`,
@@ -159,8 +153,16 @@ export function createDriveClient({ getAccessToken, fetchImpl = httpFetch }: Dri
           body: JSON.stringify(content, null, 2),
         },
       );
-      const meta = (await res.json()) as FileMeta;
-      return meta.version ?? '';
+      return ((await res.json()) as RawItem).version ?? '';
+    },
+
+    /** Move a file to Drive's trash (recoverable for 30 days). */
+    async trash(fileId: string): Promise<void> {
+      await request(`${API}/files/${encodeURIComponent(fileId)}?fields=id`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ trashed: true }),
+      });
     },
   };
 }

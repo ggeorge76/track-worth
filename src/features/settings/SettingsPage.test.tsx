@@ -5,8 +5,8 @@ import { makeFile } from '@/test/builders';
 import { dataIn, renderWithData } from '@/test/renderWithData';
 
 // vi.mock is hoisted above imports, so load the helper inside the factory.
-vi.mock('@/services/drive/driveClient', async (importOriginal) =>
-  (await import('@/test/mockDrive')).mockDriveModule(importOriginal),
+vi.mock('@/services/storage/dataStore', async (importOriginal) =>
+  (await import('@/test/mockStore')).mockStoreModule(importOriginal),
 );
 
 describe('SettingsPage', () => {

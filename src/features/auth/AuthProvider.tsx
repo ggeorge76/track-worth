@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import * as auth from '@/services/auth/desktopAuth';
+import { fileCache } from '@/services/cache/fileCache';
 import { isDesktopApp } from '@/services/platform';
 import { AuthContext, type AuthContextValue, type AuthState } from './authContext';
 
@@ -14,8 +15,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const resetToSignedOut = useCallback(
     (error?: string) => {
-      // Drop every cached query so no balances survive into the next (possibly different) user.
+      // Drop all in-memory data and the on-device copy (ADR-0014), so no balances survive into
+      // the next (possibly different) user.
       queryClient.clear();
+      void fileCache.clear();
       setState(error ? { status: 'signed-out', error } : { status: 'signed-out' });
     },
     [queryClient],
@@ -48,6 +51,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState({ status: 'signing-in' });
     try {
       const token = await auth.signIn();
+      // An interactive sign-in may be a different Google account: start from a clean local copy.
+      await fileCache.clear();
       const user = await auth.fetchUserProfile(token.accessToken);
       setState({ status: 'signed-in', user });
     } catch (err) {

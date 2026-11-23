@@ -1,10 +1,12 @@
 import { z } from 'zod';
 import { dataFileV1Schema } from './migrations/v1';
 import { migrateV1ToV2 } from './migrations/v1ToV2';
+import { dataFileV2Schema } from './migrations/v2';
 import { DEFAULT_FINANCIAL_YEAR_START_MONTH } from './settings';
 
 /**
- * Data file schema (ADR-0006). This is the contract with the JSON stored in the user's Drive.
+ * The user's data (ADR-0006), as held in memory. Since v3 it is stored split across several
+ * Drive files (ADR-0014; see domain/storage/), but the shape the app works with is this one.
  *
  * Rules:
  * - Any change to the shape needs a new SCHEMA_VERSION, a frozen copy of the old schema in
@@ -12,7 +14,7 @@ import { DEFAULT_FINANCIAL_YEAR_START_MONTH } from './settings';
  * - Never remove or rename a field without a migration; old files must keep loading.
  * - Money is always stored as integer minor units (cents) + ISO 4217 currency code.
  */
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 const id = z.string().min(1).max(64);
 const currencyCode = z.string().regex(/^[A-Z]{3}$/, 'Expected an ISO 4217 code like "USD"');
@@ -118,6 +120,8 @@ export type ParseResult =
 /** Each step validates its input with the frozen old schema and returns the next version. */
 const MIGRATIONS: Record<number, (raw: unknown) => unknown> = {
   1: (raw) => migrateV1ToV2(dataFileV1Schema.parse(raw)),
+  // v3 keeps the same shape; what changed is how it's stored (ADR-0014).
+  2: (raw) => ({ ...dataFileV2Schema.parse(raw), schemaVersion: 3 }),
 };
 
 /**

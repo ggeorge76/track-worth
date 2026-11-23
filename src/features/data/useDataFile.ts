@@ -2,23 +2,22 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import type { ChangeOptions } from '@/domain/accounts';
 import { newId } from '@/domain/ids';
-import { createEmptyDataFile, dataFileSchema, parseDataFile, type DataFile } from '@/domain/schema';
+import { dataFileSchema, type DataFile } from '@/domain/schema';
 import { useAuth } from '@/features/auth/authContext';
+import { fileCache } from '@/services/cache/fileCache';
 import { createDriveClient, DriveError } from '@/services/drive/driveClient';
+import { createDataStore, StoreError, type StoreSnapshot } from '@/services/storage/dataStore';
 
 export const DATA_FILE_KEY = ['data-file'] as const;
 export const SAVE_MUTATION_KEY = ['save-data-file'] as const;
 
-const DEFAULT_CURRENCY = 'USD';
-
 export interface LoadedDataFile {
-  fileId: string;
-  /** Drive `version` of the file as last read or written (ADR-0005 optimistic concurrency). */
-  version: string;
   data: DataFile;
+  /** What this device last read from or wrote to Drive (ADR-0014). */
+  snapshot: StoreSnapshot;
 }
 
-/** A pure change to the data file, e.g. `(data, opts) => upsertBalance(data, input, opts)`. */
+/** A pure change to the data, e.g. `(data, opts) => upsertBalance(data, input, opts)`. */
 export type DataChange = (data: DataFile, options: ChangeOptions) => DataFile;
 
 export class SaveError extends Error {
@@ -31,39 +30,40 @@ export class SaveError extends Error {
   }
 }
 
-function useDriveClient() {
+function useDataStore() {
   const { getAccessToken } = useAuth();
-  return useMemo(() => createDriveClient({ getAccessToken }), [getAccessToken]);
+  return useMemo(
+    () => createDataStore({ drive: createDriveClient({ getAccessToken }), cache: fileCache }),
+    [getAccessToken],
+  );
 }
 
-/** Loads (or creates on first run) the user's data file from Drive, migrating old versions. */
+/** Loads the data from Drive (only changed files are downloaded), upgrading old formats. */
 export function useDataFile() {
-  const drive = useDriveClient();
+  const store = useDataStore();
   return useQuery({
     queryKey: DATA_FILE_KEY,
     queryFn: async (): Promise<LoadedDataFile> => {
-      const file = await drive.loadOrCreate(() => createEmptyDataFile(DEFAULT_CURRENCY));
-      const parsed = parseDataFile(file.content);
-      if (!parsed.ok) {
-        throw new Error(
-          parsed.reason === 'newer-version'
-            ? 'Your data was saved by a newer version of TrackWorth. Please update the app.'
-            : `Your data file couldn't be read: ${parsed.message}`,
-        );
+      try {
+        const { data, snapshot } = await store.load();
+        return { data, snapshot };
+      } catch (err) {
+        if (err instanceof StoreError) throw new Error(err.message, { cause: err });
+        if (err instanceof DriveError && err.code === 'http') {
+          throw new Error(
+            'Couldn’t load your data from Google Drive. Check your internet connection, then reload.',
+            { cause: err },
+          );
+        }
+        throw err;
       }
-      // A migrated file is written in the new format on the next save.
-      return { fileId: file.fileId, version: file.version, data: parsed.data };
     },
   });
 }
 
 function toSaveError(err: unknown): SaveError {
-  if (err instanceof DriveError && err.code === 'conflict') {
-    return new SaveError(
-      "Couldn't save. Your data was changed on another device. Reload to see the latest.",
-      'conflict',
-    );
-  }
+  if (err instanceof StoreError && err.code === 'conflict')
+    return new SaveError(err.message, 'conflict');
   return new SaveError(
     "Couldn't save your change. Check your internet connection and try again.",
     'failed',
@@ -74,13 +74,13 @@ function toSaveError(err: unknown): SaveError {
  * Apply a change and save it to Drive.
  *
  * - The change shows immediately (optimistic), and is rolled back if saving fails.
- * - Saves run one at a time (`scope`), so each uses the version written by the previous one.
- * - If another device saved first, Drive's version no longer matches and the save is refused
- *   with a `conflict` error. We never overwrite (ADR-0005).
+ * - Saves run one at a time (`scope`), each building on what the previous one wrote.
+ * - Only the files the change touches are written (ADR-0014); a file another device changed is
+ *   never overwritten.
  */
 export function useUpdateDataFile() {
   const queryClient = useQueryClient();
-  const drive = useDriveClient();
+  const store = useDataStore();
 
   return useMutation({
     mutationKey: SAVE_MUTATION_KEY,
@@ -99,8 +99,8 @@ export function useUpdateDataFile() {
 
       queryClient.setQueryData<LoadedDataFile>(DATA_FILE_KEY, { ...before, data: next });
       try {
-        const version = await drive.save(before.fileId, next, before.version);
-        queryClient.setQueryData<LoadedDataFile>(DATA_FILE_KEY, { ...before, data: next, version });
+        const snapshot = await store.save(before.snapshot, next);
+        queryClient.setQueryData<LoadedDataFile>(DATA_FILE_KEY, { data: next, snapshot });
         return next;
       } catch (err) {
         queryClient.setQueryData<LoadedDataFile>(DATA_FILE_KEY, before);

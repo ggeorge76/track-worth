@@ -1,23 +1,52 @@
 # Data model
 
-The data file is the database. Source of truth for the shape is
-[`src/domain/schema.ts`](../src/domain/schema.ts). This page explains it. Evolution rules are in
-[ADR-0006](adr/0006-data-file-schema-and-migrations.md).
+The user's data lives in their Google Drive as readable JSON files (ADR-0014). Source of truth for
+the shapes: [`src/domain/schema.ts`](../src/domain/schema.ts) (the data as the app uses it) and
+[`src/domain/storage/files.ts`](../src/domain/storage/files.ts) (the stored files). Evolution rules
+are in [ADR-0006](adr/0006-data-file-schema-and-migrations.md); how data is split across files is in
+[ADR-0014](adr/0014-split-data-into-financial-year-files.md).
 
-**Location:** `My Drive/TrackWorth/trackworth-data.json` (ADR-0005)
-**Current schema version:** `2`
+**Current schema version:** `3`
 
-## Example
+## Stored files
+
+```
+My Drive/TrackWorth/
+  settings.json            settings + the period of every balance file
+  accounts.json            all accounts
+  balances/
+    2025.json              entries dated 2025-04-01 … 2026-03-31 (April financial year)
+    2026.json              the current financial year
+```
+
+Every file has `schemaVersion` and `updatedAt` (when it was last written). A file written by a
+newer app version is refused, never overwritten.
+
+### settings.json
 
 ```json
 {
-  "schemaVersion": 2,
-  "updatedAt": "2026-11-22T09:30:00.000Z",
+  "schemaVersion": 3,
+  "updatedAt": "2026-11-23T09:30:00.000Z",
   "baseCurrency": "INR",
-  "settings": {
-    "financialYearStartMonth": 4,
-    "customTags": ["🪙 Gold"]
-  },
+  "settings": { "financialYearStartMonth": 4, "customTags": ["🪙 Gold"] },
+  "balanceFiles": [
+    { "file": "balances/2025.json", "from": "2025-04-01", "to": "2026-03-31" },
+    { "file": "balances/2026.json", "from": "2026-04-01", "to": "2027-03-31" }
+  ]
+}
+```
+
+`balanceFiles` is **authoritative**: periods never overlap or leave gaps, every file is named after
+the year its period starts, and a file only owns the entries dated within its period. Changing the
+financial year re-periods only the current and previous files (ADR-0014).
+
+### accounts.json
+
+```json
+{
+  "schemaVersion": 3,
+  "updatedAt": "2026-11-23T09:30:00.000Z",
   "accounts": [
     {
       "id": "6f1c2c1e-4b8a-4a59-9d0e-2a7f1f0b9c11",
@@ -29,20 +58,19 @@ The data file is the database. Source of truth for the shape is
       "balanceSource": "HDFC NetBanking",
       "archived": false,
       "createdAt": "2026-01-03T10:00:00.000Z"
-    },
-    {
-      "id": "0b7e4d8a-2f3c-4c1d-8e6b-5a9d3c2b1a00",
-      "name": "Home loan",
-      "kind": "liability",
-      "tag": "Debt",
-      "liquidity": 1,
-      "currency": "INR",
-      "balanceSource": "HDFC NetBanking",
-      "archived": false,
-      "note": "20-year term",
-      "createdAt": "2026-01-03T10:05:00.000Z"
     }
-  ],
+  ]
+}
+```
+
+### balances/2026.json
+
+```json
+{
+  "schemaVersion": 3,
+  "updatedAt": "2026-11-23T09:30:00.000Z",
+  "from": "2026-04-01",
+  "to": "2027-03-31",
   "balances": [
     {
       "id": "c3d9…",
@@ -50,33 +78,18 @@ The data file is the database. Source of truth for the shape is
       "date": "2026-11-01",
       "amountMinor": 52341200,
       "recordedAt": "2026-11-01T08:00:00.000Z"
-    },
-    {
-      "id": "a81f…",
-      "accountId": "0b7e4d8a-2f3c-4c1d-8e6b-5a9d3c2b1a00",
-      "date": "2026-11-01",
-      "amountMinor": -4500000000,
-      "recordedAt": "2026-11-01T08:01:00.000Z"
     }
   ]
 }
 ```
 
-Net worth here = ₹5,23,412.00 + (−₹4,50,00,000.00): balances are **signed**, so net worth is a
-plain sum.
+`from`/`to` are an informational copy of the period; `settings.json` decides. Entries are sorted
+by date.
 
 ## Fields
 
-### Root
-
-| Field           | Type             | Notes                                                         |
-| --------------- | ---------------- | ------------------------------------------------------------- |
-| `schemaVersion` | integer          | Bumped on every shape change. The app refuses newer versions. |
-| `updatedAt`     | ISO-8601 UTC     | Set on every save.                                            |
-| `baseCurrency`  | ISO 4217 code    | Default currency for new accounts.                            |
-| `settings`      | `Settings`       | App-level settings (below).                                   |
-| `accounts`      | `Account[]`      |                                                               |
-| `balances`      | `BalanceEntry[]` | Flat list. Order doesn't matter.                              |
+In memory the app works with one combined dataset (`DataFile`): `schemaVersion`, `updatedAt`
+(latest of the files), `baseCurrency`, `settings`, `accounts`, `balances`.
 
 ### Settings
 
@@ -134,7 +147,8 @@ All in [`src/domain/`](../src/domain/):
 
 ## History
 
-| Version | Change                                                                                                                                                                                                                          |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1       | Initial. Fixed `category` list, liabilities stored as positive "amount owed".                                                                                                                                                   |
-| 2       | `category` → free-text `tag`; added `liquidity`, `balanceSource`, `settings`; balances signed (liabilities negated); one entry per account per day (the latest recorded is kept). Migration: `src/domain/migrations/v1ToV2.ts`. |
+| Version | Change                                                                                                                                                                                                                                                                            |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1       | Initial. Fixed `category` list, liabilities stored as positive "amount owed".                                                                                                                                                                                                     |
+| 2       | `category` → free-text `tag`; added `liquidity`, `balanceSource`, `settings`; balances signed (liabilities negated); one entry per account per day (the latest recorded is kept). Migration: `src/domain/migrations/v1ToV2.ts`.                                                   |
+| 3       | Same fields; stored split across `settings.json`, `accounts.json` and one `balances/<year>.json` per financial year (ADR-0014). The old single file is upgraded on first load, verified, then moved to Drive's trash. Migration: `src/services/storage/dataStore.ts` (`migrate`). |

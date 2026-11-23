@@ -10,12 +10,13 @@ flowchart LR
   subgraph app["TrackWorth desktop app (user's device)"]
     ui["React UI<br/>(OS webview, IPC only)"] -- "invoke / plugin calls" --> rust["Rust shell (Tauri 2)"]
     rust --- keychain[(OS keychain<br/>refresh token)]
+    ui --- cache[(Local copy<br/>IndexedDB)]
   end
   rust -- "opens sign-in page" --> browser[System browser]
   browser -- "Google consent" --> google[Google OAuth]
   browser -- "redirect to 127.0.0.1" --> rust
   rust -- "token exchange / refresh" --> google
-  rust -- "HTTP plugin (allow-listed)" --> drive[(Google Drive<br/>TrackWorth/trackworth-data.json)]
+  rust -- "HTTP plugin (allow-listed)" --> drive[(Google Drive<br/>TrackWorth/ settings, accounts,<br/>balances/year files)]
   rust -- "HTTP plugin" --> userinfo[Google userinfo]
   rust -- "updater: latest.json + signed bundle" --> gh[GitHub Releases]
 ```
@@ -62,13 +63,29 @@ Native (Rust, src-tauri/src/)
 
 ### Load and save
 
-1. `driveClient.loadOrCreate()` finds `TrackWorth/` in My Drive, then `trackworth-data.json`,
-   creating either one if missing, and records the Drive `version`.
-2. `parseDataFile()` validates the file with Zod. It rejects newer schema versions and migrates
-   older ones (ADR-0006).
-3. Each save re-checks the Drive `version` first. On a mismatch it raises `conflict` and the UI
-   offers a reload. It never overwrites blindly.
-4. Every request asks Rust for an access token (`auth_access_token`), which refreshes it shortly
+Storage is split across files (ADR-0014): `TrackWorth/settings.json` (settings and the period
+of every balance file), `TrackWorth/accounts.json`, and `TrackWorth/balances/<year>.json` (one
+per financial year, named by start year). `services/storage/dataStore.ts` does the work; the
+rules live as pure functions in `domain/storage/`.
+
+1. **Load:** list the `TrackWorth` and `balances` folders (one request each), which returns every
+   file's Drive `version`. Files whose version matches the local copy (IndexedDB) are read from
+   it; only changed files are downloaded. Each file is validated with Zod (newer versions are
+   refused), then they're assembled into one in-memory dataset. A file only owns entries dated
+   within the period `settings.json` records for it.
+2. **First run / upgrade:** with no `settings.json`, an older single `trackworth-data.json` is
+   migrated (v1/v2 → v3), written as split files, read back to verify, then moved to Drive's
+   trash. Otherwise empty files are created.
+3. **Save:** screens apply a pure change to the dataset (`useUpdateDataFile`). The store splits
+   the result, compares it with what's stored, and writes only the files that changed: balance
+   files that gain entries, then `accounts.json`, then `settings.json`, then balance files that
+   gave entries away, then trashes unlisted files. An interrupted save therefore never shows
+   missing or duplicated data.
+4. **Stale devices:** every write re-checks that file's Drive `version`. On a mismatch it raises
+   `conflict` and the UI offers a reload. It never overwrites blindly.
+5. **Financial-year change:** the current year's file follows the new setting immediately, the
+   previous file is shortened or lengthened to meet it, and older files are untouched.
+6. Every request asks Rust for an access token (`auth_access_token`), which refreshes it shortly
    before expiry.
 
 ### Update (ADR-0007)
