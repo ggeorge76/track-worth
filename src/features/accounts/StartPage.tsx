@@ -12,6 +12,7 @@ import {
 import { formatMoney } from '@/domain/money';
 import { netWorthByCurrency } from '@/domain/netWorth';
 import type { DataFile } from '@/domain/schema';
+import { NetWorthTrend } from '@/features/trends/NetWorthTrend';
 import { AccountRow } from './AccountRow';
 import { FilterSheet } from './FilterSheet';
 
@@ -42,6 +43,7 @@ export function StartPage({ data }: { data: DataFile }) {
             </p>
           ))
         )}
+        <NetWorthTrend data={data} />
       </section>
 
       {data.accounts.length === 0 ? (

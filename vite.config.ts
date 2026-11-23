@@ -35,6 +35,9 @@ export default defineConfig({
     target: tauriPlatform === 'windows' ? 'chrome105' : 'safari15',
     minify: !tauriDebug,
     sourcemap: tauriDebug,
+    // The app loads its files from disk, not over the network, so one ~900 kB bundle (mostly
+    // React + Recharts) costs nothing noticeable. Revisit if the bundle keeps growing.
+    chunkSizeWarningLimit: 1200,
   },
   test: {
     globals: true,
