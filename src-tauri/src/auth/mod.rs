@@ -35,6 +35,10 @@ pub struct AccessToken {
 pub struct AuthState {
     http: reqwest::Client,
     cached: Mutex<Option<AccessToken>>,
+    /// Only one refresh at a time, so concurrent requests don't each refresh (and each read the
+    /// keychain).
+    refresh_lock: Mutex<()>,
+    secret: store::CachedSecret<store::KeychainStore>,
 }
 
 impl AuthState {
@@ -46,6 +50,8 @@ impl AuthState {
         Self {
             http,
             cached: Mutex::new(None),
+            refresh_lock: Mutex::new(()),
+            secret: store::CachedSecret::new(store::KeychainStore),
         }
     }
 
@@ -58,13 +64,27 @@ impl AuthState {
         token
     }
 
+    async fn valid_cached(&self) -> Option<AccessToken> {
+        self.cached
+            .lock()
+            .await
+            .as_ref()
+            .filter(|t| t.expires_at > now_ms() + EXPIRY_MARGIN_MS)
+            .cloned()
+    }
+
     async fn refresh_from_store(&self) -> Result<AccessToken, AuthError> {
+        let _one_at_a_time = self.refresh_lock.lock().await;
+        // Another caller may have refreshed while we waited.
+        if let Some(token) = self.valid_cached().await {
+            return Ok(token);
+        }
         let client = config::oauth_client().ok_or(AuthError::NotConfigured)?;
-        let refresh_token = store::load()?.ok_or(AuthError::NotSignedIn)?;
+        let refresh_token = self.secret.load()?.ok_or(AuthError::NotSignedIn)?;
         match google::refresh(&self.http, &client, &refresh_token).await {
             Ok(tokens) => Ok(self.remember(tokens.access_token, tokens.expires_in).await),
             Err(AuthError::SessionExpired) => {
-                store::clear()?;
+                self.secret.clear()?;
                 Err(AuthError::SessionExpired)
             }
             Err(e) => Err(e),
@@ -119,7 +139,7 @@ pub async fn auth_sign_in(
         return Err(AuthError::ScopeDenied);
     }
     if let Some(refresh_token) = &tokens.refresh_token {
-        store::save(refresh_token)?;
+        state.secret.save(refresh_token)?;
     }
     Ok(state.remember(tokens.access_token, tokens.expires_in).await)
 }
@@ -139,10 +159,8 @@ pub async fn auth_restore(state: State<'_, AuthState>) -> Result<Option<AccessTo
 /// A valid access token, refreshed if it is about to expire.
 #[tauri::command]
 pub async fn auth_access_token(state: State<'_, AuthState>) -> Result<AccessToken, AuthError> {
-    if let Some(token) = state.cached.lock().await.as_ref()
-        && token.expires_at > now_ms() + EXPIRY_MARGIN_MS
-    {
-        return Ok(token.clone());
+    if let Some(token) = state.valid_cached().await {
+        return Ok(token);
     }
     state.refresh_from_store().await
 }
@@ -151,8 +169,9 @@ pub async fn auth_access_token(state: State<'_, AuthState>) -> Result<AccessToke
 #[tauri::command]
 pub async fn auth_sign_out(state: State<'_, AuthState>) -> Result<(), AuthError> {
     state.cached.lock().await.take();
-    if let Some(refresh_token) = store::load()? {
+    // Usually already in memory, so signing out touches the keychain only to delete the token.
+    if let Some(refresh_token) = state.secret.load()? {
         google::revoke(&state.http, &refresh_token).await;
     }
-    store::clear()
+    state.secret.clear()
 }
