@@ -3,7 +3,9 @@ import {
   adjacentAccounts,
   balanceSources,
   createAccount,
+  deleteAccount,
   orderByBalanceSource,
+  setArchived,
   updateAccount,
 } from './accounts';
 
@@ -186,5 +188,33 @@ describe('updateAccount: type', () => {
   it('does not flip when the type is unchanged', () => {
     const next = updateAccount(file, 'a', { kind: 'asset' }, { flipSigns: true });
     expect(next.balances.map((b) => b.amountMinor)).toEqual([64500, 0, 100]);
+  });
+});
+
+describe('archiving and deleting accounts', () => {
+  const file = makeFile({
+    accounts: [makeAccount({ id: 'a' }), makeAccount({ id: 'b', name: 'Other' })],
+    balances: [
+      makeEntry({ accountId: 'a', date: '2026-01-01' }),
+      makeEntry({ accountId: 'b', date: '2026-01-01' }),
+    ],
+  });
+
+  it('archives and unarchives, keeping history', () => {
+    const archived = setArchived(file, 'a', true);
+    expect(archived.accounts[0]?.archived).toBe(true);
+    expect(archived.balances).toHaveLength(2);
+    expect(setArchived(archived, 'a', false).accounts[0]?.archived).toBe(false);
+  });
+
+  it('deletes an account together with its balances only', () => {
+    const next = deleteAccount(file, 'a');
+    expect(next.accounts.map((a) => a.id)).toEqual(['b']);
+    expect(next.balances.map((b) => b.accountId)).toEqual(['b']);
+  });
+
+  it('rejects unknown accounts', () => {
+    expect(() => setArchived(file, 'x', true)).toThrow();
+    expect(() => deleteAccount(file, 'x')).toThrow();
   });
 });

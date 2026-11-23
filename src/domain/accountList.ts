@@ -12,6 +12,8 @@ export interface ListOptions {
   /** Show only these liquidity levels (empty = all). */
   liquidity: readonly number[];
   groupByTag: boolean;
+  /** Also list archived accounts (they never count towards net worth). */
+  showArchived: boolean;
 }
 
 export const DEFAULT_LIST_OPTIONS: ListOptions = {
@@ -19,6 +21,7 @@ export const DEFAULT_LIST_OPTIONS: ListOptions = {
   tags: [],
   liquidity: [],
   groupByTag: false,
+  showArchived: false,
 };
 
 /** Natural first direction for each sort: A→Z, and most liquid first. */
@@ -76,7 +79,7 @@ export function buildAccountList(
   balances: readonly BalanceEntry[],
   options: ListOptions,
 ): { groups: AccountGroup[]; shown: number; total: number } {
-  const active = accounts.filter((a) => !a.archived);
+  const active = accounts.filter((a) => options.showArchived || !a.archived);
   const tagSet = new Set(options.tags.map(lower));
   const liquiditySet = new Set(options.liquidity);
 

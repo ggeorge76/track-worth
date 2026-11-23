@@ -181,3 +181,51 @@ describe('settings are decided as a whole', () => {
     );
   });
 });
+
+describe('deletions', () => {
+  it('removes an account deleted on this device, with its balances, when Drive left it alone', () => {
+    const local = edit(base, (d) => ({
+      accounts: d.accounts.filter((a) => a.id !== 'b'),
+      balances: d.balances.filter((e) => e.accountId !== 'b'),
+    }));
+    const remote = edit(base, (d) => ({
+      balances: [
+        ...d.balances,
+        makeEntry({ id: 'R', accountId: 'a', date: '2026-11-21', recordedAt: T(1) }),
+      ],
+    }));
+    const { data, questions } = threeWayMerge(base, local, remote);
+    expect(questions).toEqual([]);
+    expect(data.accounts.map((a) => a.id)).toEqual(['a']);
+    expect(data.balances.map((e) => e.id).sort()).toEqual(['R', 'e1']);
+  });
+
+  it('asks when an account was deleted here but changed in Drive', () => {
+    const local = edit(base, (d) => ({ accounts: d.accounts.filter((a) => a.id !== 'b') }));
+    const remote = edit(base, (d) => ({
+      accounts: d.accounts.map((a) => (a.id === 'b' ? { ...a, name: 'Card (renamed)' } : a)),
+    }));
+    const { questions } = threeWayMerge(base, local, remote);
+    expect(questions).toEqual([
+      { kind: 'account', id: 'b', local: undefined, remote: remote.accounts[1] },
+    ]);
+    expect(
+      threeWayMerge(base, local, remote, { b: 'local' }).data.accounts.map((a) => a.id),
+    ).toEqual(['a']);
+  });
+
+  it('keeps a balance deleted here deleted, and Drive’s other new entries', () => {
+    const local = edit(base, (d) => ({ balances: d.balances.filter((e) => e.id !== 'e1') }));
+    const remote = edit(base, (d) => ({
+      balances: [
+        ...d.balances,
+        makeEntry({ id: 'R', accountId: 'a', date: '2026-11-21', recordedAt: T(1) }),
+      ],
+    }));
+    expect(
+      threeWayMerge(base, local, remote)
+        .data.balances.map((e) => e.id)
+        .sort(),
+    ).toEqual(['R', 'e2']);
+  });
+});

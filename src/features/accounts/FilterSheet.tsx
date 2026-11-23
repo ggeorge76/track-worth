@@ -118,6 +118,17 @@ export function FilterSheet({
         </div>
       </section>
 
+      <label className="mt-4 flex items-center justify-between text-sm text-slate-700">
+        Show archived accounts
+        <input
+          type="checkbox"
+          className="h-5 w-5 accent-teal-700"
+          checked={options.showArchived}
+          onChange={(e) => {
+            onChange({ ...options, showArchived: e.target.checked });
+          }}
+        />
+      </label>
       <label className="mt-6 flex items-center justify-between text-sm text-slate-700">
         Group by tag
         <input
