@@ -66,6 +66,15 @@ function compare(key: SortKey, a: Account, b: Account): number {
   }
 }
 
+/** Whether an account passes the tag and liquidity filters (archived is handled separately). */
+export function matchesFilter(account: Account, options: ListOptions): boolean {
+  const tagOk =
+    options.tags.length === 0 || options.tags.some((t) => lower(t) === lower(account.tag));
+  const liquidityOk =
+    options.liquidity.length === 0 || options.liquidity.includes(account.liquidity);
+  return tagOk && liquidityOk;
+}
+
 export function isFiltered(options: ListOptions): boolean {
   return options.tags.length > 0 || options.liquidity.length > 0;
 }
@@ -80,12 +89,8 @@ export function buildAccountList(
   options: ListOptions,
 ): { groups: AccountGroup[]; shown: number; total: number } {
   const active = accounts.filter((a) => options.showArchived || !a.archived);
-  const tagSet = new Set(options.tags.map(lower));
-  const liquiditySet = new Set(options.liquidity);
-
   const rows: AccountRow[] = active
-    .filter((a) => tagSet.size === 0 || tagSet.has(lower(a.tag)))
-    .filter((a) => liquiditySet.size === 0 || liquiditySet.has(a.liquidity))
+    .filter((a) => matchesFilter(a, options))
     .sort((a, b) => {
       const primary = compare(options.sort.key, a, b);
       const directed = options.sort.direction === 'asc' ? primary : -primary;

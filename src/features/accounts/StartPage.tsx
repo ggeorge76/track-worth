@@ -6,6 +6,7 @@ import {
   buildAccountList,
   DEFAULT_LIST_OPTIONS,
   isFiltered,
+  matchesFilter,
   tagsInUse,
   type ListOptions,
 } from '@/domain/accountList';
@@ -21,9 +22,14 @@ export function StartPage({ data }: { data: DataFile }) {
   const [options, setOptions] = useState<ListOptions>(DEFAULT_LIST_OPTIONS);
   const [filterOpen, setFilterOpen] = useState(false);
 
-  const totals = Object.entries(netWorthByCurrency(data));
-  const { groups, shown, total } = buildAccountList(data.accounts, data.balances, options);
   const filtered = isFiltered(options);
+  // Every figure on this page follows the tag/liquidity filter. Archived accounts never count
+  // towards net worth, even when shown.
+  const counted = filtered
+    ? { ...data, accounts: data.accounts.filter((a) => matchesFilter(a, options)) }
+    : data;
+  const totals = Object.entries(netWorthByCurrency(counted));
+  const { groups, shown, total } = buildAccountList(data.accounts, data.balances, options);
   const openFilter = () => {
     setFilterOpen(true);
   };
@@ -32,7 +38,7 @@ export function StartPage({ data }: { data: DataFile }) {
     <div className="mx-auto w-full max-w-2xl px-4 pb-28 pt-6">
       <section aria-labelledby="net-worth-heading">
         <h1 id="net-worth-heading" className="text-sm tracking-wide text-slate-500">
-          Net worth
+          Net worth{filtered && ' · filtered'}
         </h1>
         {totals.length === 0 ? (
           <p className="mt-1 text-4xl font-semibold tabular-nums text-slate-400">—</p>
@@ -43,7 +49,7 @@ export function StartPage({ data }: { data: DataFile }) {
             </p>
           ))
         )}
-        <NetWorthTrend data={data} />
+        <NetWorthTrend data={counted} />
       </section>
 
       {data.accounts.length === 0 ? (

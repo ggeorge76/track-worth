@@ -3,6 +3,7 @@ import {
   buildAccountList,
   DEFAULT_LIST_OPTIONS,
   isFiltered,
+  matchesFilter,
   nameSortKey,
   tagsInUse,
   type ListOptions,
@@ -135,5 +136,16 @@ describe('archived accounts', () => {
       );
     expect(ids(false)).toEqual(['b']);
     expect(ids(true)).toEqual(['a', 'b']);
+  });
+});
+
+describe('matchesFilter', () => {
+  it('matches tags (any case) and liquidity; empty filters match everything', () => {
+    const account = makeAccount({ tag: 'Cash', liquidity: 5 });
+    expect(matchesFilter(account, DEFAULT_LIST_OPTIONS)).toBe(true);
+    expect(matchesFilter(account, { ...DEFAULT_LIST_OPTIONS, tags: ['cash'] })).toBe(true);
+    expect(matchesFilter(account, { ...DEFAULT_LIST_OPTIONS, tags: ['Debt'] })).toBe(false);
+    expect(matchesFilter(account, { ...DEFAULT_LIST_OPTIONS, liquidity: [5] })).toBe(true);
+    expect(matchesFilter(account, { ...DEFAULT_LIST_OPTIONS, liquidity: [1] })).toBe(false);
   });
 });

@@ -74,6 +74,24 @@ describe('StartPage', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
+  it('net worth follows the filter', async () => {
+    const user = userEvent.setup();
+    renderWithData(<Routes />, file);
+    await user.click(screen.getByRole('button', { name: /Filter/ }));
+    await user.click(screen.getByRole('button', { name: 'Debt' }));
+    await user.click(screen.getByRole('button', { name: 'Close' }));
+    const heading = screen.getByRole('heading', { name: 'Net worth · filtered' });
+    expect(heading.nextElementSibling).toHaveTextContent('-$645.00');
+    expect(screen.getByText(/Assets/)).toHaveTextContent('Assets $0.00 · Liabilities -$645.00');
+
+    await user.click(screen.getByRole('button', { name: /Filter/ }));
+    await user.click(screen.getByRole('button', { name: 'Reset' }));
+    await user.click(screen.getByRole('button', { name: 'Close' }));
+    expect(screen.getByRole('heading', { name: 'Net worth' }).nextElementSibling).toHaveTextContent(
+      '$589.50',
+    );
+  });
+
   it('shows a way out when filters match nothing', async () => {
     const user = userEvent.setup();
     renderWithData(<Routes />, file);
