@@ -1,12 +1,15 @@
 mod auth;
 mod config;
+mod export;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let builder = tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_http::init())
-        .plugin(tauri_plugin_process::init());
+        .plugin(tauri_plugin_process::init())
+        // Rust-only: the save dialog for exports (ADR-0016). No dialog permission is granted to the UI.
+        .plugin(tauri_plugin_dialog::init());
 
     // Self-update from GitHub Releases (ADR-0007). Desktop only.
     #[cfg(desktop)]
@@ -19,6 +22,7 @@ pub fn run() {
             auth::auth_restore,
             auth::auth_access_token,
             auth::auth_sign_out,
+            export::export_save,
         ])
         .setup(|app| {
             if cfg!(debug_assertions) {

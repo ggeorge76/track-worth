@@ -7,8 +7,9 @@ import type { DataFile } from '@/domain/schema';
 import { updateSettings } from '@/domain/settingsOps';
 import { useUpdateDataFile } from '@/features/data/useDataFile';
 import { inputClass } from '../accounts/formParts';
+import { ExportSection } from './ExportSection';
 
-/** App-level settings (R-S6). Changes save immediately. */
+/** App-level settings (R-S6) and export (R-S2). Changes save immediately. */
 export function SettingsPage({ data }: { data: DataFile }) {
   const save = useUpdateDataFile();
   const today = useToday();
@@ -54,6 +55,8 @@ export function SettingsPage({ data }: { data: DataFile }) {
           Used for “This financial year” on account pages.
         </p>
       </section>
+
+      <ExportSection data={data} />
     </div>
   );
 }

@@ -57,6 +57,12 @@ export function minorToInput(amountMinor: number, currency: string): string {
   return digits === 0 ? String(whole) : `${String(whole)}.${frac}`;
 }
 
+/** Signed plain number for files (CSV): no symbol or grouping, e.g. "-1234.50". */
+export function minorToDecimal(amountMinor: number, currency: string): string {
+  const text = minorToInput(amountMinor, currency);
+  return amountMinor < 0 ? `-${text}` : text;
+}
+
 /**
  * Percentage change relative to the size of the base (so a debt shrinking from −1,000 to −800
  * is +20%). `null` when the base is zero.

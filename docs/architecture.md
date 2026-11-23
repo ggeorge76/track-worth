@@ -31,11 +31,12 @@ UI (TypeScript, src/)
   features/   React screens + hooks per feature   ─┐
                                                    ├─► domain/   pure TS: schema, money, net worth
   services/   side effects (auth, drive, update)  ─┘
-     │  invoke('auth_*'), plugin-http fetch, plugin-updater
+     │  invoke('auth_*', 'export_save'), plugin-http fetch, plugin-updater
      ▼
 Native (Rust, src-tauri/src/)
   auth/       OAuth loopback + PKCE, keychain, token cache/refresh
-  lib.rs      plugin registration (http, opener, process, updater) + commands
+  export.rs   save dialog + write for exports (ADR-0016)
+  lib.rs      plugin registration (http, opener, process, dialog, updater) + commands
 ```
 
 - **`domain/`** is pure and deterministic. It is the easiest place for agents to make correct

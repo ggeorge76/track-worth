@@ -70,12 +70,14 @@ src/                     React UI (runs in the Tauri webview)
     cache/               On-device storage (IndexedDB): local copy of Drive files + workspace
                          (last synced data, pending changes, display name); cleared on sign-out
     update/              Wraps the Tauri updater + relaunch
+    export/              Saves an export: Rust save dialog in the app, download in a browser
   features/data/         useDataFile (load) + useUpdateDataFile (optimistic, serial, conflict-safe save)
   features/<feature>/    Screens + hooks for one feature (accounts, auth, data, settings, update)
   features/landing/      Page shown before sign-in. Claims must match what the app does today
   App.tsx, main.tsx      Composition root
 src-tauri/               Rust app shell
   src/auth/              Google OAuth: loopback + PKCE, keychain storage, token refresh
+  src/export.rs          Save dialog + file write for exports (ADR-0016)
   src/config.rs          OAuth client compiled in by build.rs
   capabilities/          What the UI may do: URL allow-lists for HTTP/opener, updater, restart
   tauri.conf.json        Window, CSP, bundle targets, updater public key + endpoint
