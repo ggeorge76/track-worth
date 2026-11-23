@@ -1,5 +1,5 @@
 ---
-status: Proposed
+status: Accepted
 date: 2026-11-23
 decision-makers: [project owner]
 ---
@@ -142,7 +142,7 @@ Drive still matches the base, it simply uploads. Otherwise it combines three ver
 **Owner decisions (2026-11-23):** offline **editing** is wanted; balances merge automatically;
 accounts and settings ask "keep this device's / keep Drive's" with no merge option.
 
-**Refinement for approval:** accounts are decided **per account**, so creating an account offline
+**Refinement (approved by the owner, 2026-11-23):** accounts are decided **per account**, so creating an account offline
 never needs a question, and choosing Drive's version of one account doesn't discard others.
 
 **Order of work:**
