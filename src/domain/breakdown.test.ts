@@ -4,7 +4,7 @@ import { breakdown } from './breakdown';
 const data = makeFile({
   accounts: [
     makeAccount({ id: 'cash1', tag: 'Cash', liquidity: 5 }),
-    makeAccount({ id: 'cash2', tag: 'cash', liquidity: 5 }),
+    makeAccount({ id: 'cash2', tag: 'cash', liquidity: 4 }),
     makeAccount({ id: 'fd', tag: 'Fixed Income', liquidity: 2 }),
     makeAccount({ id: 'home', kind: 'liability', tag: 'Loan', liquidity: 1 }),
     makeAccount({ id: 'card', kind: 'liability', tag: 'Credit card', liquidity: 4 }),
@@ -25,36 +25,36 @@ const data = makeFile({
 });
 
 describe('breakdown', () => {
-  it('groups current asset balances by tag (any case), largest first, with shares', () => {
-    expect(breakdown(data, 'USD').assetsByTag).toEqual({
-      totalMinor: 1000,
-      rows: [
-        { label: 'Fixed Income', amountMinor: 700, accounts: 1, share: 0.7 },
-        { label: 'Cash', amountMinor: 300, accounts: 2, share: 0.3 },
-      ],
+  it('groups current balances by tag (any case), largest first; liabilities as owed', () => {
+    expect(breakdown(data, 'USD', 'tag')).toEqual({
+      assets: {
+        totalMinor: 1000,
+        rows: [
+          { key: 'fixed income', label: 'Fixed Income', amountMinor: 700, accounts: 1, share: 0.7 },
+          { key: 'cash', label: 'Cash', amountMinor: 300, accounts: 2, share: 0.3 },
+        ],
+      },
+      liabilities: {
+        totalMinor: 1000,
+        rows: [
+          { key: 'loan', label: 'Loan', amountMinor: 800, accounts: 1, share: 0.8 },
+          { key: 'credit card', label: 'Credit card', amountMinor: 200, accounts: 1, share: 0.2 },
+        ],
+      },
     });
   });
 
-  it('groups assets by liquidity, most liquid first', () => {
-    expect(
-      breakdown(data, 'USD').assetsByLiquidity.rows.map((r) => [r.label, r.amountMinor]),
-    ).toEqual([
-      ['5 · Very high', 300],
-      ['2 · Low', 700],
+  it('groups by liquidity, most liquid first', () => {
+    const { assets, liabilities } = breakdown(data, 'USD', 'liquidity');
+    expect(assets.rows.map((r) => [r.label, r.level, r.amountMinor])).toEqual([
+      ['5 · Very high', 5, 100],
+      ['4 · High', 4, 200],
+      ['2 · Low', 2, 700],
     ]);
+    expect(liabilities.rows.map((r) => r.label)).toEqual(['4 · High', '1 · Very low']);
   });
 
-  it('shows liabilities as amounts owed', () => {
-    expect(breakdown(data, 'USD').liabilitiesByTag).toEqual({
-      totalMinor: 1000,
-      rows: [
-        { label: 'Loan', amountMinor: 800, accounts: 1, share: 0.8 },
-        { label: 'Credit card', amountMinor: 200, accounts: 1, share: 0.2 },
-      ],
-    });
-  });
-
-  it('gives no shares when a total isn’t positive, and breaks ties by name', () => {
+  it('gives no shares when a total isn’t positive, breaks ties by name, and can be empty', () => {
     const odd = makeFile({
       accounts: [makeAccount({ id: 'b', tag: 'B' }), makeAccount({ id: 'a', tag: 'A' })],
       balances: [
@@ -62,10 +62,13 @@ describe('breakdown', () => {
         makeEntry({ accountId: 'a', amountMinor: 0 }),
       ],
     });
-    expect(breakdown(odd, 'USD').assetsByTag.rows).toEqual([
-      { label: 'A', amountMinor: 0, accounts: 1, share: null },
-      { label: 'B', amountMinor: 0, accounts: 1, share: null },
+    expect(breakdown(odd, 'USD', 'tag').assets.rows.map((r) => [r.label, r.share])).toEqual([
+      ['A', null],
+      ['B', null],
     ]);
-    expect(breakdown(odd, 'EUR').assetsByTag).toEqual({ totalMinor: 0, rows: [] });
+    expect(breakdown(odd, 'EUR', 'tag')).toEqual({
+      assets: { totalMinor: 0, rows: [] },
+      liabilities: { totalMinor: 0, rows: [] },
+    });
   });
 });

@@ -1,15 +1,21 @@
-import { LIQUIDITY_LABELS, LIQUIDITY_LEVELS } from './liquidity';
+import { LIQUIDITY_LABELS, type Liquidity } from './liquidity';
 import { latestBalance } from './netWorth';
-import type { DataFile } from './schema';
+import type { Account, DataFile } from './schema';
 
 /**
  * Where the money sits (R-D5): current balances of active accounts in one currency, grouped by
- * tag (assets and liabilities separately) and by liquidity (assets only: how easily they turn
- * into cash). Same accounts and balances as the headline net worth; currencies are never mixed.
+ * tag or by liquidity, with assets and liabilities kept apart. Same accounts and balances as the
+ * headline net worth; currencies are never mixed.
  */
 
+export type GroupBy = 'tag' | 'liquidity';
+
 export interface BreakdownRow {
+  /** Stable key: the tag (lower case) or the liquidity level. */
+  key: string;
   label: string;
+  /** Set when grouping by liquidity (for its colour). */
+  level?: Liquidity;
   /** Assets: the balance. Liabilities: the amount owed (positive). */
   amountMinor: number;
   accounts: number;
@@ -23,31 +29,32 @@ export interface BreakdownSection {
 }
 
 export interface Breakdown {
-  assetsByTag: BreakdownSection;
-  assetsByLiquidity: BreakdownSection;
-  liabilitiesByTag: BreakdownSection;
+  assets: BreakdownSection;
+  liabilities: BreakdownSection;
 }
 
-interface Item {
-  label: string;
-  amountMinor: number;
+function groupOf(account: Account, groupBy: GroupBy) {
+  if (groupBy === 'tag') return { key: account.tag.toLocaleLowerCase(), label: account.tag };
+  const level = account.liquidity as Liquidity;
+  return { key: String(level), label: `${String(level)} · ${LIQUIDITY_LABELS[level]}`, level };
 }
 
-function section(items: Item[], order?: readonly string[]): BreakdownSection {
-  const groups = new Map<string, { label: string; amountMinor: number; accounts: number }>();
-  for (const item of items) {
-    const key = item.label.toLocaleLowerCase();
-    const group = groups.get(key) ?? { label: item.label, amountMinor: 0, accounts: 0 };
-    group.amountMinor += item.amountMinor;
-    group.accounts += 1;
-    groups.set(key, group);
+function section(items: { account: Account; amountMinor: number }[], groupBy: GroupBy) {
+  const groups = new Map<string, BreakdownRow>();
+  for (const { account, amountMinor } of items) {
+    const group = groupOf(account, groupBy);
+    const row = groups.get(group.key) ?? { ...group, amountMinor: 0, accounts: 0, share: null };
+    row.amountMinor += amountMinor;
+    row.accounts += 1;
+    groups.set(group.key, row);
   }
   const totalMinor = items.reduce((sum, i) => sum + i.amountMinor, 0);
   const rows = [...groups.values()]
-    .map((g) => ({ ...g, share: totalMinor > 0 ? g.amountMinor / totalMinor : null }))
+    .map((row) => ({ ...row, share: totalMinor > 0 ? row.amountMinor / totalMinor : null }))
     .sort((a, b) =>
-      order
-        ? order.indexOf(a.label) - order.indexOf(b.label)
+      // Liquidity: most liquid first. Tags: largest first, then A–Z.
+      groupBy === 'liquidity'
+        ? Number(b.key) - Number(a.key)
         : b.amountMinor - a.amountMinor || a.label.localeCompare(b.label),
     );
   return { totalMinor, rows };
@@ -56,36 +63,16 @@ function section(items: Item[], order?: readonly string[]): BreakdownSection {
 export function breakdown(
   data: Pick<DataFile, 'accounts' | 'balances'>,
   currency: string,
+  groupBy: GroupBy,
 ): Breakdown {
-  const assets: { tag: Item; liquidity: Item }[] = [];
-  const liabilities: Item[] = [];
+  const assets: { account: Account; amountMinor: number }[] = [];
+  const liabilities: { account: Account; amountMinor: number }[] = [];
   for (const account of data.accounts) {
     if (account.archived || account.currency !== currency) continue;
     const entry = latestBalance(account.id, data.balances);
     if (!entry) continue;
-    if (account.kind === 'asset') {
-      assets.push({
-        tag: { label: account.tag, amountMinor: entry.amountMinor },
-        liquidity: {
-          label: liquidityLabel(account.liquidity),
-          amountMinor: entry.amountMinor,
-        },
-      });
-    } else {
-      liabilities.push({ label: account.tag, amountMinor: -entry.amountMinor });
-    }
+    if (account.kind === 'asset') assets.push({ account, amountMinor: entry.amountMinor });
+    else liabilities.push({ account, amountMinor: -entry.amountMinor });
   }
-  return {
-    assetsByTag: section(assets.map((a) => a.tag)),
-    // Most liquid first, the way people think about "what could I use now".
-    assetsByLiquidity: section(
-      assets.map((a) => a.liquidity),
-      [...LIQUIDITY_LEVELS].reverse().map(liquidityLabel),
-    ),
-    liabilitiesByTag: section(liabilities),
-  };
-}
-
-function liquidityLabel(level: number): string {
-  return `${String(level)} · ${LIQUIDITY_LABELS[level as keyof typeof LIQUIDITY_LABELS]}`;
+  return { assets: section(assets, groupBy), liabilities: section(liabilities, groupBy) };
 }
