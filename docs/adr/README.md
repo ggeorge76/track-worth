@@ -21,3 +21,4 @@ this index. Accepted ADRs are immutable. Supersede them with a new ADR instead o
 | [0012](0012-ai-agent-development-workflow.md)            | AI-agent-first development workflow                                              | Accepted                                                           |
 | [0013](0013-in-app-navigation-with-hash-routes.md)       | In-app navigation with hash routes and back-button support                       | Accepted                                                           |
 | [0014](0014-split-data-into-financial-year-files.md)     | Split the Drive data into financial-year files, with a local copy on each device | Accepted                                                           |
+| [0015](0015-offline-editing-and-sync.md)                 | Offline editing: save on the device, upload when back online                     | Accepted                                                           |
