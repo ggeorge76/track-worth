@@ -1,10 +1,17 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { goBack, navigate } from '@/app/router';
 import { useSwipe } from '@/app/useSwipe';
 import { useToday } from '@/app/useToday';
 import { BackIcon, PencilIcon } from '@/components/icons';
-import { adjacentAccounts, orderByBalanceSource } from '@/domain/accounts';
-import { accountHistory } from '@/domain/balances';
+import { Toast } from '@/components/Toast';
+import { useUpdateDataFile } from '@/features/data/useDataFile';
+import {
+  adjacentAccounts,
+  deleteAccount,
+  orderByBalanceSource,
+  setArchived,
+} from '@/domain/accounts';
+import { accountHistory, deleteBalance, restoreBalance } from '@/domain/balances';
 import { formatIsoDate } from '@/domain/dates';
 import { LIQUIDITY_COLORS, LIQUIDITY_LABELS, type Liquidity } from '@/domain/liquidity';
 import { formatMoney } from '@/domain/money';
@@ -13,13 +20,15 @@ import type { Account, BalanceEntry, DataFile } from '@/domain/schema';
 import { balanceStats } from '@/domain/stats';
 import { BalanceHistory } from './details/BalanceHistory';
 import { ChangeSummary, DeltaBadge } from './details/ChangeSummary';
+import { DeleteAccountSheet } from './details/DeleteAccountSheet';
 import { EditAccountSheet, type EditableField } from './details/EditAccountSheet';
 import { UpdateBalanceSheet } from './details/UpdateBalanceSheet';
 
 type Popup =
   | { kind: 'none' }
   | { kind: 'edit'; field: EditableField }
-  | { kind: 'balance'; entry?: BalanceEntry };
+  | { kind: 'balance'; entry?: BalanceEntry }
+  | { kind: 'delete-account' };
 
 /** Always-visible edit affordance (no hover on touch devices). */
 function EditMark() {
@@ -105,6 +114,11 @@ function NavButton({
 export function AccountDetailsPage({ data, accountId }: { data: DataFile; accountId: string }) {
   const today = useToday();
   const [popup, setPopup] = useState<Popup>({ kind: 'none' });
+  const [toast, setToast] = useState<{ message: string; undo?: () => void } | null>(null);
+  const save = useUpdateDataFile();
+  const dismissToast = useCallback(() => {
+    setToast(null);
+  }, []);
   const account = data.accounts.find((a) => a.id === accountId);
 
   const ordered = orderByBalanceSource(data.accounts.filter((a) => !a.archived));
@@ -172,6 +186,19 @@ export function AccountDetailsPage({ data, accountId }: { data: DataFile; accoun
   const close = () => {
     setPopup({ kind: 'none' });
   };
+  const setArchivedTo = (archived: boolean) => {
+    save.mutate((file) => setArchived(file, account.id, archived));
+    setToast({ message: archived ? 'Account archived.' : 'Account restored to your list.' });
+  };
+  const deleteEntry = (entry: BalanceEntry) => {
+    save.mutate((file) => deleteBalance(file, entry.id));
+    setToast({
+      message: `Balance for ${formatIsoDate(entry.date)} deleted.`,
+      undo: () => {
+        save.mutate((file) => restoreBalance(file, entry));
+      },
+    });
+  };
   const edit = (field: EditableField) => () => {
     setPopup({ kind: 'edit', field });
   };
@@ -190,6 +217,27 @@ export function AccountDetailsPage({ data, accountId }: { data: DataFile; accoun
           <NavButton account={next} direction="next" />
         </div>
       </div>
+
+      {account.archived && (
+        <div
+          role="note"
+          className="mt-3 flex items-center justify-between gap-3 rounded-xl bg-slate-200 px-4 py-2 text-sm text-slate-700"
+        >
+          <span>
+            <strong className="font-medium">Archived.</strong> Hidden from your account list and net
+            worth; history is kept.
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              setArchivedTo(false);
+            }}
+            className="shrink-0 font-medium underline"
+          >
+            Unarchive
+          </button>
+        </div>
+      )}
 
       <header className="mt-3 flex items-start justify-between gap-3">
         {/* Tapping the title also opens the editor; the pencil button is the accessible control. */}
@@ -284,6 +332,32 @@ export function AccountDetailsPage({ data, accountId }: { data: DataFile; accoun
         }}
       />
 
+      <section aria-labelledby="manage-heading" className="mt-10 border-t border-slate-200 pt-6">
+        <h2 id="manage-heading" className="text-sm font-medium text-slate-500">
+          Manage account
+        </h2>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setArchivedTo(!account.archived);
+            }}
+            className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-700 hover:border-slate-400"
+          >
+            {account.archived ? 'Unarchive account' : 'Archive account'}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setPopup({ kind: 'delete-account' });
+            }}
+            className="rounded-xl border border-red-200 bg-white px-4 py-2 text-sm text-red-700 hover:bg-red-50"
+          >
+            Delete account…
+          </button>
+        </div>
+      </section>
+
       <button
         type="button"
         onClick={() => {
@@ -303,7 +377,31 @@ export function AccountDetailsPage({ data, accountId }: { data: DataFile; accoun
           history={history}
           today={today}
           initial={popup.entry}
+          onDelete={deleteEntry}
           onClose={close}
+        />
+      )}
+      {popup.kind === 'delete-account' && (
+        <DeleteAccountSheet
+          account={account}
+          entries={history.length}
+          onArchive={() => {
+            close();
+            setArchivedTo(true);
+          }}
+          onDelete={() => {
+            close();
+            save.mutate((file) => deleteAccount(file, account.id));
+            navigate({ name: 'home' }, { replace: true });
+          }}
+          onClose={close}
+        />
+      )}
+      {toast && (
+        <Toast
+          message={toast.message}
+          {...(toast.undo ? { actionLabel: 'Undo', onAction: toast.undo } : {})}
+          onDismiss={dismissToast}
         />
       )}
     </div>

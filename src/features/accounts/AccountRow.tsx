@@ -12,7 +12,7 @@ export function AccountRow({ row, today }: { row: Row; today: string }) {
     <li>
       <a
         href={hrefFor({ name: 'account', id: account.id })}
-        className="flex items-center gap-3 py-3 pr-1 hover:bg-slate-100 focus-visible:bg-slate-100"
+        className={`flex items-center gap-3 py-3 pr-1 hover:bg-slate-100 focus-visible:bg-slate-100 ${account.archived ? 'opacity-60' : ''}`}
       >
         <span
           className="h-11 w-1 shrink-0 rounded-full"
@@ -24,6 +24,7 @@ export function AccountRow({ row, today }: { row: Row; today: string }) {
           <span className="block truncate text-base text-slate-900">{account.name}</span>
           <span className="mt-1 flex items-center gap-2 text-xs text-slate-500">
             <Pill>{account.tag}</Pill>
+            {account.archived && <Pill>Archived</Pill>}
             <span className="truncate">
               {current ? `Updated ${describeDateAgo(current.date, today)}` : 'No balance yet'}
             </span>

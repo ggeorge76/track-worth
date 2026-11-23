@@ -44,7 +44,7 @@ export function StartPage({ data }: { data: DataFile }) {
         )}
       </section>
 
-      {total === 0 ? (
+      {data.accounts.length === 0 ? (
         <div className="mt-16 text-center">
           <p className="text-slate-600">No accounts yet.</p>
           <a
@@ -93,7 +93,20 @@ export function StartPage({ data }: { data: DataFile }) {
             </button>
           </div>
 
-          {shown === 0 ? (
+          {shown === 0 && total === 0 ? (
+            <p className="mt-8 text-center text-slate-600">
+              All your accounts are archived.{' '}
+              <button
+                type="button"
+                className="font-medium text-teal-700 underline"
+                onClick={() => {
+                  setOptions({ ...options, showArchived: true });
+                }}
+              >
+                Show archived accounts
+              </button>
+            </p>
+          ) : shown === 0 ? (
             <p className="mt-8 text-center text-slate-600">
               No accounts match these filters.{' '}
               <button

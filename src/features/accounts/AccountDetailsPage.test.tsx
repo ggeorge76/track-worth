@@ -236,3 +236,72 @@ describe('AccountDetailsPage', () => {
     expect(await screen.findByRole('heading', { name: /Axis card/ })).toBeInTheDocument();
   });
 });
+
+describe('deleting, archiving and undo', () => {
+  it('deletes a balance entry after confirming, and can undo it', async () => {
+    const user = userEvent.setup();
+    const { client } = open('esaf');
+    const count = () => dataIn(client)?.balances.filter((b) => b.accountId === 'esaf').length;
+    expect(count()).toBe(4);
+
+    await user.click(screen.getAllByRole('button', { name: /Edit balance for/ })[0] as HTMLElement);
+    await user.click(screen.getByRole('button', { name: 'Delete this entry' }));
+    await user.click(
+      within(screen.getByRole('group', { name: 'Confirm delete' })).getByRole('button', {
+        name: 'Delete',
+      }),
+    );
+    await waitFor(() => {
+      expect(count()).toBe(3);
+    });
+    expect(screen.getByRole('status')).toHaveTextContent('deleted');
+
+    await user.click(screen.getByRole('button', { name: 'Undo' }));
+    await waitFor(() => {
+      expect(count()).toBe(4);
+    });
+  });
+
+  it('archives and unarchives an account', async () => {
+    const user = userEvent.setup();
+    const { client } = open('esaf');
+    await user.click(screen.getByRole('button', { name: 'Archive account' }));
+    await waitFor(() => {
+      expect(dataIn(client)?.accounts.find((a) => a.id === 'esaf')?.archived).toBe(true);
+    });
+    expect(screen.getByRole('note')).toHaveTextContent('Archived');
+    await user.click(within(screen.getByRole('note')).getByRole('button', { name: 'Unarchive' }));
+    await waitFor(() => {
+      expect(dataIn(client)?.accounts.find((a) => a.id === 'esaf')?.archived).toBe(false);
+    });
+  });
+
+  it('deletes an account only after its name is typed, then goes to the start page', async () => {
+    const user = userEvent.setup();
+    const { client } = open('esaf');
+    await user.click(screen.getByRole('button', { name: 'Delete account…' }));
+    const dialog = screen.getByRole('dialog', { name: 'Delete account?' });
+    expect(dialog).toHaveTextContent('4 balance entries');
+    const confirm = within(dialog).getByRole('button', { name: 'Delete account and history' });
+    expect(confirm).toBeDisabled();
+    await user.type(within(dialog).getByLabelText(/Type “💵 ESAF” to confirm/), '💵 ESAF');
+    await user.click(confirm);
+    await waitFor(() => {
+      expect(dataIn(client)?.accounts.some((a) => a.id === 'esaf')).toBe(false);
+    });
+    expect(dataIn(client)?.balances.some((b) => b.accountId === 'esaf')).toBe(false);
+    await waitFor(() => {
+      expect(window.location.hash).toBe('#/');
+    });
+  });
+
+  it('offers archiving instead of deleting', async () => {
+    const user = userEvent.setup();
+    const { client } = open('esaf');
+    await user.click(screen.getByRole('button', { name: 'Delete account…' }));
+    await user.click(screen.getByRole('button', { name: 'Archive it instead' }));
+    await waitFor(() => {
+      expect(dataIn(client)?.accounts.find((a) => a.id === 'esaf')?.archived).toBe(true);
+    });
+  });
+});

@@ -15,6 +15,8 @@ export interface UpdateBalanceSheetProps {
   today: string;
   /** Pre-fill from an existing entry (editing), else a new entry for today. */
   initial?: BalanceEntry | undefined;
+  /** When editing an existing entry: delete it (the page offers Undo). */
+  onDelete?: ((entry: BalanceEntry) => void) | undefined;
   onClose: () => void;
 }
 
@@ -27,11 +29,13 @@ export function UpdateBalanceSheet({
   history,
   today,
   initial,
+  onDelete,
   onClose,
 }: UpdateBalanceSheetProps) {
   const save = useUpdateDataFile();
   const ids = { date: useId(), amount: useId() };
   const [date, setDate] = useState(initial?.date ?? today);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [sign, setSign] = useState<Sign>(
     initial ? signOf(initial.amountMinor) : defaultSign(account.kind),
   );
@@ -127,6 +131,48 @@ export function UpdateBalanceSheet({
         >
           {save.isPending ? 'Saving…' : 'Save'}
         </button>
+        {initial && onDelete && (
+          <div className="border-t border-slate-200 pt-4 text-center">
+            {confirmingDelete ? (
+              <div role="group" aria-label="Confirm delete" className="space-y-3">
+                <p className="text-sm text-slate-700">
+                  Delete the balance for {formatIsoDate(initial.date)}?
+                </p>
+                <div className="flex justify-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setConfirmingDelete(false);
+                    }}
+                    className="rounded-xl border border-slate-300 px-4 py-2 text-sm"
+                  >
+                    Keep it
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onDelete(initial);
+                      onClose();
+                    }}
+                    className="rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setConfirmingDelete(true);
+                }}
+                className="text-sm font-medium text-red-700 hover:underline"
+              >
+                Delete this entry
+              </button>
+            )}
+          </div>
+        )}
       </form>
     </Sheet>
   );

@@ -136,3 +136,35 @@ describe('StartPage', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('doesn’t exist');
   });
 });
+
+describe('archived accounts', () => {
+  const archivedFile = makeFile({
+    accounts: [
+      makeAccount({ id: 'old', name: 'Old account', archived: true }),
+      makeAccount({ id: 'live', name: 'Live account' }),
+    ],
+  });
+
+  it('hides archived accounts unless asked, and marks them', async () => {
+    const user = userEvent.setup();
+    renderWithData(<Routes />, archivedFile);
+    expect(rowNames()).toEqual(['Live account']);
+    await user.click(screen.getByRole('button', { name: /Filter/ }));
+    await user.click(screen.getByRole('checkbox', { name: 'Show archived accounts' }));
+    expect(rowNames()).toEqual(['Live account', 'Old account']);
+    expect(
+      screen.getByRole('link', { name: /Old account.*Archived/, hidden: true }),
+    ).toBeInTheDocument();
+  });
+
+  it('says so when every account is archived', async () => {
+    const user = userEvent.setup();
+    renderWithData(
+      <Routes />,
+      makeFile({ accounts: [makeAccount({ id: 'old', name: 'Old', archived: true })] }),
+    );
+    expect(screen.queryByText('No accounts yet.')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Show archived accounts' }));
+    expect(rowNames()).toEqual(['Old']);
+  });
+});
