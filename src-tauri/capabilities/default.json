@@ -24,6 +24,9 @@
       "allow": [
         {
           "url": "https://github.com/ggeorge76/track-worth/*"
+        },
+        {
+          "url": "https://ggeorge76.github.io/track-worth/*"
         }
       ]
     },

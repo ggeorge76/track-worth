@@ -4,13 +4,16 @@ import { SettingsIcon } from './components/icons';
 import { config, symbolUrl } from './config';
 import { AuthProvider } from './features/auth/AuthProvider';
 import { useAuth } from './features/auth/authContext';
-import { SignInScreen } from './features/auth/SignInScreen';
 import { SignOutButton } from './features/auth/SignOutButton';
+import { LandingPage } from './features/landing/LandingPage';
 import { SyncStatus } from './features/data/SyncStatus';
 import { SaveStatus } from './features/data/SaveStatus';
 
 function Shell() {
   const { state } = useAuth();
+
+  // Before sign-in: the full landing page, with its own header and footer.
+  if (state.status === 'signed-out' || state.status === 'signing-in') return <LandingPage />;
 
   return (
     <div className="flex min-h-dvh flex-col bg-slate-50 text-slate-900">
@@ -39,10 +42,8 @@ function Shell() {
       <main className="flex-1">
         {state.status === 'signed-in' ? (
           <Routes />
-        ) : state.status === 'restoring' ? (
-          <p className="p-6 text-slate-500">Signing you in…</p>
         ) : (
-          <SignInScreen />
+          <p className="p-6 text-slate-500">Signing you in…</p>
         )}
       </main>
       <footer className="px-6 py-3 text-xs text-slate-400">v{config.appVersion}</footer>
