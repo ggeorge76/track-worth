@@ -22,7 +22,8 @@ export interface UpdateBalanceSheetProps {
 
 /**
  * Record a balance (R-B1). Saving on a date that already has an entry updates that entry
- * (R-B5); picking such a date fills in its balance so it can be edited, not retyped. The sheet is mounted only while open, so its fields reset each time.
+ * (R-B5); picking a date fills in its balance, or else the latest one before it, so it can be
+ * edited rather than retyped. The sheet is mounted only while open, so its fields reset each time.
  */
 export function UpdateBalanceSheet({
   account,
@@ -38,10 +39,21 @@ export function UpdateBalanceSheet({
   // the upload finishes), and it must not then be treated as one that was already there.
   const [historyAtOpen] = useState(history);
   const entryOn = (d: string) => historyAtOpen.find((e) => e.date === d);
+  /**
+   * What to fill in for a date: its own balance if it has one, else the latest balance before it
+   * (balances often stay the same, so updating is a quick check rather than retyping).
+   */
+  const fillFor = (d: string) =>
+    entryOn(d) ??
+    historyAtOpen
+      .filter((e) => e.date < d)
+      .reduce<BalanceEntry | undefined>(
+        (last, e) => (!last || e.date > last.date ? e : last),
+        undefined,
+      );
 
-  // A date that already has a balance opens with that balance filled in, ready to edit.
-  const start = initial ?? entryOn(today);
-  const [date, setDate] = useState(start?.date ?? today);
+  const [date, setDate] = useState(initial?.date ?? today);
+  const start = initial ?? fillFor(today);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [sign, setSign] = useState<Sign>(
     start ? signOf(start.amountMinor) : defaultSign(account.kind),
@@ -49,22 +61,22 @@ export function UpdateBalanceSheet({
   const [amount, setAmount] = useState(
     start ? minorToInput(start.amountMinor, account.currency) : '',
   );
-  /** The amount shown is a saved balance the user hasn't changed (so it can be swapped out). */
-  const [amountIsSaved, setAmountIsSaved] = useState(!!start);
+  /** The amount shown was filled in and not changed by the user (so it can be swapped out). */
+  const [amountIsFilled, setAmountIsFilled] = useState(!!start);
   const [error, setError] = useState<string | null>(null);
 
   const changeDate = (next: string) => {
     setDate(next);
-    const entry = entryOn(next);
-    if (entry) {
-      setSign(signOf(entry.amountMinor));
-      setAmount(minorToInput(entry.amountMinor, account.currency));
-      setAmountIsSaved(true);
-    } else if (amountIsSaved) {
-      // Don't carry another date's balance over to a date without one; keep what was typed.
+    const fill = fillFor(next);
+    if (fill) {
+      setSign(signOf(fill.amountMinor));
+      setAmount(minorToInput(fill.amountMinor, account.currency));
+      setAmountIsFilled(true);
+    } else if (amountIsFilled) {
+      // Nothing on or before this date: clear the filled-in value, but keep what was typed.
       setSign(defaultSign(account.kind));
       setAmount('');
-      setAmountIsSaved(false);
+      setAmountIsFilled(false);
     }
   };
 
@@ -135,7 +147,7 @@ export function UpdateBalanceSheet({
             amount={amount}
             onAmountChange={(value) => {
               setAmount(value);
-              setAmountIsSaved(false);
+              setAmountIsFilled(false);
             }}
             autoFocus
           />
