@@ -7,12 +7,11 @@ export const config = {
   /** GitHub "owner/repo" that publishes releases (ADR-0007). */
   githubRepo: 'ggeorge76/track-worth',
   /**
-   * Fixed location of the data file in the user's My Drive (ADR-0005).
+   * Fixed folder in the user's My Drive that holds the data files (ADR-0014).
    * Changing these is a breaking change for existing users and requires a migration plan.
    */
   drive: {
     folderName: 'TrackWorth',
-    fileName: 'trackworth-data.json',
   },
 } as const;
 

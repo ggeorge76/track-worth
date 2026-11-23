@@ -3,12 +3,12 @@ import userEvent from '@testing-library/user-event';
 import { Routes } from '@/app/Routes';
 import { localIsoDate } from '@/domain/dates';
 import { makeAccount, makeEntry, makeFile } from '@/test/builders';
-import { fakeDrive } from '@/test/mockDrive';
+import { fakeStore } from '@/test/mockStore';
 import { dataIn, renderWithData } from '@/test/renderWithData';
 
 // vi.mock is hoisted above imports, so load the helper inside the factory.
-vi.mock('@/services/drive/driveClient', async (importOriginal) =>
-  (await import('@/test/mockDrive')).mockDriveModule(importOriginal),
+vi.mock('@/services/storage/dataStore', async (importOriginal) =>
+  (await import('@/test/mockStore')).mockStoreModule(importOriginal),
 );
 
 const daysAgo = (n: number) => localIsoDate(new Date(Date.now() - n * 86_400_000));
@@ -165,7 +165,7 @@ describe('AccountDetailsPage', () => {
     await waitFor(() => {
       expect(dataIn(client)?.accounts[0]?.note).toBe('Thrissur branch · joint account');
     });
-    expect(fakeDrive.save).toHaveBeenCalledTimes(4);
+    expect(fakeStore.save).toHaveBeenCalledTimes(4);
   });
 
   it('changes the type and flips existing balances (pre-ticked when they used the default sign)', async () => {

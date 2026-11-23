@@ -4,6 +4,7 @@ import type { ReactElement } from 'react';
 import type { DataFile } from '@/domain/schema';
 import { AuthContext, type AuthContextValue } from '@/features/auth/authContext';
 import { DATA_FILE_KEY, type LoadedDataFile } from '@/features/data/useDataFile';
+import { emptySnapshot } from './mockStore';
 
 const signedIn: AuthContextValue = {
   state: { status: 'signed-in', user: { name: 'Test User', email: 'test@example.com' } },
@@ -14,13 +15,13 @@ const signedIn: AuthContextValue = {
 
 /**
  * Render signed-in UI with `file` already loaded, as if from Drive. Saving still goes through
- * the Drive client, so tests that save must mock '@/services/drive/driveClient'.
+ * the data store, so tests that save must mock '@/services/storage/dataStore' (see mockStore).
  */
 export function renderWithData(ui: ReactElement, file: DataFile) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false, staleTime: Infinity } },
   });
-  client.setQueryData<LoadedDataFile>(DATA_FILE_KEY, { fileId: 'f1', version: '1', data: file });
+  client.setQueryData<LoadedDataFile>(DATA_FILE_KEY, { data: file, snapshot: emptySnapshot });
   const utils = render(
     <QueryClientProvider client={client}>
       <AuthContext value={signedIn}>{ui}</AuthContext>

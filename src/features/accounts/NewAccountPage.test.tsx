@@ -1,20 +1,15 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Routes } from '@/app/Routes';
-import type * as driveModule from '@/services/drive/driveClient';
-import type { DriveClient } from '@/services/drive/driveClient';
 import { localIsoDate } from '@/domain/dates';
 import { makeAccount, makeFile } from '@/test/builders';
+import { fakeStore } from '@/test/mockStore';
 import { dataIn, renderWithData } from '@/test/renderWithData';
 
-const drive = vi.hoisted(() => ({
-  loadOrCreate: vi.fn<DriveClient['loadOrCreate']>(),
-  save: vi.fn<DriveClient['save']>(() => Promise.resolve('2')),
-}));
-vi.mock('@/services/drive/driveClient', async (importOriginal) => ({
-  ...(await importOriginal<typeof driveModule>()),
-  createDriveClient: () => drive,
-}));
+// vi.mock is hoisted above imports, so load the helper inside the factory.
+vi.mock('@/services/storage/dataStore', async (importOriginal) =>
+  (await import('@/test/mockStore')).mockStoreModule(importOriginal),
+);
 
 const file = makeFile({
   accounts: [makeAccount({ id: 'old', currency: 'INR', balanceSource: 'HDFC NetBanking' })],
@@ -34,7 +29,7 @@ describe('NewAccountPage', () => {
     await user.click(screen.getByRole('button', { name: 'Create account' }));
     expect(screen.getByText('Give the account a name.')).toBeInTheDocument();
     expect(screen.getByText('Pick a tag, or add a new one.')).toBeInTheDocument();
-    expect(drive.save).not.toHaveBeenCalled();
+    expect(fakeStore.save).not.toHaveBeenCalled();
   });
 
   it('creates an account and opens it', async () => {
@@ -57,7 +52,7 @@ describe('NewAccountPage', () => {
     await user.click(screen.getByRole('button', { name: 'Create account' }));
 
     expect(await screen.findByRole('heading', { name: '🏠 Home loan' })).toBeInTheDocument();
-    expect(drive.save).toHaveBeenCalledOnce();
+    expect(fakeStore.save).toHaveBeenCalledOnce();
     const created = dataIn(client)?.accounts.find((a) => a.name === '🏠 Home loan');
     expect(created).toMatchObject({
       kind: 'liability',
@@ -93,14 +88,14 @@ describe('NewAccountPage', () => {
   });
 
   it('stays on the form if saving fails', async () => {
-    drive.save.mockRejectedValueOnce(new Error('offline'));
+    fakeStore.save.mockRejectedValueOnce(new Error('offline'));
     const user = userEvent.setup();
     renderWithData(<Routes />, file);
     await user.type(screen.getByLabelText('Name'), 'Wallet');
     await user.click(screen.getByRole('button', { name: 'Cash' }));
     await user.click(screen.getByRole('button', { name: 'Create account' }));
     await waitFor(() => {
-      expect(drive.save).toHaveBeenCalled();
+      expect(fakeStore.save).toHaveBeenCalled();
     });
     expect(window.location.hash).toBe('#/accounts/new');
     expect(screen.getByRole('button', { name: 'Create account' })).toBeEnabled();
@@ -126,7 +121,7 @@ describe('NewAccountPage', () => {
       expect(data?.balances.filter((b) => b.accountId === account?.id)).toEqual([
         expect.objectContaining({ date: localIsoDate(), amountMinor: 2_500_00 }),
       ]);
-      expect(drive.save).toHaveBeenCalledOnce(); // account + balance in one write
+      expect(fakeStore.save).toHaveBeenCalledOnce(); // account + balance in one save
     });
 
     it('defaults to negative for a liability, following the type until the sign is chosen', async () => {
@@ -163,7 +158,7 @@ describe('NewAccountPage', () => {
       await user.type(screen.getByLabelText('Opening balance (optional)'), 'abc');
       await user.click(screen.getByRole('button', { name: 'Create account' }));
       expect(screen.getByText(/Enter an amount/)).toBeInTheDocument();
-      expect(drive.save).not.toHaveBeenCalled();
+      expect(fakeStore.save).not.toHaveBeenCalled();
 
       await user.clear(screen.getByLabelText('Opening balance (optional)'));
       await user.click(screen.getByRole('button', { name: 'Create account' }));

@@ -2,23 +2,18 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, render, renderHook, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
-import v1Fixture from '@/domain/__fixtures__/data-file-v1.json';
 import { createAccount } from '@/domain/accounts';
 import { AuthContext, type AuthContextValue } from '@/features/auth/authContext';
-import type * as driveModule from '@/services/drive/driveClient';
-import { DriveError, type DriveClient } from '@/services/drive/driveClient';
+import { StoreError, type StoreSnapshot } from '@/services/storage/dataStore';
 import { makeFile } from '@/test/builders';
+import { emptySnapshot, fakeStore } from '@/test/mockStore';
 import { SaveStatus } from './SaveStatus';
 import { useDataFile, useUpdateDataFile, type DataChange } from './useDataFile';
 
-const drive = vi.hoisted(() => ({
-  loadOrCreate: vi.fn<DriveClient['loadOrCreate']>(),
-  save: vi.fn<DriveClient['save']>(),
-}));
-vi.mock('@/services/drive/driveClient', async (importOriginal) => ({
-  ...(await importOriginal<typeof driveModule>()),
-  createDriveClient: () => drive,
-}));
+// vi.mock is hoisted above imports, so load the helper inside the factory.
+vi.mock('@/services/storage/dataStore', async (importOriginal) =>
+  (await import('@/test/mockStore')).mockStoreModule(importOriginal),
+);
 
 const auth: AuthContextValue = {
   state: { status: 'signed-in', user: { name: 'Test', email: 't@example.com' } },
@@ -40,6 +35,8 @@ function setup() {
   return { client, wrapper, hook };
 }
 
+const snapshot = (tag: string): StoreSnapshot => ({ ...emptySnapshot, rootId: tag });
+
 const addAccount =
   (name: string): DataChange =>
   (data, opts) =>
@@ -47,28 +44,25 @@ const addAccount =
       .data;
 
 beforeEach(() => {
-  drive.loadOrCreate.mockResolvedValue({ fileId: 'f1', version: '1', content: makeFile() });
+  fakeStore.load.mockResolvedValue({ data: makeFile(), snapshot: snapshot('s0') });
+  fakeStore.save.mockImplementation((snap) => Promise.resolve(snap));
 });
 afterEach(() => {
   vi.clearAllMocks();
 });
 
 describe('useDataFile', () => {
-  it('loads and migrates an old file', async () => {
-    drive.loadOrCreate.mockResolvedValue({ fileId: 'f1', version: '3', content: v1Fixture });
+  it('loads data from the store', async () => {
     const { hook } = setup();
     await waitFor(() => {
-      expect(hook.result.current.file.data?.data.schemaVersion).toBe(2);
+      expect(hook.result.current.file.data?.snapshot.rootId).toBe('s0');
     });
-    expect(hook.result.current.file.data?.data.accounts[1]?.tag).toBe('Debt');
   });
 
-  it('refuses files from a newer app version', async () => {
-    drive.loadOrCreate.mockResolvedValue({
-      fileId: 'f1',
-      version: '1',
-      content: { schemaVersion: 99 },
-    });
+  it('shows the store’s plain-language message when loading fails', async () => {
+    fakeStore.load.mockRejectedValue(
+      new StoreError('Your data was saved by a newer version of TrackWorth.', 'newer-version'),
+    );
     const { hook } = setup();
     await waitFor(() => {
       expect(hook.result.current.file.error?.message).toMatch(/newer version/);
@@ -77,9 +71,9 @@ describe('useDataFile', () => {
 });
 
 describe('useUpdateDataFile', () => {
-  it('shows the change immediately and saves it with the version it was based on', async () => {
-    let finishSave: (version: string) => void = () => undefined;
-    drive.save.mockImplementation(() => new Promise((resolve) => (finishSave = resolve)));
+  it('shows the change immediately and keeps the snapshot the store returns', async () => {
+    let finish: (s: StoreSnapshot) => void = () => undefined;
+    fakeStore.save.mockImplementation(() => new Promise((resolve) => (finish = resolve)));
     const { hook } = setup();
     await waitFor(() => {
       expect(hook.result.current.file.data).toBeDefined();
@@ -91,22 +85,21 @@ describe('useUpdateDataFile', () => {
     await waitFor(() => {
       expect(hook.result.current.file.data?.data.accounts.map((a) => a.name)).toEqual(['Savings']);
     });
-    expect(drive.save).toHaveBeenCalledWith(
-      'f1',
-      expect.objectContaining({ schemaVersion: 2 }),
-      '1',
+    expect(fakeStore.save).toHaveBeenCalledWith(
+      snapshot('s0'),
+      expect.objectContaining({ schemaVersion: 3 }),
     );
 
     act(() => {
-      finishSave('2');
+      finish(snapshot('s1'));
     });
     await waitFor(() => {
-      expect(hook.result.current.file.data?.version).toBe('2');
+      expect(hook.result.current.file.data?.snapshot.rootId).toBe('s1');
     });
   });
 
-  it('runs saves one at a time, each on top of the previous version', async () => {
-    drive.save.mockResolvedValueOnce('2').mockResolvedValueOnce('3');
+  it('runs saves one at a time, each from the snapshot the previous one returned', async () => {
+    fakeStore.save.mockResolvedValueOnce(snapshot('s1')).mockResolvedValueOnce(snapshot('s2'));
     const { hook } = setup();
     await waitFor(() => {
       expect(hook.result.current.file.data).toBeDefined();
@@ -119,16 +112,20 @@ describe('useUpdateDataFile', () => {
       ]);
     });
 
-    expect(drive.save.mock.calls.map((c) => c[2])).toEqual(['1', '2']);
-    // Cache updates reach React asynchronously.
+    expect(fakeStore.save.mock.calls.map((c) => c[0].rootId)).toEqual(['s0', 's1']);
     await waitFor(() => {
-      expect(hook.result.current.file.data?.version).toBe('3');
+      expect(hook.result.current.file.data?.snapshot.rootId).toBe('s2');
     });
     expect(hook.result.current.file.data?.data.accounts.map((a) => a.name)).toEqual(['A', 'B']);
   });
 
-  it('rolls back and offers a reload when another device saved first', async () => {
-    drive.save.mockRejectedValue(new DriveError('changed elsewhere', 'conflict'));
+  it('rolls back and offers a reload when another device changed the data', async () => {
+    fakeStore.save.mockRejectedValue(
+      new StoreError(
+        'Couldn’t save. Your data was changed on another device. Reload to see the latest.',
+        'conflict',
+      ),
+    );
     const { hook, wrapper } = setup();
     render(<SaveStatus />, { wrapper });
     await waitFor(() => {
@@ -141,12 +138,26 @@ describe('useUpdateDataFile', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('changed on another device');
     expect(hook.result.current.file.data?.data.accounts).toEqual([]);
 
-    drive.loadOrCreate.mockClear();
+    fakeStore.load.mockClear();
     await userEvent.click(screen.getByRole('button', { name: 'Reload' }));
     await waitFor(() => {
-      expect(drive.loadOrCreate).toHaveBeenCalled();
+      expect(fakeStore.load).toHaveBeenCalled();
     });
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('explains other save failures without offering a reload', async () => {
+    fakeStore.save.mockRejectedValue(new Error('network down'));
+    const { hook, wrapper } = setup();
+    render(<SaveStatus />, { wrapper });
+    await waitFor(() => {
+      expect(hook.result.current.file.data).toBeDefined();
+    });
+    await act(async () => {
+      await hook.result.current.update.mutateAsync(addAccount('A')).catch(() => undefined);
+    });
+    expect(await screen.findByRole('alert')).toHaveTextContent('Check your internet connection');
+    expect(screen.getByRole('button', { name: 'Dismiss' })).toBeInTheDocument();
   });
 
   it('rejects an invalid change without saving or showing it', async () => {
@@ -157,8 +168,7 @@ describe('useUpdateDataFile', () => {
     await act(async () => {
       await expect(hook.result.current.update.mutateAsync(addAccount('   '))).rejects.toThrow();
     });
-    expect(drive.save).not.toHaveBeenCalled();
+    expect(fakeStore.save).not.toHaveBeenCalled();
     expect(hook.result.current.file.data?.data.accounts).toEqual([]);
-    expect(hook.result.current.file.data?.version).toBe('1');
   });
 });
