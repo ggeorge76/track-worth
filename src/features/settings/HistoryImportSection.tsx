@@ -86,7 +86,8 @@ export function HistoryImportSection({ data }: { data: DataFile }) {
       </div>
 
       {/* The whole box is the file picker's label, so clicking anywhere opens it; files can also
-          be dropped on it. The input itself is visually hidden but still keyboard-focusable. */}
+          be dropped on it (this needs `dragDropEnabled: false` in tauri.conf.json, otherwise the
+          desktop window takes the drop). The input is visually hidden but keyboard-focusable. */}
       <label
         htmlFor={ids.file}
         onDragOver={(e) => {
