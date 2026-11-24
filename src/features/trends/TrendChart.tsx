@@ -43,7 +43,7 @@ const PALETTE = {
     axis: '#5a6780',
     guide: '#8f9bb0',
     imported: '#94a3b8',
-    dot: '#2563eb',
+    dot: '#00a3ff',
     tooltipBg: '#ffffff',
     tooltipLine: '#e2e7f0',
     tooltipText: '#0d1526',
@@ -52,7 +52,7 @@ const PALETTE = {
     axis: '#95a3bd',
     guide: '#64728d',
     imported: '#64728d',
-    dot: '#6b9fff',
+    dot: '#38d1ff',
     tooltipBg: '#111a2e',
     tooltipLine: '#22304b',
     tooltipText: '#e9eef8',
@@ -138,13 +138,13 @@ export function TrendChart({
                 x2="100%"
                 y2="0"
               >
-                <stop offset="0%" stopColor="#10b981" />
-                <stop offset="55%" stopColor="#06b6d4" />
-                <stop offset="100%" stopColor="#3b82f6" />
+                <stop offset="0%" stopColor="#00d68f" />
+                <stop offset="55%" stopColor="#00c2ff" />
+                <stop offset="100%" stopColor="#5b6cff" />
               </linearGradient>
               <linearGradient id={`${gradientId}-fill`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.28} />
-                <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+                <stop offset="0%" stopColor="#00c2ff" stopOpacity={0.4} />
+                <stop offset="100%" stopColor="#5b6cff" stopOpacity={0} />
               </linearGradient>
             </defs>
             <XAxis
@@ -214,7 +214,7 @@ export function TrendChart({
               dataKey="y"
               type={step ? 'stepAfter' : 'linear'}
               stroke={`url(#${gradientId}-line)`}
-              strokeWidth={2.5}
+              strokeWidth={3}
               fill={`url(#${gradientId}-fill)`}
               fillOpacity={1}
               isAnimationActive={false}

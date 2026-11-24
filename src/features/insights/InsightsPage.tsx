@@ -17,7 +17,16 @@ import { trendCurrencies } from '@/domain/trend';
 const percent = new Intl.NumberFormat(undefined, { style: 'percent', maximumFractionDigits: 0 });
 
 /** Distinct colours for tags, in order of size; any beyond these share a neutral grey. */
-const TAG_COLORS = ['#0d9488', '#2563eb', '#d97706', '#7c3aed', '#db2777', '#65a30d', '#0891b2'];
+const TAG_COLORS = [
+  '#10b981', // emerald
+  '#3b82f6', // blue
+  '#f59e0b', // amber
+  '#a855f7', // purple
+  '#f43f5e', // rose
+  '#06b6d4', // cyan
+  '#84cc16', // lime
+  '#f97316', // orange
+];
 const OTHER_COLOR = '#94a3b8';
 
 const colorOf = (row: BreakdownRow, index: number) =>
@@ -69,7 +78,7 @@ function Section({
                     fill: color,
                   }))}
                   dataKey="value"
-                  innerRadius={38}
+                  innerRadius={34}
                   outerRadius={62}
                   paddingAngle={slices.length > 1 ? 1 : 0}
                   stroke="none"

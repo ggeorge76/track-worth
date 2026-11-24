@@ -32,14 +32,14 @@ export function TrendChart({
       >
         <defs>
           <linearGradient id="trend-fill" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.28" />
-            <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+            <stop offset="0%" stopColor="#00c2ff" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="#5b6cff" stopOpacity="0" />
           </linearGradient>
           {/* The logo's green → cyan → blue, as in the app's charts. */}
           <linearGradient id="trend-line" x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0%" stopColor="#10b981" />
-            <stop offset="55%" stopColor="#06b6d4" />
-            <stop offset="100%" stopColor="#3b82f6" />
+            <stop offset="0%" stopColor="#00d68f" />
+            <stop offset="55%" stopColor="#00c2ff" />
+            <stop offset="100%" stopColor="#5b6cff" />
           </linearGradient>
         </defs>
         <path d={`${line} L${String(w)},${String(h)} L0,${String(h)} Z`} fill="url(#trend-fill)" />
