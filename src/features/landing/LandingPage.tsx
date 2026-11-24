@@ -60,15 +60,15 @@ function Section({
   tint?: boolean;
 }) {
   return (
-    <section id={id} aria-labelledby={`${id}-title`} className={tint ? 'bg-white' : ''}>
+    <section id={id} aria-labelledby={`${id}-title`} className={tint ? 'bg-surface' : ''}>
       <div className="reveal mx-auto max-w-6xl px-5 py-16 sm:py-20">
         <h2
           id={`${id}-title`}
-          className="text-center text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl"
+          className="text-center text-2xl font-semibold tracking-tight text-ink sm:text-3xl"
         >
           {title}
         </h2>
-        {intro && <p className="mx-auto mt-3 max-w-2xl text-center text-slate-600">{intro}</p>}
+        {intro && <p className="mx-auto mt-3 max-w-2xl text-center text-ink-muted">{intro}</p>}
         <div className="mt-10">{children}</div>
       </div>
     </section>
@@ -84,7 +84,7 @@ function SignInButton({ large = false }: { large?: boolean }) {
       onClick={() => void signIn()}
       disabled={busy || !isDesktopApp()}
       aria-label={large ? 'Sign in with Google' : undefined}
-      className={`rounded-xl bg-teal-700 font-medium text-white shadow-sm hover:bg-teal-800 disabled:opacity-60 ${
+      className={`rounded-xl bg-brand font-medium text-white shadow-sm hover:bg-brand-strong disabled:opacity-60 ${
         large ? 'px-6 py-3 text-base' : 'px-4 py-2 text-sm'
       }`}
     >
@@ -101,7 +101,7 @@ const money = (n: number) =>
   }).format(n);
 
 const Badge = ({ children }: { children: ReactNode }) => (
-  <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 align-middle text-xs font-medium text-amber-800">
+  <span className="ml-2 rounded-full bg-warn-soft px-2 py-0.5 align-middle text-xs font-medium text-warn">
     {children}
   </span>
 );
@@ -109,22 +109,20 @@ const Badge = ({ children }: { children: ReactNode }) => (
 function DashboardMock({ compact = false }: { compact?: boolean }) {
   return (
     <figure
-      className="rounded-3xl bg-white p-5 shadow-xl ring-1 ring-slate-200"
+      className="rounded-3xl bg-surface p-5 shadow-xl ring-1 ring-line"
       aria-label="Sample dashboard"
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs uppercase tracking-wide text-slate-500">Net worth</p>
-          <p className="text-3xl font-semibold tabular-nums text-slate-900">{money(4875000)}</p>
-          <p className="mt-1 text-sm text-emerald-700">▲ {money(312000)} this financial year</p>
+          <p className="text-xs uppercase tracking-wide text-ink-muted">Net worth</p>
+          <p className="text-3xl font-semibold tabular-nums text-ink">{money(4875000)}</p>
+          <p className="mt-1 text-sm text-positive">▲ {money(312000)} this financial year</p>
         </div>
-        <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-500">
-          Sample data
-        </span>
+        <span className="rounded-full bg-subtle px-2 py-1 text-xs text-ink-muted">Sample data</span>
       </div>
       <TrendChart className="mt-4 h-28 w-full" />
       {!compact && (
-        <ul className="mt-4 divide-y divide-slate-100 text-sm">
+        <ul className="mt-4 divide-y divide-line text-sm">
           {[
             ['🏦 HDFC Savings', 'Cash', 425000],
             ['📈 Index Fund', 'Mutual Funds', 1860000],
@@ -133,12 +131,10 @@ function DashboardMock({ compact = false }: { compact?: boolean }) {
           ].map(([name, tag, amount]) => (
             <li key={name as string} className="flex items-center justify-between py-2">
               <span>
-                <span className="block text-slate-800">{name}</span>
-                <span className="text-xs text-slate-500">{tag}</span>
+                <span className="block text-ink">{name}</span>
+                <span className="text-xs text-ink-muted">{tag}</span>
               </span>
-              <span
-                className={`tabular-nums ${Number(amount) < 0 ? 'text-rose-700' : 'text-slate-900'}`}
-              >
+              <span className={`tabular-nums ${Number(amount) < 0 ? 'text-negative' : 'text-ink'}`}>
                 {money(Number(amount))}
               </span>
             </li>
@@ -231,10 +227,10 @@ export function LandingPage() {
   };
 
   return (
-    <div ref={root} className="min-h-dvh bg-slate-50 text-slate-900">
-      <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur">
+    <div ref={root} className="min-h-dvh bg-canvas text-ink">
+      <header className="sticky top-0 z-30 border-b border-line/80 bg-surface/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
-          <span className="flex items-center gap-2 font-semibold text-teal-900">
+          <span className="flex items-center gap-2 font-semibold text-brand-ink">
             <img src={symbolUrl} alt="" width={28} height={28} className="h-7 w-7" />
             TrackWorth
           </span>
@@ -244,18 +240,18 @@ export function LandingPage() {
 
       <main>
         {/* 1. Hero */}
-        <section aria-labelledby="hero-title" className="bg-gradient-to-b from-white to-slate-50">
+        <section aria-labelledby="hero-title" className="bg-gradient-to-b from-surface to-canvas">
           <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-14 sm:py-20 lg:grid-cols-2">
             <div>
               <img src={logoUrl} alt="" width={72} height={72} className="h-18 w-18 rounded-2xl" />
-              <p className="mt-4 text-sm font-medium tracking-wide text-teal-700">TrackWorth</p>
+              <p className="mt-4 text-sm font-medium tracking-wide text-brand">TrackWorth</p>
               <h1
                 id="hero-title"
-                className="mt-2 text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl"
+                className="mt-2 text-4xl font-semibold tracking-tight text-ink sm:text-5xl"
               >
                 See Your Complete Financial Life in One Place
               </h1>
-              <p className="mt-4 max-w-xl text-lg text-slate-600">
+              <p className="mt-4 max-w-xl text-lg text-ink-muted">
                 Track assets, liabilities and investments, and watch your net worth grow. On Desktop
                 today, with Android coming soon.
               </p>
@@ -264,28 +260,28 @@ export function LandingPage() {
                 <button
                   type="button"
                   onClick={scrollTo('preview')}
-                  className="rounded-xl border border-slate-300 bg-white px-6 py-3 font-medium text-slate-700 hover:border-slate-400"
+                  className="rounded-xl border border-line-strong bg-surface px-6 py-3 font-medium text-ink-soft hover:border-line-strong"
                 >
                   Learn More
                 </button>
               </div>
-              <p className="mt-3 text-sm text-slate-500">
+              <p className="mt-3 text-sm text-ink-muted">
                 Sign in with your Google account. TrackWorth never connects to your bank.
               </p>
               {!isDesktopApp() && (
-                <p role="note" className="mt-3 rounded-md bg-amber-50 p-3 text-sm text-amber-900">
+                <p role="note" className="mt-3 rounded-md bg-warn-soft p-3 text-sm text-warn">
                   You’re viewing TrackWorth in a browser. Sign-in only works in the desktop app (
                   <code>bun run app:dev</code>).
                 </p>
               )}
               {state.status === 'signed-out' && state.error && (
-                <p role="alert" className="mt-3 text-sm text-red-700">
+                <p role="alert" className="mt-3 text-sm text-danger">
                   {state.error}
                 </p>
               )}
               <dl
                 aria-label="TrackWorth at a glance"
-                className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-2xl bg-slate-200 shadow-sm ring-1 ring-slate-200 sm:grid-cols-4"
+                className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-2xl bg-muted shadow-sm ring-1 ring-line sm:grid-cols-4"
               >
                 {[
                   ['14', 'asset types'],
@@ -293,11 +289,11 @@ export function LandingPage() {
                   ['Net worth', 'tracking'],
                   ['Desktop', 'Android soon'],
                 ].map(([big, small]) => (
-                  <div key={small} className="bg-white px-4 py-3">
+                  <div key={small} className="bg-surface px-4 py-3">
                     <dt className="sr-only">{small}</dt>
                     <dd>
-                      <span className="block text-lg font-semibold text-slate-900">{big}</span>
-                      <span className="text-sm text-slate-500">{small}</span>
+                      <span className="block text-lg font-semibold text-ink">{big}</span>
+                      <span className="text-sm text-ink-muted">{small}</span>
                     </dd>
                   </div>
                 ))}
@@ -318,15 +314,12 @@ export function LandingPage() {
         >
           <div className="grid gap-4 sm:grid-cols-3">
             {[
-              ['Net worth', 4875000, 'text-slate-900'],
-              ['Assets', 6200000, 'text-emerald-700'],
-              ['Liabilities', 1325000, 'text-rose-700'],
+              ['Net worth', 4875000, 'text-ink'],
+              ['Assets', 6200000, 'text-positive'],
+              ['Liabilities', 1325000, 'text-negative'],
             ].map(([label, value, tone]) => (
-              <div
-                key={label as string}
-                className="rounded-2xl bg-slate-50 p-5 ring-1 ring-slate-200"
-              >
-                <p className="text-sm text-slate-500">{label}</p>
+              <div key={label as string} className="rounded-2xl bg-canvas p-5 ring-1 ring-line">
+                <p className="text-sm text-ink-muted">{label}</p>
                 <p className={`mt-1 text-2xl font-semibold tabular-nums ${tone as string}`}>
                   {money(Number(value))}
                 </p>
@@ -334,12 +327,12 @@ export function LandingPage() {
             ))}
           </div>
           <div className="mt-4 grid gap-4 lg:grid-cols-5">
-            <div className="rounded-2xl bg-slate-50 p-5 ring-1 ring-slate-200 lg:col-span-3">
-              <p className="text-sm font-medium text-slate-700">Net worth over 5 years</p>
+            <div className="rounded-2xl bg-canvas p-5 ring-1 ring-line lg:col-span-3">
+              <p className="text-sm font-medium text-ink-soft">Net worth over 5 years</p>
               <TrendChart className="mt-3 h-48 w-full" labelled />
             </div>
-            <div className="rounded-2xl bg-slate-50 p-5 ring-1 ring-slate-200 lg:col-span-2">
-              <p className="text-sm font-medium text-slate-700">Asset allocation</p>
+            <div className="rounded-2xl bg-canvas p-5 ring-1 ring-line lg:col-span-2">
+              <p className="text-sm font-medium text-ink-soft">Asset allocation</p>
               <AllocationDonut className="mt-3" />
             </div>
           </div>
@@ -349,15 +342,15 @@ export function LandingPage() {
         <Section id="features" title="Everything You Need to Understand Your Wealth">
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {FEATURES.map(([icon, title, text, badge]) => (
-              <li key={title} className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
+              <li key={title} className="rounded-2xl bg-surface p-5 shadow-sm ring-1 ring-line">
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-brand-soft text-brand">
                   <Icon.Glyph name={icon} />
                 </span>
-                <h3 className="mt-3 font-semibold text-slate-900">
+                <h3 className="mt-3 font-semibold text-ink">
                   {title}
                   {badge && <Badge>{badge}</Badge>}
                 </h3>
-                <p className="mt-1 text-sm text-slate-600">{text}</p>
+                <p className="mt-1 text-sm text-ink-muted">{text}</p>
               </li>
             ))}
           </ul>
@@ -374,7 +367,7 @@ export function LandingPage() {
             {ASSET_TYPES.map(([emoji, label]) => (
               <li
                 key={label}
-                className="flex items-center gap-2 rounded-full bg-slate-50 px-4 py-2 text-sm text-slate-800 ring-1 ring-slate-200"
+                className="flex items-center gap-2 rounded-full bg-canvas px-4 py-2 text-sm text-ink ring-1 ring-line"
               >
                 <span aria-hidden="true">{emoji}</span>
                 {label}
@@ -390,9 +383,9 @@ export function LandingPage() {
           intro="Investments are only part of the picture. TrackWorth looks at your total financial health: everything you own and everything you owe."
         >
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-2xl bg-white p-6 ring-1 ring-slate-200">
-              <h3 className="font-semibold text-slate-500">Traditional tracking</h3>
-              <ul className="mt-4 space-y-3 text-slate-600">
+            <div className="rounded-2xl bg-surface p-6 ring-1 ring-line">
+              <h3 className="font-semibold text-ink-muted">Traditional tracking</h3>
+              <ul className="mt-4 space-y-3 text-ink-muted">
                 {[
                   'Separate spreadsheets',
                   'Manual calculations',
@@ -400,7 +393,7 @@ export function LandingPage() {
                   'Difficult reporting',
                 ].map((t) => (
                   <li key={t} className="flex gap-3">
-                    <span aria-hidden="true" className="text-slate-400">
+                    <span aria-hidden="true" className="text-ink-faint">
                       ✕
                     </span>
                     {t}
@@ -408,7 +401,7 @@ export function LandingPage() {
                 ))}
               </ul>
             </div>
-            <div className="rounded-2xl bg-teal-900 p-6 text-white shadow-lg">
+            <div className="rounded-2xl bg-header p-6 text-white shadow-lg">
               <h3 className="font-semibold">TrackWorth</h3>
               <ul className="mt-4 space-y-3">
                 {[
@@ -431,14 +424,14 @@ export function LandingPage() {
 
         {/* 6. Education */}
         <Section id="net-worth" title="What Is Net Worth?" tint>
-          <p className="text-center text-xl font-medium text-slate-800">
-            Net Worth = <span className="text-emerald-700">Assets</span> −{' '}
-            <span className="text-rose-700">Liabilities</span>
+          <p className="text-center text-xl font-medium text-ink">
+            Net Worth = <span className="text-positive">Assets</span> −{' '}
+            <span className="text-negative">Liabilities</span>
           </p>
           <div className="mx-auto mt-8 grid max-w-3xl items-stretch gap-4 md:grid-cols-[1fr_auto_1fr_auto_1fr]">
-            <div className="rounded-2xl bg-emerald-50 p-5 ring-1 ring-emerald-100">
-              <p className="font-medium text-emerald-900">Assets</p>
-              <ul className="mt-2 space-y-1 text-sm text-emerald-900">
+            <div className="rounded-2xl bg-positive-soft p-5 ring-1 ring-positive/20">
+              <p className="font-medium text-positive">Assets</p>
+              <ul className="mt-2 space-y-1 text-sm text-positive">
                 <li className="flex justify-between gap-3">
                   <span>House</span>
                   <span className="tabular-nums">{money(5000000)}</span>
@@ -453,23 +446,23 @@ export function LandingPage() {
                 </li>
               </ul>
             </div>
-            <p aria-hidden="true" className="self-center text-center text-2xl text-slate-400">
+            <p aria-hidden="true" className="self-center text-center text-2xl text-ink-faint">
               −
             </p>
-            <div className="rounded-2xl bg-rose-50 p-5 ring-1 ring-rose-100">
-              <p className="font-medium text-rose-900">Liabilities</p>
-              <ul className="mt-2 space-y-1 text-sm text-rose-900">
+            <div className="rounded-2xl bg-negative-soft p-5 ring-1 ring-negative/20">
+              <p className="font-medium text-negative">Liabilities</p>
+              <ul className="mt-2 space-y-1 text-sm text-negative">
                 <li className="flex justify-between gap-3">
                   <span>Home Loan</span>
                   <span className="tabular-nums">{money(2000000)}</span>
                 </li>
               </ul>
             </div>
-            <p aria-hidden="true" className="self-center text-center text-2xl text-slate-400">
+            <p aria-hidden="true" className="self-center text-center text-2xl text-ink-faint">
               =
             </p>
-            <div className="flex flex-col justify-center rounded-2xl bg-teal-900 p-5 text-white">
-              <p className="text-sm text-teal-100">Net Worth</p>
+            <div className="flex flex-col justify-center rounded-2xl bg-header p-5 text-white">
+              <p className="text-sm text-white/70">Net Worth</p>
               <p className="text-2xl font-semibold tabular-nums">{money(4200000)}</p>
             </div>
           </div>
@@ -482,7 +475,7 @@ export function LandingPage() {
           intro="TrackWorth has no servers. Your data lives in your own Google Drive and on your device. We never see it."
         >
           <div className="grid items-center gap-8 md:grid-cols-[auto_1fr]">
-            <span className="mx-auto flex h-28 w-28 items-center justify-center rounded-full bg-teal-50 text-teal-700 ring-8 ring-teal-50/60">
+            <span className="mx-auto flex h-28 w-28 items-center justify-center rounded-full bg-brand-soft text-brand ring-8 ring-brand-soft/60">
               <Icon.Glyph name="lock" size={56} />
             </span>
             <ul className="grid gap-4 sm:grid-cols-2">
@@ -510,16 +503,13 @@ export function LandingPage() {
                   ],
                 ] as const
               ).map(([icon, title, text]) => (
-                <li
-                  key={title}
-                  className="flex gap-3 rounded-2xl bg-white p-4 ring-1 ring-slate-200"
-                >
-                  <span className="mt-0.5 text-teal-700">
+                <li key={title} className="flex gap-3 rounded-2xl bg-surface p-4 ring-1 ring-line">
+                  <span className="mt-0.5 text-brand">
                     <Icon.Glyph name={icon} />
                   </span>
                   <span>
-                    <span className="block font-medium text-slate-900">{title}</span>
-                    <span className="text-sm text-slate-600">{text}</span>
+                    <span className="block font-medium text-ink">{title}</span>
+                    <span className="text-sm text-ink-muted">{text}</span>
                   </span>
                 </li>
               ))}
@@ -530,30 +520,30 @@ export function LandingPage() {
         {/* 8. Platforms */}
         <Section id="platforms" title="Available Where You Need It" tint>
           <div className="grid gap-6 md:grid-cols-2">
-            <div className="rounded-3xl bg-slate-50 p-6 ring-1 ring-slate-200">
-              <h3 className="flex items-center gap-2 font-semibold text-slate-900">
+            <div className="rounded-3xl bg-canvas p-6 ring-1 ring-line">
+              <h3 className="flex items-center gap-2 font-semibold text-ink">
                 <Icon.Glyph name="desktop" /> Desktop App
               </h3>
-              <p className="mt-1 text-sm text-slate-600">
+              <p className="mt-1 text-sm text-ink-muted">
                 macOS, Windows and Linux. Available now.
               </p>
               <div className="mx-auto mt-5 max-w-sm rounded-xl border-8 border-slate-800 bg-slate-800 shadow-lg">
                 <DashboardMock compact />
               </div>
             </div>
-            <div className="rounded-3xl bg-slate-50 p-6 ring-1 ring-slate-200">
-              <h3 className="flex items-center gap-2 font-semibold text-slate-900">
+            <div className="rounded-3xl bg-canvas p-6 ring-1 ring-line">
+              <h3 className="flex items-center gap-2 font-semibold text-ink">
                 <Icon.Glyph name="phone" /> Android App <Badge>Coming soon</Badge>
               </h3>
-              <p className="mt-1 text-sm text-slate-600">
+              <p className="mt-1 text-sm text-ink-muted">
                 The same app and the same data, on your phone.
               </p>
               <div className="mx-auto mt-5 w-48 rounded-[2rem] border-8 border-slate-800 bg-slate-800 shadow-lg">
-                <div className="overflow-hidden rounded-[1.4rem] bg-white p-3">
-                  <p className="text-[10px] uppercase tracking-wide text-slate-500">Net worth</p>
+                <div className="overflow-hidden rounded-[1.4rem] bg-surface p-3">
+                  <p className="text-[10px] uppercase tracking-wide text-ink-muted">Net worth</p>
                   <p className="text-lg font-semibold tabular-nums">{money(4875000)}</p>
                   <TrendChart className="mt-2 h-14 w-full" />
-                  <p className="mt-2 text-center text-[10px] text-slate-400">Sample data</p>
+                  <p className="mt-2 text-center text-[10px] text-ink-faint">Sample data</p>
                 </div>
               </div>
             </div>
@@ -562,19 +552,19 @@ export function LandingPage() {
 
         {/* 9. FAQ */}
         <Section id="faq" title="Frequently Asked Questions">
-          <div className="mx-auto max-w-3xl divide-y divide-slate-200 rounded-2xl bg-white ring-1 ring-slate-200">
+          <div className="mx-auto max-w-3xl divide-y divide-line rounded-2xl bg-surface ring-1 ring-line">
             {FAQ.map(([q, a]) => (
               <details key={q} className="group px-5 py-4">
-                <summary className="flex list-none items-center justify-between gap-4 font-medium text-slate-900">
+                <summary className="flex list-none items-center justify-between gap-4 font-medium text-ink">
                   {q}
                   <span
                     aria-hidden="true"
-                    className="text-slate-400 transition-transform group-open:rotate-45"
+                    className="text-ink-faint transition-transform group-open:rotate-45"
                   >
                     +
                   </span>
                 </summary>
-                <p className="mt-2 text-slate-600">{a}</p>
+                <p className="mt-2 text-ink-muted">{a}</p>
               </details>
             ))}
           </div>
@@ -585,8 +575,8 @@ export function LandingPage() {
       </main>
 
       {/* 10. Footer */}
-      <footer className="border-t border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-5 py-6 text-sm text-slate-500 sm:flex-row">
+      <footer className="border-t border-line bg-surface">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-5 py-6 text-sm text-ink-muted sm:flex-row">
           <nav aria-label="Legal and contact" className="flex flex-wrap justify-center gap-5">
             {[
               ['Privacy Policy', `${SITE}/privacy/`],
@@ -596,7 +586,7 @@ export function LandingPage() {
               <button
                 key={label}
                 type="button"
-                className="hover:text-slate-900 hover:underline"
+                className="hover:text-ink hover:underline"
                 onClick={() => void openExternal(url as string)}
               >
                 {label}

@@ -30,7 +30,7 @@ describe('InsightsPage', () => {
     window.history.replaceState({ idx: 0 }, '', '#/');
     const user = userEvent.setup();
     renderWithData(<Routes />, data);
-    await user.click(screen.getByRole('link', { name: 'See where your money is' }));
+    await user.click(screen.getByRole('link', { name: /See where your money is/ }));
     expect(screen.getByRole('heading', { name: 'Insights' })).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: 'Tag' })).toBeChecked();
 

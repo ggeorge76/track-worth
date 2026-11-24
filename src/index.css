@@ -1,6 +1,111 @@
 @import 'tailwindcss';
+@import '@fontsource-variable/inter';
+
+/* Dark mode follows a `.dark` class on <html>, set from the theme setting (src/app/theme.ts). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Design tokens. Components use these semantic colours (bg-surface, text-muted, bg-brand…) rather
+ * than raw palette colours, so light and dark themes are defined once, here. The palette follows
+ * the logo: deep navy, with green → cyan → blue accents.
+ */
+:root {
+  color-scheme: light;
+  --canvas: #f4f6fb;
+  --surface: #ffffff;
+  --subtle: #eef2f8;
+  --muted: #e2e8f2;
+  --line: #e2e7f0;
+  --line-strong: #c5cedd;
+  --ink: #0d1526;
+  --ink-soft: #2f3b52;
+  --ink-muted: #5a6780;
+  --ink-faint: #8f9bb0;
+  --inverse: #0d1526;
+  --brand: #2563eb;
+  --brand-strong: #1d4fd7;
+  --brand-soft: #e7efff;
+  --brand-ink: #1d3f99;
+  --accent-1: #10b981;
+  --accent-2: #06b6d4;
+  --accent-3: #3b82f6;
+  --positive: #047857;
+  --positive-soft: #e3f8ef;
+  --negative: #d1194a;
+  --negative-soft: #fde9ee;
+  --danger: #c81e1e;
+  --danger-soft: #fdecec;
+  --warn: #9a5b00;
+  --warn-soft: #fff4dc;
+  --header: #0b1b33;
+}
+
+.dark {
+  color-scheme: dark;
+  --canvas: #0a1020;
+  --surface: #111a2e;
+  --subtle: #18233a;
+  --muted: #223050;
+  --line: #22304b;
+  --line-strong: #34456a;
+  --ink: #e9eef8;
+  --ink-soft: #c6d0e2;
+  --ink-muted: #95a3bd;
+  --ink-faint: #64728d;
+  --inverse: #e9eef8;
+  --brand: #4f8dff;
+  --brand-strong: #6b9fff;
+  --brand-soft: #16284d;
+  --brand-ink: #c4d6ff;
+  --positive: #34d399;
+  --positive-soft: #0d2e26;
+  --negative: #fb7193;
+  --negative-soft: #3a1424;
+  --danger: #f87171;
+  --danger-soft: #3a1717;
+  --warn: #fbbf24;
+  --warn-soft: #3a2a0c;
+  --header: #070d1a;
+}
+
+@theme inline {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-subtle: var(--subtle);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-inverse: var(--inverse);
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-ink: var(--brand-ink);
+  --color-accent-1: var(--accent-1);
+  --color-accent-2: var(--accent-2);
+  --color-accent-3: var(--accent-3);
+  --color-positive: var(--positive);
+  --color-positive-soft: var(--positive-soft);
+  --color-negative: var(--negative);
+  --color-negative-soft: var(--negative-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-header: var(--header);
+}
 
 @layer base {
+  body {
+    background-color: var(--canvas);
+    color: var(--ink);
+    font-feature-settings: 'cv11', 'ss01';
+    -webkit-font-smoothing: antialiased;
+  }
   /*
    * Tailwind v4 no longer gives buttons a pointer cursor. Restore it for everything clickable,
    * so the desktop app shows the hand cursor consistently (touch devices ignore it).

@@ -18,11 +18,11 @@ export function SyncStatus() {
   const offline = sync?.offline === true || (auth.status === 'signed-in' && auth.offline === true);
   const pending = sync?.pending ?? 0;
 
-  let tone = 'bg-amber-50 text-amber-900';
+  let tone = 'bg-warn-soft text-warn';
   let message: React.ReactNode = null;
   let action: 'retry' | 'review' | null = 'retry';
   if (sync?.decision) {
-    tone = 'bg-sky-50 text-sky-900';
+    tone = 'bg-brand-soft text-brand-ink';
     message = (
       <>
         <strong className="font-medium">Needs your decision.</strong> Some things were changed both

@@ -38,17 +38,20 @@ function ChangeLine({
       : PERIOD[range];
   const tone =
     change.deltaMinor > 0
-      ? 'text-emerald-700'
+      ? 'bg-positive-soft text-positive'
       : change.deltaMinor < 0
-        ? 'text-rose-700'
-        : 'text-slate-500';
+        ? 'bg-negative-soft text-negative'
+        : 'bg-subtle text-ink-muted';
   return (
-    <p className="mt-1 text-sm">
-      <span className={`font-medium tabular-nums ${tone}`}>
+    <p className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+      <span className={`rounded-full px-2.5 py-0.5 font-semibold tabular-nums ${tone}`}>
+        <span aria-hidden="true">
+          {change.deltaMinor > 0 ? '▲ ' : change.deltaMinor < 0 ? '▼ ' : ''}
+        </span>
         {formatSignedMoney(change.deltaMinor, currency)}
         {change.percent !== null && ` (${formatPercent(change.percent)})`}
-      </span>{' '}
-      <span className="text-slate-500">{since}</span>
+      </span>
+      <span className="text-ink-muted">{since}</span>
     </p>
   );
 }
@@ -101,11 +104,26 @@ export function NetWorthTrend({ data }: { data: DataFile }) {
         valueLabel="Net worth"
       />
       {totals && (
-        <p className="mt-3 text-sm text-slate-600">
-          Assets <span className="tabular-nums">{formatMoney(totals.assetsMinor, currency)}</span>
-          {' · '}Liabilities{' '}
-          <span className="tabular-nums">{formatMoney(totals.liabilitiesMinor, currency)}</span>
-        </p>
+        <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-line pt-4 text-sm">
+          <div>
+            <dt className="flex items-center gap-1.5 text-ink-muted">
+              <span aria-hidden="true" className="h-2 w-2 rounded-full bg-positive" />
+              Assets
+            </dt>
+            <dd className="mt-0.5 font-semibold tabular-nums">
+              {formatMoney(totals.assetsMinor, currency)}
+            </dd>
+          </div>
+          <div>
+            <dt className="flex items-center gap-1.5 text-ink-muted">
+              <span aria-hidden="true" className="h-2 w-2 rounded-full bg-negative" />
+              Liabilities
+            </dt>
+            <dd className="mt-0.5 font-semibold tabular-nums">
+              {formatMoney(totals.liabilitiesMinor, currency)}
+            </dd>
+          </div>
+        </dl>
       )}
     </div>
   );

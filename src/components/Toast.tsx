@@ -24,13 +24,13 @@ export function Toast({
   return (
     <div
       role="status"
-      className="fixed inset-x-4 bottom-24 z-50 mx-auto flex max-w-md items-center justify-between gap-4 rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-lg"
+      className="fixed inset-x-4 bottom-24 z-50 mx-auto flex max-w-md items-center justify-between gap-4 rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-lg ring-1 ring-white/10"
     >
       <span>{message}</span>
       {actionLabel && onAction && (
         <button
           type="button"
-          className="shrink-0 font-medium text-teal-300 underline"
+          className="shrink-0 font-medium text-accent-2 underline"
           onClick={() => {
             onAction();
             onDismiss();

@@ -106,6 +106,11 @@ nothing from the app, `services/` never imports React, and only `services/` impo
 - Named exports only. Function components plus hooks. Keep logic in hooks or `domain/`.
 - Tailwind utilities. Layouts must work from a 380 px wide window (future Android) up to
   desktop.
+- Colours: use the semantic tokens from `src/index.css` (`bg-canvas`, `bg-surface`, `bg-subtle`,
+  `text-ink`, `text-ink-muted`, `ring-line`, `bg-brand`, `text-positive`, `text-negative`, …),
+  never raw palette colours like `slate-500`. Each token has a light and a dark value; the theme
+  (system/light/dark, R-S3) is applied by `src/app/theme.ts`. Charts get their SVG colours per theme
+  (`useTheme().resolved`).
 - Accessibility: semantic elements, labelled controls, keyboard reachable, `role="alert"` for
   errors. Query tests by role or label.
 - The UI must keep working in a plain browser (`bun run dev`, e2e). Guard Tauri-only calls

@@ -34,7 +34,7 @@ Then: first release (secrets configured, installers tested on macOS, Windows and
 - [x] Breakdown by tag and liquidity on an Insights page (R-D5)
 - [ ] "Update all" quick-entry flow (R-B2)
 - [x] Export JSON and CSV (R-S2)
-- [ ] Dark mode (R-S3)
+- [x] Dark mode and a brighter visual refresh (R-S3)
 - [ ] Offline read-only mode from the last loaded data (N-8)
 - [ ] Publish releases only after all OS builds finish (draft → publish) (ADR-0007 follow-up)
 - [ ] OS code signing: Apple Developer ID + notarization, Windows signing (ADR-0008 follow-up)

@@ -35,7 +35,7 @@ export function UpdatePrompt() {
           What’s new
         </button>
       </p>
-      {status && <p className="text-sm text-slate-300">{status}</p>}
+      {status && <p className="text-sm text-ink-faint">{status}</p>}
       {phase === 'failed' && (
         <p role="alert" className="text-sm text-amber-300">
           The update couldn’t be installed. Please try again later.
@@ -44,7 +44,7 @@ export function UpdatePrompt() {
       <div className="flex justify-end gap-2">
         <button
           type="button"
-          className="px-3 py-1 text-slate-300 disabled:opacity-60"
+          className="px-3 py-1 text-ink-faint disabled:opacity-60"
           onClick={dismiss}
           disabled={busy}
         >
@@ -52,7 +52,7 @@ export function UpdatePrompt() {
         </button>
         <button
           type="button"
-          className="rounded bg-teal-600 px-3 py-1 font-medium disabled:opacity-60"
+          className="rounded bg-brand px-3 py-1 font-medium disabled:opacity-60"
           onClick={() => void apply()}
           disabled={busy}
         >

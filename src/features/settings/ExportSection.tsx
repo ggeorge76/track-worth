@@ -11,7 +11,7 @@ type Status =
   | { kind: 'error'; message: string };
 
 const buttonClass =
-  'rounded-xl bg-slate-100 px-4 py-2 text-left font-medium text-slate-800 ring-1 ring-slate-200 hover:bg-slate-200 disabled:opacity-50';
+  'rounded-xl bg-subtle px-4 py-2 text-left font-medium text-ink ring-1 ring-line hover:bg-muted disabled:opacity-50';
 
 /** Save a copy of the data outside Drive (R-S2, ADR-0016). */
 export function ExportSection({ data }: { data: DataFile }) {
@@ -38,12 +38,12 @@ export function ExportSection({ data }: { data: DataFile }) {
   return (
     <section
       aria-labelledby={headingId}
-      className="mt-4 space-y-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200"
+      className="mt-4 space-y-3 rounded-2xl bg-surface p-4 shadow-sm ring-1 ring-line"
     >
       <h2 id={headingId} className="font-medium">
         Export your data
       </h2>
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-ink-muted">
         Your data stays in your Google Drive, in the TrackWorth folder. You can also save a copy
         anywhere you like.
       </p>
@@ -66,12 +66,12 @@ export function ExportSection({ data }: { data: DataFile }) {
         </button>
       </div>
       {status.kind === 'saved' && (
-        <p role="status" className="text-sm text-emerald-700">
+        <p role="status" className="text-sm text-positive">
           Saved {status.fileName}.
         </p>
       )}
       {status.kind === 'error' && (
-        <p role="alert" className="text-sm text-red-700">
+        <p role="alert" className="text-sm text-danger">
           {status.message}
         </p>
       )}

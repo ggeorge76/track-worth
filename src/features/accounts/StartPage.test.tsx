@@ -26,6 +26,8 @@ const rowNames = () =>
     (el) => el.textContent,
   );
 
+const netWorthCard = () => screen.getByRole('region', { name: /^Net worth/ });
+
 beforeEach(() => {
   window.history.replaceState(null, '', '#/');
 });
@@ -40,9 +42,8 @@ describe('StartPage', () => {
     expect(screen.getByRole('link', { name: /PPF.*No balance yet/ })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Axis card.*-\$645\.00/ })).toBeInTheDocument();
     // Net worth = 1,234.50 − 645.00
-    expect(screen.getByRole('heading', { name: 'Net worth' }).nextElementSibling).toHaveTextContent(
-      '$589.50',
-    );
+    expect(screen.getByRole('heading', { name: 'Net worth' })).toBeInTheDocument();
+    expect(within(netWorthCard()).getByText('$589.50')).toBeInTheDocument();
   });
 
   it('sorts and filters in the filter popup, and resets', async () => {
@@ -86,16 +87,15 @@ describe('StartPage', () => {
     await user.click(screen.getByRole('button', { name: /Filter/ }));
     await user.click(screen.getByRole('button', { name: 'Debt' }));
     await user.click(screen.getByRole('button', { name: 'Close' }));
-    const heading = screen.getByRole('heading', { name: 'Net worth · filtered' });
-    expect(heading.nextElementSibling).toHaveTextContent('-$645.00');
-    expect(screen.getByText(/Assets/)).toHaveTextContent('Assets $0.00 · Liabilities -$645.00');
+    expect(screen.getByRole('heading', { name: 'Net worth · filtered' })).toBeInTheDocument();
+    expect(within(netWorthCard()).getAllByText('-$645.00')).toHaveLength(2); // headline, liabilities
+    expect(screen.getByText('Assets').parentElement).toHaveTextContent('Assets$0.00');
 
     await user.click(screen.getByRole('button', { name: /Filter/ }));
     await user.click(screen.getByRole('button', { name: 'Reset' }));
     await user.click(screen.getByRole('button', { name: 'Close' }));
-    expect(screen.getByRole('heading', { name: 'Net worth' }).nextElementSibling).toHaveTextContent(
-      '$589.50',
-    );
+    expect(screen.getByRole('heading', { name: 'Net worth' })).toBeInTheDocument();
+    expect(within(netWorthCard()).getByText('$589.50')).toBeInTheDocument();
   });
 
   it('leaves imported history out of a filtered chart', async () => {
@@ -110,6 +110,37 @@ describe('StartPage', () => {
     await user.click(screen.getByRole('button', { name: 'Debt' }));
     await user.click(screen.getByRole('button', { name: 'Close' }));
     expect(screen.queryByText(/Earlier history/)).not.toBeInTheDocument();
+  });
+
+  it('keeps a compact net worth in view once the big number scrolls away', () => {
+    let report: (entries: Partial<IntersectionObserverEntry>[]) => void = () => undefined;
+    vi.stubGlobal(
+      'IntersectionObserver',
+      class {
+        constructor(callback: typeof report) {
+          report = callback;
+        }
+        observe() {}
+        disconnect() {}
+      },
+    );
+    renderWithData(<Routes />, file);
+    const bar = screen.getByText('$589.50', { selector: '[aria-hidden] span' }).closest('.fixed');
+    expect(bar).toHaveClass('opacity-0');
+
+    const scrolled = (top: number, isIntersecting: boolean) => {
+      act(() => {
+        report([{ isIntersecting, boundingClientRect: { top } as DOMRectReadOnly }]);
+      });
+    };
+    scrolled(-120, false);
+    expect(bar).toHaveClass('opacity-100');
+    scrolled(400, false); // below the window (not reached yet) doesn't count
+    expect(bar).toHaveClass('opacity-0');
+    scrolled(-120, false);
+    scrolled(80, true);
+    expect(bar).toHaveClass('opacity-0');
+    vi.unstubAllGlobals();
   });
 
   it('shows a way out when filters match nothing', async () => {

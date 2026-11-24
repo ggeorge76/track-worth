@@ -86,7 +86,7 @@ export function ConflictSheet({
 
   return (
     <Sheet open title="Choose what to keep" onClose={onClose}>
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-ink-muted">
         These were changed both on this device and in Google Drive. Balances have already been
         combined automatically. For each item below, keep one version.
       </p>
@@ -96,14 +96,11 @@ export function ConflictSheet({
           const rows =
             q.kind === 'account' ? accountRows(q.local, q.remote) : settingsRows(q.local, q.remote);
           return (
-            <fieldset
-              key={key}
-              className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200"
-            >
+            <fieldset key={key} className="rounded-2xl bg-surface p-4 shadow-sm ring-1 ring-line">
               <legend className="px-1 font-medium">{titleOf(q)}</legend>
               <table className="mt-1 w-full text-sm">
                 <thead>
-                  <tr className="text-left text-slate-500">
+                  <tr className="text-left text-ink-muted">
                     <th className="py-1 font-normal" scope="col">
                       <span className="sr-only">Field</span>
                     </th>
@@ -117,8 +114,8 @@ export function ConflictSheet({
                 </thead>
                 <tbody>
                   {rows.map((r) => (
-                    <tr key={r.label} className="border-t border-slate-100 align-top">
-                      <th scope="row" className="py-1 pr-2 text-left font-normal text-slate-500">
+                    <tr key={r.label} className="border-t border-line align-top">
+                      <th scope="row" className="py-1 pr-2 text-left font-normal text-ink-muted">
                         {r.label}
                       </th>
                       <td className="py-1 pr-2 break-words">{r.local}</td>
@@ -137,14 +134,14 @@ export function ConflictSheet({
                     key={choice}
                     className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm ${
                       choices[key] === choice
-                        ? 'border-teal-700 bg-teal-50'
-                        : 'border-slate-300 bg-white'
+                        ? 'border-brand bg-brand-soft'
+                        : 'border-line-strong bg-surface'
                     }`}
                   >
                     <input
                       type="radio"
                       name={`choice-${key}`}
-                      className="accent-teal-700"
+                      className="accent-brand"
                       checked={choices[key] === choice}
                       onChange={() => {
                         setChoices({ ...choices, [key]: choice });
@@ -164,7 +161,7 @@ export function ConflictSheet({
         onClick={() => {
           resolve.mutate(choices, { onSuccess: onClose });
         }}
-        className="mt-6 w-full rounded-xl bg-blue-600 py-3 font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+        className="mt-6 w-full rounded-xl bg-brand py-3 font-medium text-white hover:bg-brand-strong disabled:opacity-60"
       >
         {resolve.isPending ? 'Saving…' : 'Apply and upload'}
       </button>

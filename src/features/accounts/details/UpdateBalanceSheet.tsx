@@ -118,7 +118,7 @@ export function UpdateBalanceSheet({
           void onSave();
         }}
       >
-        <p className="text-sm text-slate-600">{account.name}</p>
+        <p className="text-sm text-ink-muted">{account.name}</p>
 
         <Field label="Date" htmlFor={ids.date}>
           <input
@@ -132,7 +132,7 @@ export function UpdateBalanceSheet({
             }}
           />
           {existing && existing.id !== initial?.id && (
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-ink-muted">
               {formatIsoDate(existing.date)} already has a balance. Saving updates it.
             </p>
           )}
@@ -151,13 +151,13 @@ export function UpdateBalanceSheet({
             }}
             autoFocus
           />
-          <p className="text-sm text-slate-500" aria-live="polite">
+          <p className="text-sm text-ink-muted" aria-live="polite">
             {preview === null ? ' ' : `Will be saved as ${formatMoney(preview, account.currency)}`}
           </p>
         </Field>
 
         {error && (
-          <p role="alert" className="text-sm text-red-700">
+          <p role="alert" className="text-sm text-danger">
             {error}
           </p>
         )}
@@ -165,15 +165,15 @@ export function UpdateBalanceSheet({
         <button
           type="submit"
           disabled={save.isPending}
-          className="w-full rounded-xl bg-blue-600 py-3 font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+          className="w-full rounded-xl bg-brand py-3 font-medium text-white hover:bg-brand-strong disabled:opacity-60"
         >
           {save.isPending ? 'Saving…' : 'Save'}
         </button>
         {initial && onDelete && (
-          <div className="border-t border-slate-200 pt-4 text-center">
+          <div className="border-t border-line pt-4 text-center">
             {confirmingDelete ? (
               <div role="group" aria-label="Confirm delete" className="space-y-3">
-                <p className="text-sm text-slate-700">
+                <p className="text-sm text-ink-soft">
                   Delete the balance for {formatIsoDate(initial.date)}?
                 </p>
                 <div className="flex justify-center gap-2">
@@ -182,7 +182,7 @@ export function UpdateBalanceSheet({
                     onClick={() => {
                       setConfirmingDelete(false);
                     }}
-                    className="rounded-xl border border-slate-300 px-4 py-2 text-sm"
+                    className="rounded-xl border border-line-strong px-4 py-2 text-sm"
                   >
                     Keep it
                   </button>
@@ -192,7 +192,7 @@ export function UpdateBalanceSheet({
                       onDelete(initial);
                       onClose();
                     }}
-                    className="rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+                    className="rounded-xl bg-danger px-4 py-2 text-sm font-medium text-white hover:bg-danger"
                   >
                     Delete
                   </button>
@@ -204,7 +204,7 @@ export function UpdateBalanceSheet({
                 onClick={() => {
                   setConfirmingDelete(true);
                 }}
-                className="text-sm font-medium text-red-700 hover:underline"
+                className="text-sm font-medium text-danger hover:underline"
               >
                 Delete this entry
               </button>

@@ -25,12 +25,12 @@ export function BalanceHistory({
         Balance history
       </h2>
       {history.length === 0 ? (
-        <p className="mt-2 text-sm text-slate-500">
+        <p className="mt-2 text-sm text-ink-muted">
           No balances yet. Use “Update” to add the first one.
         </p>
       ) : (
-        <div className="mt-3 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
-          <ul className="divide-y divide-slate-200">
+        <div className="mt-3 overflow-hidden rounded-2xl bg-surface shadow-sm ring-1 ring-line">
+          <ul className="divide-y divide-line">
             {visible.map((entry, i) => {
               const previous = history[i + 1];
               return (
@@ -41,10 +41,10 @@ export function BalanceHistory({
                       onEdit(entry);
                     }}
                     aria-label={`Edit balance for ${formatIsoDate(entry.date)}: ${formatMoney(entry.amountMinor, currency)}`}
-                    className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-slate-50"
+                    className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-canvas"
                   >
                     <span>
-                      <span className="block text-sm text-slate-700">
+                      <span className="block text-sm text-ink-soft">
                         {formatIsoDate(entry.date)}
                       </span>
                       {previous && (
@@ -55,7 +55,7 @@ export function BalanceHistory({
                       )}
                     </span>
                     <span
-                      className={`tabular-nums ${entry.amountMinor < 0 ? 'text-rose-700' : ''}`}
+                      className={`tabular-nums ${entry.amountMinor < 0 ? 'text-negative' : ''}`}
                     >
                       {formatMoney(entry.amountMinor, currency)}
                     </span>
@@ -71,7 +71,7 @@ export function BalanceHistory({
               onClick={() => {
                 setShowAll(!showAll);
               }}
-              className="w-full border-t border-slate-200 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              className="w-full border-t border-line py-3 text-sm font-medium text-ink-soft hover:bg-canvas"
             >
               {showAll ? 'Show less' : `See all ${String(history.length)} entries`}
             </button>

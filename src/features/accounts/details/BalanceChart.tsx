@@ -41,8 +41,13 @@ export function BalanceChart({
       : `${label} over time.`;
 
   return (
-    <section aria-label={`${label} over time`} className="mt-6">
-      <h2 className="text-sm text-slate-500">{label} over time</h2>
+    <section
+      aria-label={`${label} over time`}
+      className="mt-5 rounded-2xl bg-surface p-4 shadow-sm ring-1 ring-line"
+    >
+      <h2 className="text-xs font-semibold tracking-wider text-ink-muted uppercase">
+        {label} over time
+      </h2>
       <TrendChart
         points={trend.points}
         currency={account.currency}

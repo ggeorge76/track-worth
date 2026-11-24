@@ -43,20 +43,20 @@ function Section({
   return (
     <section
       aria-labelledby={headingId}
-      className="mt-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200"
+      className="mt-4 rounded-2xl bg-surface p-4 shadow-sm ring-1 ring-line"
     >
       <div className="flex items-baseline justify-between gap-3">
         <h2 id={headingId} className="font-medium">
           {title}
         </h2>
         {section.rows.length > 0 && (
-          <span className="tabular-nums text-slate-600">
+          <span className="tabular-nums text-ink-muted">
             {formatMoney(section.totalMinor, currency)}
           </span>
         )}
       </div>
       {section.rows.length === 0 ? (
-        <p className="mt-2 text-sm text-slate-500">{empty}</p>
+        <p className="mt-2 text-sm text-ink-muted">{empty}</p>
       ) : (
         <div className="mt-3 flex flex-col items-center gap-4 sm:flex-row sm:items-start">
           {slices.length > 0 && (
@@ -89,7 +89,7 @@ function Section({
                   />
                   <span className="break-words">
                     {row.label}{' '}
-                    <span className="text-slate-400">
+                    <span className="text-ink-faint">
                       · {row.accounts} {row.accounts === 1 ? 'account' : 'accounts'}
                     </span>
                   </span>
@@ -97,7 +97,7 @@ function Section({
                 <span className="shrink-0 tabular-nums">
                   {formatMoney(row.amountMinor, currency)}
                   {row.share !== null && (
-                    <span className="ml-2 inline-block w-10 text-right text-slate-500">
+                    <span className="ml-2 inline-block w-10 text-right text-ink-muted">
                       {percent.format(row.share)}
                     </span>
                   )}
@@ -125,7 +125,7 @@ export function InsightsPage({ data }: { data: DataFile }) {
           type="button"
           onClick={goBack}
           aria-label="Back"
-          className="rounded-full p-2 text-slate-600 hover:bg-slate-200"
+          className="rounded-full p-2 text-ink-muted hover:bg-muted"
         >
           <BackIcon />
         </button>
@@ -133,7 +133,7 @@ export function InsightsPage({ data }: { data: DataFile }) {
       </div>
 
       {!currency ? (
-        <p className="mt-10 text-center text-slate-600">
+        <p className="mt-10 text-center text-ink-muted">
           Nothing to show yet. Add a balance to an account to see where your money is.
         </p>
       ) : (

@@ -34,19 +34,15 @@ export function DeleteAccountSheet({
           if (matches) onDelete();
         }}
       >
-        <p className="text-slate-700">
+        <p className="text-ink-soft">
           This permanently deletes <strong className="font-medium">{account.name}</strong> and its{' '}
           {entries === 1 ? '1 balance entry' : `${String(entries)} balance entries`}. It can’t be
           undone.
         </p>
         {!account.archived && (
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-ink-muted">
             Just want it out of the way?{' '}
-            <button
-              type="button"
-              onClick={onArchive}
-              className="font-medium text-teal-700 underline"
-            >
+            <button type="button" onClick={onArchive} className="font-medium text-brand underline">
               Archive it instead
             </button>{' '}
             to keep its history.
@@ -66,7 +62,7 @@ export function DeleteAccountSheet({
         <button
           type="submit"
           disabled={!matches}
-          className="w-full rounded-xl bg-red-600 py-3 font-medium text-white hover:bg-red-700 disabled:opacity-50"
+          className="w-full rounded-xl bg-danger py-3 font-medium text-white hover:bg-danger disabled:opacity-50"
         >
           Delete account and history
         </button>

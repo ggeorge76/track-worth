@@ -42,19 +42,19 @@ export function HistoryImportSection({ data }: { data: DataFile }) {
   return (
     <section
       aria-labelledby={ids.heading}
-      className="mt-4 space-y-3 rounded-2xl bg-white p-4 border border-dashed border-amber-300"
+      className="mt-4 space-y-3 rounded-2xl bg-surface p-4 border border-dashed border-warn/50"
     >
       <h2 id={ids.heading} className="font-medium">
         Import earlier net-worth history{' '}
-        <span className="text-xs font-normal text-amber-700">(development build only)</span>
+        <span className="text-xs font-normal text-warn">(development build only)</span>
       </h2>
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-ink-muted">
         A CSV with a “Month” column (e.g. April-2011) and a “Closing Worth” column. Each month’s
         closing worth is saved for its last day and shown on the net-worth chart before your first
         account entry.
       </p>
 
-      <label htmlFor={ids.currency} className="block text-sm text-slate-700">
+      <label htmlFor={ids.currency} className="block text-sm text-ink-soft">
         Currency
       </label>
       <select
@@ -72,7 +72,7 @@ export function HistoryImportSection({ data }: { data: DataFile }) {
         ))}
       </select>
 
-      <label htmlFor={ids.file} className="block text-sm text-slate-700">
+      <label htmlFor={ids.file} className="block text-sm text-ink-soft">
         CSV file
       </label>
       <input
@@ -85,7 +85,7 @@ export function HistoryImportSection({ data }: { data: DataFile }) {
           if (file) void file.text().then(setText);
         }}
       />
-      <label htmlFor={ids.text} className="block text-sm text-slate-700">
+      <label htmlFor={ids.text} className="block text-sm text-ink-soft">
         Or paste it here
       </label>
       <textarea
@@ -100,12 +100,12 @@ export function HistoryImportSection({ data }: { data: DataFile }) {
       />
 
       {parsed && !parsed.ok && (
-        <p role="alert" className="text-sm text-red-700">
+        <p role="alert" className="text-sm text-danger">
           {parsed.error}
         </p>
       )}
       {parsed?.ok && (
-        <div className="space-y-1 text-sm text-slate-700" aria-label="Preview">
+        <div className="space-y-1 text-sm text-ink-soft" aria-label="Preview">
           <p>
             {parsed.points.length} months, {formatIsoDate(parsed.points[0]?.date ?? '')} –{' '}
             {formatIsoDate(parsed.points.at(-1)?.date ?? '')}: from{' '}
@@ -113,7 +113,7 @@ export function HistoryImportSection({ data }: { data: DataFile }) {
             {formatMoney(parsed.points.at(-1)?.amountMinor ?? 0, currency)}.
           </p>
           {parsed.notes.map((note) => (
-            <p key={note} className="text-amber-800">
+            <p key={note} className="text-warn">
               {note}
             </p>
           ))}
@@ -131,7 +131,7 @@ export function HistoryImportSection({ data }: { data: DataFile }) {
                 `Imported ${String(parsed.points.length)} months.`,
               );
             }}
-            className="mt-2 rounded-xl bg-teal-700 px-4 py-2 font-medium text-white hover:bg-teal-800 disabled:opacity-60"
+            className="mt-2 rounded-xl bg-brand px-4 py-2 font-medium text-white hover:bg-brand-strong disabled:opacity-60"
           >
             Import {parsed.points.length} months
           </button>
@@ -147,13 +147,13 @@ export function HistoryImportSection({ data }: { data: DataFile }) {
               `Removed the earlier history in ${currency}.`,
             );
           }}
-          className="text-sm font-medium text-red-700 underline"
+          className="text-sm font-medium text-danger underline"
         >
           Remove the imported {months(existing)} in {currency}
         </button>
       )}
       {done && (
-        <p role="status" className="text-sm text-emerald-700">
+        <p role="status" className="text-sm text-positive">
           {done}
         </p>
       )}
