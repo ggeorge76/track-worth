@@ -58,14 +58,18 @@ export function Sheet({
 
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center sm:items-center">
-      <div className="absolute inset-0 bg-slate-900/40" onClick={onClose} aria-hidden="true" />
+      <div
+        className="absolute inset-0 bg-slate-950/50 backdrop-blur-[2px]"
+        onClick={onClose}
+        aria-hidden="true"
+      />
       <div
         ref={panel}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className="relative max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-slate-50 p-6 shadow-xl outline-none sm:rounded-3xl"
+        className="relative max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-surface p-6 shadow-2xl ring-1 ring-line outline-none sm:rounded-3xl"
       >
         <div className="mb-4 flex items-center justify-between gap-3">
           <h2 id={titleId} className="text-xl font-semibold">
@@ -77,7 +81,7 @@ export function Sheet({
               type="button"
               onClick={onClose}
               aria-label="Close"
-              className="rounded-full p-2 text-slate-500 hover:bg-slate-200"
+              className="rounded-full p-2 text-ink-muted hover:bg-muted"
             >
               <CloseIcon />
             </button>

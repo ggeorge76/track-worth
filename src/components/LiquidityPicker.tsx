@@ -41,7 +41,7 @@ export function LiquidityPicker({
               }}
               style={{ backgroundColor: LIQUIDITY_COLORS[level], opacity: dim ? 0.3 : 1 }}
               className={`h-10 flex-1 text-sm font-semibold text-white outline-offset-[-3px] ${
-                on && !multiple ? 'ring-[3px] ring-inset ring-slate-900' : ''
+                on && !multiple ? 'ring-[3px] ring-inset ring-ink' : ''
               }`}
             >
               {on && !multiple ? `✓ ${String(level)}` : level}
@@ -49,7 +49,7 @@ export function LiquidityPicker({
           );
         })}
       </div>
-      <div className="mt-1 flex justify-between text-xs text-slate-500">
+      <div className="mt-1 flex justify-between text-xs text-ink-muted">
         <span>Low</span>
         <span>High</span>
       </div>

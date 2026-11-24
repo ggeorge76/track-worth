@@ -32,22 +32,28 @@ export function TrendChart({
       >
         <defs>
           <linearGradient id="trend-fill" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#0f766e" stopOpacity="0.25" />
-            <stop offset="100%" stopColor="#0f766e" stopOpacity="0" />
+            <stop offset="0%" stopColor="#00c2ff" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="#5b6cff" stopOpacity="0" />
+          </linearGradient>
+          {/* The logo's green → cyan → blue, as in the app's charts. */}
+          <linearGradient id="trend-line" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0%" stopColor="#00d68f" />
+            <stop offset="55%" stopColor="#00c2ff" />
+            <stop offset="100%" stopColor="#5b6cff" />
           </linearGradient>
         </defs>
         <path d={`${line} L${String(w)},${String(h)} L0,${String(h)} Z`} fill="url(#trend-fill)" />
         <path
           d={line}
           fill="none"
-          stroke="#0f766e"
+          stroke="url(#trend-line)"
           strokeWidth="2.5"
           vectorEffect="non-scaling-stroke"
           strokeLinejoin="round"
         />
       </svg>
       {labelled && (
-        <div className="mt-2 flex justify-between text-xs text-slate-400" aria-hidden="true">
+        <div className="mt-2 flex justify-between text-xs text-ink-faint" aria-hidden="true">
           {YEARS.map((y) => (
             <span key={y}>{y}</span>
           ))}
@@ -100,13 +106,13 @@ export function AllocationDonut({ className }: { className?: string }) {
       </svg>
       <ul className="space-y-1 text-sm">
         {ALLOCATION.map(([label, pct, color]) => (
-          <li key={label} className="flex items-center gap-2 text-slate-700">
+          <li key={label} className="flex items-center gap-2 text-ink-soft">
             <span
               className="h-2.5 w-2.5 rounded-full"
               style={{ backgroundColor: color }}
               aria-hidden="true"
             />
-            {label} <span className="tabular-nums text-slate-500">{pct}%</span>
+            {label} <span className="tabular-nums text-ink-muted">{pct}%</span>
           </li>
         ))}
       </ul>

@@ -113,3 +113,9 @@ rules live as pure functions in `domain/storage/`.
 | ----------------------- | ------------------------------------------------------------------------- | ---- |
 | macOS / Windows / Linux | Installers on GitHub Releases, built by `release.yml` with `tauri-action` | 0008 |
 | Android                 | Tauri 2 mobile (later)                                                    | 0009 |
+
+## Window settings
+
+- `dragDropEnabled: false` (tauri.conf.json): the webview handles file drops itself, as in a browser
+  (e.g. the history import's drop area). Tauri's native drop events, which give file paths, are not
+  used, so no file-system access is needed.

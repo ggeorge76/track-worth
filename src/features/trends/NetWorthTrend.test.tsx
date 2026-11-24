@@ -31,6 +31,10 @@ function show(file: DataFile = data) {
   return user;
 }
 
+/** Matches the change pill, whose arrow is a separate (screen-reader-hidden) element. */
+const pill = (text: string) => (_: string, el: Element | null) =>
+  el?.tagName === 'SPAN' && el.textContent === text && el.className.includes('rounded-full');
+
 describe('NetWorthTrend', () => {
   it('shows nothing without balances', () => {
     const { container } = render(<NetWorthTrend data={makeFile()} />);
@@ -40,10 +44,11 @@ describe('NetWorthTrend', () => {
   it('defaults to 1Y with the change, totals and the financial-year line', () => {
     show();
     expect(screen.getByRole('radio', { name: '1Y' })).toBeChecked();
-    expect(screen.getByText('+$500.00 (+62.5%)')).toBeInTheDocument();
+    expect(screen.getByText(pill('▲ +$500.00 (+62.5%)'))).toBeInTheDocument();
     expect(screen.getByText('in the last year')).toBeInTheDocument();
     expect(screen.getByText(`┆ Financial year started ${d('2026-04-01')}`)).toBeInTheDocument();
-    expect(screen.getByText(/Assets/)).toHaveTextContent('Assets $1,500.00 · Liabilities -$200.00');
+    expect(screen.getByText('Assets').parentElement).toHaveTextContent('Assets$1,500.00');
+    expect(screen.getByText('Liabilities').parentElement).toHaveTextContent('Liabilities-$200.00');
     expect(
       screen.getByRole('img', {
         name: `Net worth in USD: $800.00 on ${d('2025-11-23')}, $1,300.00 on ${d('2026-11-23')}.`,
@@ -78,7 +83,7 @@ describe('NetWorthTrend', () => {
     expect(screen.getByRole('radio', { name: 'USD' })).toBeChecked();
     expect(screen.queryByText(/\+/)).not.toBeInTheDocument(); // no change in USD
     await user.click(screen.getByRole('radio', { name: 'EUR' }));
-    expect(screen.getByText('+€7.00 (+100%)')).toBeInTheDocument();
+    expect(screen.getByText(pill('▲ +€7.00 (+100%)'))).toBeInTheDocument();
     expect(screen.getByText(`since ${d('2026-01-31')}`)).toBeInTheDocument();
   });
 

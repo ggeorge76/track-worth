@@ -5,7 +5,7 @@ import { Segmented } from '@/components/Segmented';
 import type { Sign } from '@/domain/balances';
 
 export const inputClass =
-  'w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-base outline-none focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20';
+  'w-full rounded-xl border border-line-strong bg-surface px-3 py-2 text-base outline-none focus:border-brand focus:ring-2 focus:ring-brand/20';
 
 export function Field({
   label,
@@ -21,15 +21,15 @@ export function Field({
   return (
     <div className="space-y-1.5">
       {htmlFor ? (
-        <label htmlFor={htmlFor} className="block text-sm font-medium text-slate-700">
+        <label htmlFor={htmlFor} className="block text-sm font-medium text-ink-soft">
           {label}
         </label>
       ) : (
-        <p className="text-sm font-medium text-slate-700">{label}</p>
+        <p className="text-sm font-medium text-ink-soft">{label}</p>
       )}
       {children}
       {error && (
-        <p role="alert" className="text-sm text-red-700">
+        <p role="alert" className="text-sm text-danger">
           {error}
         </p>
       )}
@@ -84,7 +84,7 @@ export function TagPicker({
           onClick={() => {
             setDraft('');
           }}
-          className="flex items-center gap-1 rounded-full border border-dashed border-slate-400 px-3 py-1.5 text-sm text-slate-600"
+          className="flex items-center gap-1 rounded-full border border-dashed border-line-strong px-3 py-1.5 text-sm text-ink-muted"
         >
           <PlusIcon width={16} height={16} /> New tag
         </button>
@@ -99,7 +99,7 @@ export function TagPicker({
             maxLength={40}
             value={draft}
             placeholder="e.g. 🪙 Gold"
-            className="rounded-full border border-slate-300 px-3 py-1.5 text-sm"
+            className="rounded-full border border-line-strong px-3 py-1.5 text-sm"
             onChange={(e) => {
               setDraft(e.target.value);
             }}
@@ -113,7 +113,7 @@ export function TagPicker({
               }
             }}
           />
-          <button type="button" onClick={commit} className="px-2 text-sm font-medium text-teal-700">
+          <button type="button" onClick={commit} className="px-2 text-sm font-medium text-brand">
             Add
           </button>
         </span>
@@ -219,7 +219,7 @@ export function SignedAmountInput({
         />
         <span
           id={`${id}-currency`}
-          className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-slate-500"
+          className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-ink-muted"
         >
           {currencySymbol(currency)} {currency}
         </span>

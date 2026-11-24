@@ -30,6 +30,25 @@ describe('SettingsPage', () => {
   });
 });
 
+describe('Appearance', () => {
+  afterEach(() => {
+    localStorage.clear();
+    document.documentElement.classList.remove('dark');
+  });
+
+  it('switches between system, light and dark', async () => {
+    window.history.replaceState({ idx: 1 }, '', '#/settings');
+    const user = userEvent.setup();
+    renderWithData(<Routes />, makeFile());
+    expect(screen.getByRole('radio', { name: 'System' })).toBeChecked();
+    await user.click(screen.getByRole('radio', { name: 'Dark' }));
+    expect(screen.getByRole('radio', { name: 'Dark' })).toBeChecked();
+    expect(document.documentElement).toHaveClass('dark');
+    await user.click(screen.getByRole('radio', { name: 'Light' }));
+    expect(document.documentElement).not.toHaveClass('dark');
+  });
+});
+
 describe('Export', () => {
   const data = makeFile({
     accounts: [makeAccount({ id: 'a', name: 'Bank' })],

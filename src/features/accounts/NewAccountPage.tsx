@@ -96,7 +96,7 @@ export function NewAccountPage({ data }: { data: DataFile }) {
           type="button"
           onClick={goBack}
           aria-label="Cancel"
-          className="rounded-full p-2 text-slate-600 hover:bg-slate-200"
+          className="rounded-full p-2 text-ink-muted hover:bg-muted"
         >
           <CloseIcon />
         </button>
@@ -164,7 +164,7 @@ export function NewAccountPage({ data }: { data: DataFile }) {
           amount={openingAmount}
           onAmountChange={setOpeningAmount}
         />
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-ink-muted">
           {opening.ok && opening.amountMinor !== null
             ? `Saved as ${formatMoney(opening.amountMinor, currency)} for today.`
             : 'Recorded as today’s balance. You can also add balances later.'}
@@ -178,7 +178,7 @@ export function NewAccountPage({ data }: { data: DataFile }) {
           onChange={setBalanceSource}
           sources={sources}
         />
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-ink-muted">
           Accounts with the same source are kept together when you update balances.
         </p>
       </Field>
@@ -198,7 +198,7 @@ export function NewAccountPage({ data }: { data: DataFile }) {
       <button
         type="submit"
         disabled={save.isPending}
-        className="w-full rounded-xl bg-blue-600 py-3 font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+        className="w-full rounded-xl bg-brand py-3 font-medium text-white hover:bg-brand-strong disabled:opacity-60"
       >
         {save.isPending ? 'Saving…' : 'Create account'}
       </button>

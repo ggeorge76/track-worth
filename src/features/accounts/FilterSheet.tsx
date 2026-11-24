@@ -43,10 +43,10 @@ export function FilterSheet({
   return (
     <Sheet open={open} title="Sort & filter" onClose={onClose}>
       <section aria-labelledby="sort-heading" className="space-y-2">
-        <h3 id="sort-heading" className="text-sm font-medium text-slate-600">
+        <h3 id="sort-heading" className="text-sm font-medium text-ink-muted">
           Sort
         </h3>
-        <div className="flex rounded-xl bg-slate-200 p-1">
+        <div className="flex rounded-xl bg-muted p-1">
           {SORTS.map(({ key, label }) => {
             const active = sort.key === key;
             const arrow = sort.direction === 'asc' ? '↑' : '↓';
@@ -64,7 +64,7 @@ export function FilterSheet({
                   chooseSort(key);
                 }}
                 className={`flex-1 rounded-lg px-3 py-1.5 text-sm ${
-                  active ? 'bg-white font-medium shadow-sm' : 'text-slate-500'
+                  active ? 'bg-surface font-medium shadow-sm' : 'text-ink-muted'
                 }`}
               >
                 {label}
@@ -77,12 +77,12 @@ export function FilterSheet({
 
       <section aria-labelledby="filter-heading" className="mt-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h3 id="filter-heading" className="text-sm font-medium text-slate-600">
+          <h3 id="filter-heading" className="text-sm font-medium text-ink-muted">
             Filter
           </h3>
           <button
             type="button"
-            className="text-sm font-medium text-teal-700"
+            className="text-sm font-medium text-brand"
             onClick={() => {
               onChange({ ...options, tags: [], liquidity: [] });
             }}
@@ -92,9 +92,9 @@ export function FilterSheet({
         </div>
 
         <div>
-          <p className="mb-2 text-sm text-slate-700">Tag</p>
+          <p className="mb-2 text-sm text-ink-soft">Tag</p>
           {tags.length === 0 ? (
-            <p className="text-sm text-slate-500">No tags yet.</p>
+            <p className="text-sm text-ink-muted">No tags yet.</p>
           ) : (
             <div role="group" aria-label="Filter by tag" className="flex flex-wrap gap-2">
               {tags.map((tag) => (
@@ -113,7 +113,7 @@ export function FilterSheet({
         </div>
 
         <div>
-          <p className="mb-2 text-sm text-slate-700">Liquidity</p>
+          <p className="mb-2 text-sm text-ink-soft">Liquidity</p>
           <LiquidityPicker
             multiple
             selected={shownLiquidity(options)}
@@ -124,22 +124,22 @@ export function FilterSheet({
         </div>
       </section>
 
-      <label className="mt-4 flex items-center justify-between text-sm text-slate-700">
+      <label className="mt-4 flex items-center justify-between text-sm text-ink-soft">
         Show archived accounts
         <input
           type="checkbox"
-          className="h-5 w-5 accent-teal-700"
+          className="h-5 w-5 accent-brand"
           checked={options.showArchived}
           onChange={(e) => {
             onChange({ ...options, showArchived: e.target.checked });
           }}
         />
       </label>
-      <label className="mt-6 flex items-center justify-between text-sm text-slate-700">
+      <label className="mt-6 flex items-center justify-between text-sm text-ink-soft">
         Group by tag
         <input
           type="checkbox"
-          className="h-5 w-5 accent-teal-700"
+          className="h-5 w-5 accent-brand"
           checked={options.groupByTag}
           onChange={(e) => {
             onChange({ ...options, groupByTag: e.target.checked });

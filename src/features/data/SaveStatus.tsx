@@ -22,7 +22,7 @@ export function SaveStatus() {
     return (
       <div
         role="alert"
-        className="flex items-center justify-between gap-3 bg-red-50 px-6 py-2 text-sm text-red-800"
+        className="flex items-center justify-between gap-3 bg-danger-soft px-6 py-2 text-sm text-danger"
       >
         <span>{message}</span>
         <button
@@ -40,7 +40,7 @@ export function SaveStatus() {
   }
 
   return saving ? (
-    <p role="status" className="px-6 py-1 text-xs text-slate-500">
+    <p role="status" className="px-6 py-1 text-xs text-ink-muted">
       Saving…
     </p>
   ) : null;

@@ -14,11 +14,22 @@ function Shell() {
   if (state.status === 'signed-out' || state.status === 'signing-in') return <LandingPage />;
 
   return (
-    <div className="flex min-h-dvh flex-col bg-slate-50 text-slate-900">
-      <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3">
-        <span className="flex items-center gap-2 font-semibold text-teal-800">
-          <img src={symbolUrl} alt="" width={28} height={28} className="h-7 w-7" />
-          TrackWorth
+    <div className="flex min-h-dvh flex-col bg-canvas text-ink">
+      <header className="sticky top-0 z-30 flex h-14 items-center justify-between bg-header px-4 text-white shadow-md shadow-black/10 sm:px-6">
+        <span className="flex items-center gap-2.5 text-lg font-semibold tracking-tight">
+          <img
+            src={symbolUrl}
+            alt=""
+            width={30}
+            height={30}
+            className="h-[30px] w-[30px] rounded-lg"
+          />
+          <span>
+            Track
+            <span className="bg-gradient-to-r from-accent-1 via-accent-2 to-accent-3 bg-clip-text text-transparent">
+              Worth
+            </span>
+          </span>
         </span>
         {state.status === 'signed-in' && <UserMenu user={state.user} />}
       </header>
@@ -28,10 +39,10 @@ function Shell() {
         {state.status === 'signed-in' ? (
           <Routes />
         ) : (
-          <p className="p-6 text-slate-500">Signing you in…</p>
+          <p className="p-6 text-ink-muted">Signing you in…</p>
         )}
       </main>
-      <footer className="px-6 py-3 text-xs text-slate-400">v{config.appVersion}</footer>
+      <footer className="px-6 py-4 text-center text-xs text-ink-faint">v{config.appVersion}</footer>
     </div>
   );
 }

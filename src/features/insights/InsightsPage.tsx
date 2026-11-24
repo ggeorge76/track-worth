@@ -17,7 +17,16 @@ import { trendCurrencies } from '@/domain/trend';
 const percent = new Intl.NumberFormat(undefined, { style: 'percent', maximumFractionDigits: 0 });
 
 /** Distinct colours for tags, in order of size; any beyond these share a neutral grey. */
-const TAG_COLORS = ['#0d9488', '#2563eb', '#d97706', '#7c3aed', '#db2777', '#65a30d', '#0891b2'];
+const TAG_COLORS = [
+  '#10b981', // emerald
+  '#3b82f6', // blue
+  '#f59e0b', // amber
+  '#a855f7', // purple
+  '#f43f5e', // rose
+  '#06b6d4', // cyan
+  '#84cc16', // lime
+  '#f97316', // orange
+];
 const OTHER_COLOR = '#94a3b8';
 
 const colorOf = (row: BreakdownRow, index: number) =>
@@ -43,20 +52,20 @@ function Section({
   return (
     <section
       aria-labelledby={headingId}
-      className="mt-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200"
+      className="mt-4 rounded-2xl bg-surface p-4 shadow-sm ring-1 ring-line"
     >
       <div className="flex items-baseline justify-between gap-3">
         <h2 id={headingId} className="font-medium">
           {title}
         </h2>
         {section.rows.length > 0 && (
-          <span className="tabular-nums text-slate-600">
+          <span className="tabular-nums text-ink-muted">
             {formatMoney(section.totalMinor, currency)}
           </span>
         )}
       </div>
       {section.rows.length === 0 ? (
-        <p className="mt-2 text-sm text-slate-500">{empty}</p>
+        <p className="mt-2 text-sm text-ink-muted">{empty}</p>
       ) : (
         <div className="mt-3 flex flex-col items-center gap-4 sm:flex-row sm:items-start">
           {slices.length > 0 && (
@@ -69,7 +78,7 @@ function Section({
                     fill: color,
                   }))}
                   dataKey="value"
-                  innerRadius={38}
+                  innerRadius={34}
                   outerRadius={62}
                   paddingAngle={slices.length > 1 ? 1 : 0}
                   stroke="none"
@@ -89,7 +98,7 @@ function Section({
                   />
                   <span className="break-words">
                     {row.label}{' '}
-                    <span className="text-slate-400">
+                    <span className="text-ink-faint">
                       · {row.accounts} {row.accounts === 1 ? 'account' : 'accounts'}
                     </span>
                   </span>
@@ -97,7 +106,7 @@ function Section({
                 <span className="shrink-0 tabular-nums">
                   {formatMoney(row.amountMinor, currency)}
                   {row.share !== null && (
-                    <span className="ml-2 inline-block w-10 text-right text-slate-500">
+                    <span className="ml-2 inline-block w-10 text-right text-ink-muted">
                       {percent.format(row.share)}
                     </span>
                   )}
@@ -125,7 +134,7 @@ export function InsightsPage({ data }: { data: DataFile }) {
           type="button"
           onClick={goBack}
           aria-label="Back"
-          className="rounded-full p-2 text-slate-600 hover:bg-slate-200"
+          className="rounded-full p-2 text-ink-muted hover:bg-muted"
         >
           <BackIcon />
         </button>
@@ -133,7 +142,7 @@ export function InsightsPage({ data }: { data: DataFile }) {
       </div>
 
       {!currency ? (
-        <p className="mt-10 text-center text-slate-600">
+        <p className="mt-10 text-center text-ink-muted">
           Nothing to show yet. Add a balance to an account to see where your money is.
         </p>
       ) : (

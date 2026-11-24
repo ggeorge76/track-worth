@@ -35,7 +35,7 @@ type Popup =
 function EditMark() {
   return (
     <span
-      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500"
+      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-subtle text-ink-muted"
       aria-hidden="true"
     >
       <PencilIcon width={16} height={16} />
@@ -60,7 +60,7 @@ function InfoCard({
       type="button"
       onClick={onEdit}
       aria-label={`Edit ${label.toLocaleLowerCase()}`}
-      className="flex w-full items-start justify-between gap-3 rounded-2xl bg-white p-4 text-left shadow-sm ring-1 ring-slate-200 hover:ring-slate-300 active:bg-slate-50"
+      className="flex w-full items-start justify-between gap-3 rounded-2xl bg-surface p-4 text-left shadow-sm ring-1 ring-line hover:ring-line-strong active:bg-canvas"
     >
       <span className="flex min-w-0 flex-1 items-stretch gap-3">
         {accent && (
@@ -71,7 +71,7 @@ function InfoCard({
           />
         )}
         <span className="min-w-0">
-          <span className="block text-sm text-slate-500">{label}</span>
+          <span className="block text-sm text-ink-muted">{label}</span>
           <span className="mt-1 block break-words text-lg">{children}</span>
         </span>
       </span>
@@ -100,7 +100,7 @@ function NavButton({
       onClick={() => {
         if (account) navigate({ name: 'account', id: account.id }, { replace: true });
       }}
-      className="rounded-full p-2 text-xl leading-none text-slate-600 hover:bg-slate-200 disabled:invisible"
+      className="rounded-full p-2 text-xl leading-none text-ink-muted hover:bg-muted disabled:invisible"
     >
       <span aria-hidden="true">{direction === 'previous' ? '‹' : '›'}</span>
     </button>
@@ -156,7 +156,7 @@ export function AccountDetailsPage({ data, accountId }: { data: DataFile; accoun
       type="button"
       onClick={goBack}
       aria-label="Back"
-      className="rounded-full p-2 text-slate-600 hover:bg-slate-200"
+      className="rounded-full p-2 text-ink-muted hover:bg-muted"
     >
       <BackIcon />
     </button>
@@ -166,7 +166,7 @@ export function AccountDetailsPage({ data, accountId }: { data: DataFile; accoun
     return (
       <div className="mx-auto w-full max-w-2xl px-4 pt-4">
         {backButton}
-        <p role="alert" className="mt-6 text-slate-600">
+        <p role="alert" className="mt-6 text-ink-muted">
           This account doesn’t exist. It may have been removed on another device.
         </p>
       </div>
@@ -208,7 +208,7 @@ export function AccountDetailsPage({ data, accountId }: { data: DataFile; accoun
     <div {...swipe} className="mx-auto w-full max-w-2xl touch-pan-y px-4 pb-28 pt-4">
       <div className="flex items-center justify-between">
         {backButton}
-        <div className="flex items-center gap-1 text-sm text-slate-500">
+        <div className="flex items-center gap-1 text-sm text-ink-muted">
           <NavButton account={previous} direction="previous" />
           {position > 0 && (
             <span aria-label={`Account ${String(position)} of ${String(ordered.length)}`}>
@@ -222,7 +222,7 @@ export function AccountDetailsPage({ data, accountId }: { data: DataFile; accoun
       {account.archived && (
         <div
           role="note"
-          className="mt-3 flex items-center justify-between gap-3 rounded-xl bg-slate-200 px-4 py-2 text-sm text-slate-700"
+          className="mt-3 flex items-center justify-between gap-3 rounded-xl bg-muted px-4 py-2 text-sm text-ink-soft"
         >
           <span>
             <strong className="font-medium">Archived.</strong> Hidden from your account list and net
@@ -240,31 +240,37 @@ export function AccountDetailsPage({ data, accountId }: { data: DataFile; accoun
         </div>
       )}
 
-      <header className="mt-3 flex items-start justify-between gap-3">
-        {/* Tapping the title also opens the editor; the pencil button is the accessible control. */}
-        <div className="min-w-0 cursor-pointer" onClick={edit('name')}>
-          <h1 className="break-words text-2xl font-semibold">{account.name}</h1>
-          <p className="text-slate-600">{account.tag}</p>
-        </div>
-        <button
-          type="button"
-          onClick={edit('name')}
-          aria-label="Edit name and tag"
-          title="Edit name and tag"
-          className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200"
-        >
-          <PencilIcon width={18} height={18} />
-        </button>
-      </header>
+      <section className="relative mt-3 overflow-hidden rounded-3xl bg-surface p-5 shadow-sm ring-1 ring-line sm:p-6">
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-accent-1 via-accent-2 to-accent-3"
+        />
+        <header className="flex items-start justify-between gap-3">
+          {/* Tapping the title also opens the editor; the pencil button is the accessible control. */}
+          <div className="min-w-0 cursor-pointer" onClick={edit('name')}>
+            <h1 className="text-2xl font-bold tracking-tight break-words">{account.name}</h1>
+            <p className="text-ink-muted">{account.tag}</p>
+          </div>
+          <button
+            type="button"
+            onClick={edit('name')}
+            aria-label="Edit name and tag"
+            title="Edit name and tag"
+            className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-subtle text-ink-muted hover:bg-muted"
+          >
+            <PencilIcon width={18} height={18} />
+          </button>
+        </header>
 
-      <p
-        className={`mt-4 text-4xl font-semibold tabular-nums ${current && current.amountMinor < 0 ? 'text-rose-700' : ''}`}
-      >
-        {current ? formatMoney(current.amountMinor, account.currency) : '—'}
-      </p>
-      <p className="text-sm text-slate-500">
-        {current ? `Updated ${describeDateAgo(current.date, today)}` : 'No balance yet'}
-      </p>
+        <p
+          className={`mt-4 text-4xl font-bold tracking-tight tabular-nums sm:text-5xl ${current && current.amountMinor < 0 ? 'text-negative' : ''}`}
+        >
+          {current ? formatMoney(current.amountMinor, account.currency) : '—'}
+        </p>
+        <p className="text-sm text-ink-muted">
+          {current ? `Updated ${describeDateAgo(current.date, today)}` : 'No balance yet'}
+        </p>
+      </section>
 
       <ChangeSummary
         sincePrevious={stats.sincePrevious}
@@ -281,14 +287,14 @@ export function AccountDetailsPage({ data, accountId }: { data: DataFile; accoun
       />
 
       <div className="mt-6 grid grid-cols-2 gap-3">
-        <div className="col-span-2 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
-          <p className="text-sm text-slate-500">
+        <div className="col-span-2 rounded-2xl bg-surface p-4 shadow-sm ring-1 ring-line">
+          <p className="text-sm text-ink-muted">
             {account.kind === 'liability' ? 'All-time high (peak debt)' : 'All-time high'}
           </p>
           {allTimeHigh && current ? (
             <div className="mt-1 flex items-end justify-between gap-3">
               <span>
-                <span className="block text-sm text-slate-500">
+                <span className="block text-sm text-ink-muted">
                   {formatIsoDate(allTimeHigh.date)}
                 </span>
                 <span className="text-2xl tabular-nums">
@@ -296,7 +302,7 @@ export function AccountDetailsPage({ data, accountId }: { data: DataFile; accoun
                 </span>
               </span>
               <span className="text-right">
-                <span className="block text-xs text-slate-500">Now vs then</span>
+                <span className="block text-xs text-ink-muted">Now vs then</span>
                 <DeltaBadge
                   deltaMinor={current.amountMinor - allTimeHigh.amountMinor}
                   baseMinor={allTimeHigh.amountMinor}
@@ -305,7 +311,7 @@ export function AccountDetailsPage({ data, accountId }: { data: DataFile; accoun
               </span>
             </div>
           ) : (
-            <p className="mt-1 text-slate-400">—</p>
+            <p className="mt-1 text-ink-faint">—</p>
           )}
         </div>
 
@@ -319,14 +325,14 @@ export function AccountDetailsPage({ data, accountId }: { data: DataFile; accoun
           {account.kind === 'asset' ? 'Asset' : 'Liability'}
         </InfoCard>
         <InfoCard label="Balance source" onEdit={edit('balanceSource')}>
-          {account.balanceSource ?? <span className="text-slate-400">Not set</span>}
+          {account.balanceSource ?? <span className="text-ink-faint">Not set</span>}
         </InfoCard>
         <div className="col-span-2">
           <InfoCard label="Notes" onEdit={edit('note')}>
             {account.note ? (
               <span className="whitespace-pre-wrap text-base">{account.note}</span>
             ) : (
-              <span className="text-base text-slate-400">Add notes</span>
+              <span className="text-base text-ink-faint">Add notes</span>
             )}
           </InfoCard>
         </div>
@@ -340,8 +346,8 @@ export function AccountDetailsPage({ data, accountId }: { data: DataFile; accoun
         }}
       />
 
-      <section aria-labelledby="manage-heading" className="mt-10 border-t border-slate-200 pt-6">
-        <h2 id="manage-heading" className="text-sm font-medium text-slate-500">
+      <section aria-labelledby="manage-heading" className="mt-10 border-t border-line pt-6">
+        <h2 id="manage-heading" className="text-sm font-medium text-ink-muted">
           Manage account
         </h2>
         <div className="mt-3 flex flex-wrap gap-2">
@@ -350,7 +356,7 @@ export function AccountDetailsPage({ data, accountId }: { data: DataFile; accoun
             onClick={() => {
               setArchivedTo(!account.archived);
             }}
-            className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-700 hover:border-slate-400"
+            className="rounded-xl border border-line-strong bg-surface px-4 py-2 text-sm text-ink-soft hover:border-line-strong"
           >
             {account.archived ? 'Unarchive account' : 'Archive account'}
           </button>
@@ -359,7 +365,7 @@ export function AccountDetailsPage({ data, accountId }: { data: DataFile; accoun
             onClick={() => {
               setPopup({ kind: 'delete-account' });
             }}
-            className="rounded-xl border border-red-200 bg-white px-4 py-2 text-sm text-red-700 hover:bg-red-50"
+            className="rounded-xl border border-danger/30 bg-surface px-4 py-2 text-sm text-danger hover:bg-danger-soft"
           >
             Delete account…
           </button>
@@ -371,7 +377,7 @@ export function AccountDetailsPage({ data, accountId }: { data: DataFile; accoun
         onClick={() => {
           setPopup({ kind: 'balance' });
         }}
-        className="fixed bottom-6 right-6 rounded-2xl bg-blue-600 px-6 py-4 text-lg font-medium text-white shadow-lg hover:bg-blue-700"
+        className="fixed bottom-6 right-6 rounded-2xl bg-brand px-6 py-4 text-lg font-medium text-white shadow-lg hover:bg-brand-strong"
       >
         Update
       </button>

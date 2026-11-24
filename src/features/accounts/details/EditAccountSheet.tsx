@@ -135,11 +135,11 @@ export function EditAccountSheet({
               ]}
             />
             {kind !== account.kind && history.length > 0 && (
-              <div className="space-y-2 rounded-xl bg-white p-3 ring-1 ring-slate-200">
-                <label className="flex items-start gap-3 text-sm text-slate-700">
+              <div className="space-y-2 rounded-xl bg-surface p-3 ring-1 ring-line">
+                <label className="flex items-start gap-3 text-sm text-ink-soft">
                   <input
                     type="checkbox"
-                    className="mt-0.5 h-5 w-5 shrink-0 accent-teal-700"
+                    className="mt-0.5 h-5 w-5 shrink-0 accent-brand"
                     checked={flipSigns}
                     onChange={(e) => {
                       setFlipSigns(e.target.checked);
@@ -153,9 +153,9 @@ export function EditAccountSheet({
                   </span>
                 </label>
                 {history[0] && (
-                  <p className="pl-8 text-sm text-slate-500">
+                  <p className="pl-8 text-sm text-ink-muted">
                     Current balance: {formatMoney(history[0].amountMinor, account.currency)} →{' '}
-                    <span className="font-medium text-slate-700">
+                    <span className="font-medium text-ink-soft">
                       {formatMoney(
                         flipSigns ? -history[0].amountMinor || 0 : history[0].amountMinor,
                         account.currency,
@@ -163,7 +163,7 @@ export function EditAccountSheet({
                     </span>
                   </p>
                 )}
-                <p className="pl-8 text-xs text-slate-500">
+                <p className="pl-8 text-xs text-ink-muted">
                   Tick this if the type was chosen wrongly and balances were saved with the wrong
                   sign. New balances will default to {kind === 'asset' ? 'positive' : 'negative'}.
                 </p>
@@ -194,7 +194,7 @@ export function EditAccountSheet({
                 </option>
               ))}
             </select>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-ink-muted">
               Amounts keep their numbers, e.g. 1,234.50 {account.currency} becomes 1,234.50{' '}
               {currency}. No exchange rate is applied.
               {decimalsChange &&
@@ -211,7 +211,7 @@ export function EditAccountSheet({
               onChange={setBalanceSource}
               sources={sources}
             />
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-ink-muted">
               Accounts with the same source are kept together when you swipe between accounts. Leave
               empty to remove.
             </p>
@@ -237,7 +237,7 @@ export function EditAccountSheet({
         <button
           type="submit"
           disabled={save.isPending}
-          className="w-full rounded-xl bg-blue-600 py-3 font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+          className="w-full rounded-xl bg-brand py-3 font-medium text-white hover:bg-brand-strong disabled:opacity-60"
         >
           {save.isPending ? 'Saving…' : 'Save'}
         </button>
