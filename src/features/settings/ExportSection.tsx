@@ -1,8 +1,10 @@
-import { useId, useState } from 'react';
+import { useState, type ReactNode } from 'react';
+import { DownloadIcon, FileIcon, TableIcon } from '@/components/icons';
 import { useToday } from '@/app/useToday';
 import { exportFileName, toBackupJson, toBalancesCsv } from '@/domain/export';
 import type { DataFile } from '@/domain/schema';
 import { ExportError, saveExport } from '@/services/export/saveExport';
+import { SettingsCard } from './SettingsCard';
 
 type Status =
   | { kind: 'idle' }
@@ -10,13 +12,9 @@ type Status =
   | { kind: 'saved'; fileName: string }
   | { kind: 'error'; message: string };
 
-const buttonClass =
-  'rounded-xl bg-subtle px-4 py-2 text-left font-medium text-ink ring-1 ring-line hover:bg-muted disabled:opacity-50';
-
 /** Save a copy of the data outside Drive (R-S2, ADR-0016). */
 export function ExportSection({ data }: { data: DataFile }) {
   const today = useToday();
-  const headingId = useId();
   const [status, setStatus] = useState<Status>({ kind: 'idle' });
 
   async function save(kind: 'backup' | 'balances') {
@@ -35,35 +33,46 @@ export function ExportSection({ data }: { data: DataFile }) {
     }
   }
 
-  return (
-    <section
-      aria-labelledby={headingId}
-      className="mt-4 space-y-3 rounded-2xl bg-surface p-4 shadow-sm ring-1 ring-line"
+  const tile = (
+    kind: 'backup' | 'balances',
+    icon: ReactNode,
+    title: string,
+    detail: string,
+    name: string,
+  ) => (
+    <button
+      type="button"
+      aria-label={name}
+      disabled={status.kind === 'saving'}
+      onClick={() => void save(kind)}
+      className="group flex flex-1 items-center gap-3 rounded-xl bg-subtle p-3 text-left ring-1 ring-line transition hover:bg-brand-soft hover:ring-brand/40 disabled:opacity-50"
     >
-      <h2 id={headingId} className="font-medium">
-        Export your data
-      </h2>
-      <p className="text-sm text-ink-muted">
-        Your data stays in your Google Drive, in the TrackWorth folder. You can also save a copy
-        anywhere you like.
-      </p>
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-surface text-brand shadow-sm ring-1 ring-line group-hover:text-brand-strong">
+        {icon}
+      </span>
+      <span className="min-w-0">
+        <span className="block font-medium text-ink">{title}</span>
+        <span className="block text-xs text-ink-muted">{detail}</span>
+      </span>
+    </button>
+  );
+
+  return (
+    <SettingsCard
+      icon={<DownloadIcon />}
+      tone="green"
+      title="Export your data"
+      description="Your data stays in your Google Drive, in the TrackWorth folder. Save a copy anywhere you like."
+    >
       <div className="flex flex-col gap-2 sm:flex-row">
-        <button
-          type="button"
-          className={buttonClass}
-          disabled={status.kind === 'saving'}
-          onClick={() => void save('backup')}
-        >
-          Everything (JSON)
-        </button>
-        <button
-          type="button"
-          className={buttonClass}
-          disabled={status.kind === 'saving'}
-          onClick={() => void save('balances')}
-        >
-          Balances for a spreadsheet (CSV)
-        </button>
+        {tile('backup', <FileIcon />, 'Everything', 'Full copy · .json', 'Everything (JSON)')}
+        {tile(
+          'balances',
+          <TableIcon />,
+          'Balances',
+          'For a spreadsheet · .csv',
+          'Balances for a spreadsheet (CSV)',
+        )}
       </div>
       {status.kind === 'saved' && (
         <p role="status" className="text-sm text-positive">
@@ -75,6 +84,6 @@ export function ExportSection({ data }: { data: DataFile }) {
           {status.message}
         </p>
       )}
-    </section>
+    </SettingsCard>
   );
 }

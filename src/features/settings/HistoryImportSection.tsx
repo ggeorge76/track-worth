@@ -1,10 +1,12 @@
 import { useId, useState } from 'react';
+import { HistoryIcon, UploadIcon } from '@/components/icons';
 import { formatIsoDate } from '@/domain/dates';
 import { parseHistoryCsv, replaceNetWorthHistory } from '@/domain/history';
 import { formatMoney } from '@/domain/money';
 import type { DataFile } from '@/domain/schema';
 import { useUpdateDataFile } from '@/features/data/useDataFile';
 import { inputClass } from '../accounts/formParts';
+import { SettingsCard } from './SettingsCard';
 
 /** Currencies to offer: those of the accounts (most used first), then the base currency. */
 function currencyChoices(data: DataFile): string[] {
@@ -20,11 +22,20 @@ function currencyChoices(data: DataFile): string[] {
  */
 export function HistoryImportSection({ data }: { data: DataFile }) {
   const save = useUpdateDataFile();
-  const ids = { heading: useId(), currency: useId(), file: useId(), text: useId() };
+  const ids = { currency: useId(), file: useId(), text: useId() };
   const choices = currencyChoices(data);
   const [currency, setCurrency] = useState(choices[0] ?? data.baseCurrency);
   const [text, setText] = useState('');
   const [done, setDone] = useState<string | null>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [dragging, setDragging] = useState(false);
+
+  const load = (file: File | undefined) => {
+    if (!file) return;
+    setFileName(file.name);
+    setDone(null);
+    void file.text().then(setText);
+  };
 
   const parsed = text.trim() === '' ? null : parseHistoryCsv(text, currency);
   const existing = data.netWorthHistory.filter((p) => p.currency === currency).length;
@@ -40,64 +51,102 @@ export function HistoryImportSection({ data }: { data: DataFile }) {
   };
 
   return (
-    <section
-      aria-labelledby={ids.heading}
-      className="mt-4 space-y-3 rounded-2xl bg-surface p-4 border border-dashed border-warn/50"
+    <SettingsCard
+      icon={<HistoryIcon />}
+      tone="amber"
+      title={
+        <>
+          Import earlier net-worth history{' '}
+          <span className="ml-1 rounded-full bg-warn-soft px-2 py-0.5 align-middle text-xs font-medium text-warn">
+            Development build only
+          </span>
+        </>
+      }
+      description="A CSV with a “Month” column (e.g. April-2011) and a “Closing Worth” column. Each month’s closing worth is shown on the net-worth chart before your first account entry."
+      className="border border-dashed border-warn/50"
     >
-      <h2 id={ids.heading} className="font-medium">
-        Import earlier net-worth history{' '}
-        <span className="text-xs font-normal text-warn">(development build only)</span>
-      </h2>
-      <p className="text-sm text-ink-muted">
-        A CSV with a “Month” column (e.g. April-2011) and a “Closing Worth” column. Each month’s
-        closing worth is saved for its last day and shown on the net-worth chart before your first
-        account entry.
-      </p>
+      <div>
+        <label htmlFor={ids.currency} className="mb-1 block text-sm font-medium text-ink-soft">
+          Currency
+        </label>
+        <select
+          id={ids.currency}
+          className={inputClass}
+          value={currency}
+          onChange={(e) => {
+            setCurrency(e.target.value);
+          }}
+        >
+          {choices.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+      </div>
 
-      <label htmlFor={ids.currency} className="block text-sm text-ink-soft">
-        Currency
-      </label>
-      <select
-        id={ids.currency}
-        className={inputClass}
-        value={currency}
-        onChange={(e) => {
-          setCurrency(e.target.value);
+      {/* The whole box is the file picker's label, so clicking anywhere opens it; files can also
+          be dropped on it. The input itself is visually hidden but still keyboard-focusable. */}
+      <label
+        htmlFor={ids.file}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragging(true);
         }}
+        onDragLeave={() => {
+          setDragging(false);
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragging(false);
+          load(e.dataTransfer.files[0]);
+        }}
+        className={`flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed px-4 py-6 text-center transition focus-within:ring-2 focus-within:ring-brand ${
+          dragging
+            ? 'border-brand bg-brand-soft'
+            : 'border-line-strong bg-subtle hover:border-brand hover:bg-brand-soft'
+        }`}
       >
-        {choices.map((c) => (
-          <option key={c} value={c}>
-            {c}
-          </option>
-        ))}
-      </select>
+        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-surface text-brand shadow-sm ring-1 ring-line">
+          <UploadIcon />
+        </span>
+        <span className="font-semibold text-brand">
+          {fileName ? 'Choose a different file' : 'Choose a CSV file'}
+        </span>
+        <span className="text-xs text-ink-muted">
+          {fileName ? `Loaded ${fileName}` : 'or drag it here'}
+        </span>
+        <input
+          id={ids.file}
+          type="file"
+          accept=".csv,text/csv"
+          aria-label="CSV file"
+          className="sr-only"
+          onChange={(e) => {
+            load(e.target.files?.[0]);
+          }}
+        />
+      </label>
 
-      <label htmlFor={ids.file} className="block text-sm text-ink-soft">
-        CSV file
-      </label>
-      <input
-        id={ids.file}
-        type="file"
-        accept=".csv,text/csv"
-        className="block text-sm"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) void file.text().then(setText);
-        }}
-      />
-      <label htmlFor={ids.text} className="block text-sm text-ink-soft">
-        Or paste it here
-      </label>
-      <textarea
-        id={ids.text}
-        rows={4}
-        className={`${inputClass} font-mono text-xs`}
-        value={text}
-        onChange={(e) => {
-          setText(e.target.value);
-          setDone(null);
-        }}
-      />
+      <details className="group text-sm" open={text !== '' && !fileName}>
+        <summary className="cursor-pointer font-medium text-ink-muted hover:text-ink">
+          Or paste the CSV text
+        </summary>
+        <label htmlFor={ids.text} className="sr-only">
+          Or paste it here
+        </label>
+        <textarea
+          id={ids.text}
+          rows={4}
+          className={`${inputClass} mt-2 font-mono text-xs`}
+          value={text}
+          onChange={(e) => {
+            setText(e.target.value);
+            setFileName(null);
+            setDone(null);
+          }}
+        />
+      </details>
 
       {parsed && !parsed.ok && (
         <p role="alert" className="text-sm text-danger">
@@ -105,7 +154,10 @@ export function HistoryImportSection({ data }: { data: DataFile }) {
         </p>
       )}
       {parsed?.ok && (
-        <div className="space-y-1 text-sm text-ink-soft" aria-label="Preview">
+        <div
+          className="space-y-1 rounded-xl bg-subtle p-3 text-sm text-ink-soft ring-1 ring-line"
+          aria-label="Preview"
+        >
           <p>
             {parsed.points.length} months, {formatIsoDate(parsed.points[0]?.date ?? '')} –{' '}
             {formatIsoDate(parsed.points.at(-1)?.date ?? '')}: from{' '}
@@ -131,7 +183,7 @@ export function HistoryImportSection({ data }: { data: DataFile }) {
                 `Imported ${String(parsed.points.length)} months.`,
               );
             }}
-            className="mt-2 rounded-xl bg-brand px-4 py-2 font-medium text-white hover:bg-brand-strong disabled:opacity-60"
+            className="mt-2 rounded-xl bg-brand px-4 py-2 font-semibold text-white shadow-sm hover:bg-brand-strong disabled:opacity-60"
           >
             Import {parsed.points.length} months
           </button>
@@ -157,6 +209,6 @@ export function HistoryImportSection({ data }: { data: DataFile }) {
           {done}
         </p>
       )}
-    </section>
+    </SettingsCard>
   );
 }

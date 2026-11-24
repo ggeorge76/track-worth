@@ -29,6 +29,8 @@
   --accent-1: #10b981;
   --accent-2: #06b6d4;
   --accent-3: #3b82f6;
+  --accent-4: #f59e0b;
+  --accent-5: #f97316;
   --positive: #047857;
   --positive-soft: #e3f8ef;
   --negative: #d1194a;
@@ -88,6 +90,8 @@
   --color-accent-1: var(--accent-1);
   --color-accent-2: var(--accent-2);
   --color-accent-3: var(--accent-3);
+  --color-accent-4: var(--accent-4);
+  --color-accent-5: var(--accent-5);
   --color-positive: var(--positive);
   --color-positive-soft: var(--positive-soft);
   --color-negative: var(--negative);
