@@ -19,8 +19,10 @@ export const DEFAULT_TREND_RANGE: TrendRange = '1Y';
 
 export interface TrendPoint {
   date: string;
-  /** `null` before any account in this currency has a balance. */
+  /** `null` before any account in this currency has a balance (and no earlier history). */
   netMinor: number | null;
+  /** From earlier net-worth history (ADR-0017), not from accounts. Drawn lighter. */
+  imported?: true;
 }
 
 export interface Trend {
@@ -32,11 +34,14 @@ export interface Trend {
 }
 
 /** Currencies that have a net worth to chart: the base currency first, then A–Z. */
-export function trendCurrencies(data: Pick<DataFile, 'accounts' | 'balances' | 'baseCurrency'>) {
+export function trendCurrencies(
+  data: Pick<DataFile, 'accounts' | 'balances' | 'baseCurrency' | 'netWorthHistory'>,
+) {
   const withEntries = new Set(data.balances.map((e) => e.accountId));
-  const currencies = new Set(
-    data.accounts.filter((a) => !a.archived && withEntries.has(a.id)).map((a) => a.currency),
-  );
+  const currencies = new Set([
+    ...data.accounts.filter((a) => !a.archived && withEntries.has(a.id)).map((a) => a.currency),
+    ...data.netWorthHistory.map((p) => p.currency),
+  ]);
   return [...currencies].sort((a, b) =>
     a === data.baseCurrency ? -1 : b === data.baseCurrency ? 1 : a.localeCompare(b),
   );
@@ -80,7 +85,7 @@ function monthEnds(start: string, today: string): string[] {
 }
 
 export function netWorthTrend(
-  data: Pick<DataFile, 'accounts' | 'balances' | 'settings'>,
+  data: Pick<DataFile, 'accounts' | 'balances' | 'settings' | 'netWorthHistory'>,
   options: { currency: string; range: TrendRange; today: string },
 ): Trend {
   const { currency, range, today } = options;
@@ -96,34 +101,46 @@ export function netWorthTrend(
     histories.set(entry.accountId, list);
   }
   const all = [...histories.values()].flat();
-  if (all.length === 0) return { points: [] };
   for (const list of histories.values()) list.sort((a, b) => a.date.localeCompare(b.date));
-
-  const earliest = all.reduce((min, e) => (e.date < min ? e.date : min), today);
-  const start = rangeStart(range, today, earliest);
-  const dates = sampleDates(
-    start,
-    today,
-    range,
-    all.map((e) => e.date),
+  // Earlier monthly totals (ADR-0017) fill only the time before the first account entry.
+  const imported = data.netWorthHistory
+    .filter((p) => p.currency === currency && p.date <= today)
+    .sort((a, b) => a.date.localeCompare(b.date));
+  const firstEntry = all.reduce<string | undefined>(
+    (min, e) => (min === undefined || e.date < min ? e.date : min),
+    undefined,
   );
+  const earliest = [imported[0]?.date, firstEntry]
+    .filter((d): d is string => d !== undefined)
+    .sort()[0];
+  if (earliest === undefined) return { points: [] };
 
-  // Sweep the dates in order, moving each account's pointer forward (linear in entries).
+  const start = rangeStart(range, today, earliest);
+  const dates = sampleDates(start, today, range, [
+    ...all.map((e) => e.date),
+    ...imported.map((p) => p.date),
+  ]);
+
+  // Sweep the dates in order, moving each pointer forward (linear in entries).
   const cursor = new Map<string, number>();
+  let importedAt = -1;
   const points = dates.map((date): TrendPoint => {
     let sum = 0;
-    let any = false;
     for (const [id, list] of histories) {
       let i = cursor.get(id) ?? -1;
       for (let next = list[i + 1]; next && next.date <= date; next = list[i + 1]) i++;
       cursor.set(id, i);
       const entry = list[i];
-      if (entry) {
-        sum += entry.amountMinor;
-        any = true;
-      }
+      if (entry) sum += entry.amountMinor;
     }
-    return { date, netMinor: any ? sum : null };
+    if (firstEntry !== undefined && date >= firstEntry) return { date, netMinor: sum };
+    for (let next = imported[importedAt + 1]; next && next.date <= date;) {
+      importedAt++;
+      next = imported[importedAt + 1];
+    }
+    const total = imported[importedAt];
+    // Before the first entry no account has a balance yet, so only imported totals can show.
+    return total ? { date, netMinor: total.amountMinor, imported: true } : { date, netMinor: null };
   });
 
   const trend: Trend = { points };

@@ -8,6 +8,7 @@ import { updateSettings } from '@/domain/settingsOps';
 import { useUpdateDataFile } from '@/features/data/useDataFile';
 import { inputClass } from '../accounts/formParts';
 import { ExportSection } from './ExportSection';
+import { HistoryImportSection } from './HistoryImportSection';
 
 /** App-level settings (R-S6) and export (R-S2). Changes save immediately. */
 export function SettingsPage({ data }: { data: DataFile }) {
@@ -57,6 +58,9 @@ export function SettingsPage({ data }: { data: DataFile }) {
       </section>
 
       <ExportSection data={data} />
+
+      {/* One-time import until the full importer exists (ADR-0017, #2). */}
+      {import.meta.env.DEV && <HistoryImportSection data={data} />}
     </div>
   );
 }

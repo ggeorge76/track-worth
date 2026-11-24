@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Sheet } from '@/components/Sheet';
-import { monthNames } from '@/domain/dates';
+import { formatIsoDate, monthNames } from '@/domain/dates';
 import { LIQUIDITY_LABELS, type Liquidity } from '@/domain/liquidity';
 import type { Account } from '@/domain/schema';
 import type { Choice, MergeQuestion, SettingsPart } from '@/domain/sync/merge';
@@ -34,6 +34,14 @@ function accountRows(local: Account | undefined, remote: Account | undefined): R
   }));
 }
 
+function historySummary(history: SettingsPart['netWorthHistory']): string {
+  const dates = history.map((p) => p.date).sort();
+  const [first, last] = [dates[0], dates.at(-1)];
+  return first && last
+    ? `${String(history.length)} months, ${formatIsoDate(first)} – ${formatIsoDate(last)}`
+    : '—';
+}
+
 function settingsRows(local: SettingsPart, remote: SettingsPart): Row[] {
   const months = monthNames();
   const rows: Row[] = [
@@ -43,6 +51,11 @@ function settingsRows(local: SettingsPart, remote: SettingsPart): Row[] {
       remote: months[remote.settings.financialYearStartMonth - 1] ?? '',
     },
     { label: 'Base currency', local: local.baseCurrency, remote: remote.baseCurrency },
+    {
+      label: 'Earlier net-worth history',
+      local: historySummary(local.netWorthHistory),
+      remote: historySummary(remote.netWorthHistory),
+    },
     {
       label: 'Custom tags',
       local: local.settings.customTags.join(', ') || '—',

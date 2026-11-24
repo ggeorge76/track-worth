@@ -90,6 +90,7 @@ function sameData(a: DataFile, b: DataFile): boolean {
       settings: d.settings,
       accounts: d.accounts,
       balances: [...d.balances].sort((x, y) => x.id.localeCompare(y.id)),
+      netWorthHistory: d.netWorthHistory,
     });
   return canonical(a) === canonical(b);
 }

@@ -172,12 +172,32 @@ describe('settings are decided as a whole', () => {
     expect(questions).toEqual([
       {
         kind: 'settings',
-        local: { baseCurrency: 'USD', settings: local.settings },
-        remote: { baseCurrency: 'USD', settings: remote.settings },
+        local: { baseCurrency: 'USD', settings: local.settings, netWorthHistory: [] },
+        remote: { baseCurrency: 'USD', settings: remote.settings, netWorthHistory: [] },
       },
     ]);
     expect(threeWayMerge(base, local, remote, { settings: 'local' }).data.settings).toEqual(
       local.settings,
+    );
+  });
+});
+
+describe('earlier net-worth history (ADR-0017)', () => {
+  const history = [{ date: '2020-01-31', amountMinor: 100, currency: 'USD' }];
+
+  it('takes a one-sided import, and asks when both sides changed it differently', () => {
+    const local = edit(base, () => ({ netWorthHistory: history }));
+    expect(threeWayMerge(base, local, base).data.netWorthHistory).toEqual(history);
+    expect(threeWayMerge(base, base, local).data.netWorthHistory).toEqual(history);
+
+    const remote = edit(base, () => ({
+      netWorthHistory: [{ date: '2020-01-31', amountMinor: 999, currency: 'USD' }],
+    }));
+    const result = threeWayMerge(base, local, remote);
+    expect(result.questions).toHaveLength(1);
+    expect(result.questions[0]?.kind).toBe('settings');
+    expect(threeWayMerge(base, local, remote, { settings: 'local' }).data.netWorthHistory).toEqual(
+      history,
     );
   });
 });

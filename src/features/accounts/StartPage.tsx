@@ -25,8 +25,13 @@ export function StartPage({ data }: { data: DataFile }) {
   const filtered = isFiltered(options);
   // Every figure on this page follows the tag/liquidity filter. Archived accounts never count
   // towards net worth, even when shown.
+  // Earlier history is a plain total that can't be split by tag or liquidity (ADR-0017).
   const counted = filtered
-    ? { ...data, accounts: data.accounts.filter((a) => matchesFilter(a, options)) }
+    ? {
+        ...data,
+        accounts: data.accounts.filter((a) => matchesFilter(a, options)),
+        netWorthHistory: [],
+      }
     : data;
   const totals = Object.entries(netWorthByCurrency(counted));
   const { groups, shown, total } = buildAccountList(data.accounts, data.balances, options);

@@ -135,6 +135,64 @@ describe('netWorthTrend', () => {
   });
 });
 
+describe('netWorthTrend with earlier history (ADR-0017)', () => {
+  const history = (currency = 'USD') => [
+    { date: '2026-07-31', amountMinor: 700, currency },
+    { date: '2026-08-31', amountMinor: 800, currency },
+    { date: '2026-10-31', amountMinor: 1000, currency },
+    { date: '2026-11-30', amountMinor: 999_999, currency }, // after today: ignored
+  ];
+
+  it('fills months before the first account entry with imported totals, then hands over', () => {
+    const data = makeFile({
+      accounts: [bank],
+      balances: [makeEntry({ accountId: 'bank', date: '2026-11-05', amountMinor: 1100 })],
+      netWorthHistory: history(),
+    });
+    const trend = netWorthTrend(data, { currency: 'USD', range: '6M', today: TODAY });
+    expect(trend.points).toEqual([
+      { date: '2026-05-23', netMinor: null },
+      { date: '2026-05-31', netMinor: null },
+      { date: '2026-06-30', netMinor: null },
+      { date: '2026-07-31', netMinor: 700, imported: true },
+      { date: '2026-08-31', netMinor: 800, imported: true },
+      { date: '2026-09-30', netMinor: 800, imported: true },
+      { date: '2026-10-31', netMinor: 1000, imported: true },
+      { date: TODAY, netMinor: 1100 },
+    ]);
+    expect(trend.change).toEqual({
+      fromDate: '2026-07-31',
+      deltaMinor: 400,
+      percent: (400 / 700) * 100,
+    });
+  });
+
+  it('starts All at the earliest history and ignores other currencies’ history', () => {
+    const data = makeFile({
+      accounts: [bank],
+      balances: [makeEntry({ accountId: 'bank', date: '2026-11-05', amountMinor: 1100 })],
+      netWorthHistory: [
+        ...history(),
+        ...history('EUR').map((p) => ({ ...p, date: '2001-01-31' })),
+      ].filter(
+        (p, i, all) => all.findIndex((q) => q.currency === p.currency && q.date === p.date) === i,
+      ),
+    });
+    const trend = netWorthTrend(data, { currency: 'USD', range: 'All', today: TODAY });
+    expect(trend.points[0]).toEqual({ date: '2026-07-31', netMinor: 700, imported: true });
+  });
+
+  it('shows history alone when there are no account entries yet', () => {
+    const data = makeFile({ netWorthHistory: history() });
+    const trend = netWorthTrend(data, { currency: 'USD', range: '1M', today: TODAY });
+    expect(trend.points).toEqual([
+      { date: '2026-10-23', netMinor: 800, imported: true },
+      { date: '2026-10-31', netMinor: 1000, imported: true },
+      { date: TODAY, netMinor: 1000, imported: true },
+    ]);
+  });
+});
+
 describe('trendCurrencies', () => {
   it('lists currencies with balances on active accounts, base currency first', () => {
     const data = makeFile({
@@ -149,6 +207,12 @@ describe('trendCurrencies', () => {
       balances: ['g', 'u', 'e', 'x'].map((accountId) => makeEntry({ accountId })),
     });
     expect(trendCurrencies(data)).toEqual(['USD', 'EUR', 'GBP']);
+    expect(
+      trendCurrencies({
+        ...data,
+        netWorthHistory: [{ date: '2020-01-31', amountMinor: 1, currency: 'INR' }],
+      }),
+    ).toEqual(['USD', 'EUR', 'GBP', 'INR']);
   });
 });
 

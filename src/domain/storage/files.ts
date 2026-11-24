@@ -1,7 +1,17 @@
 import { z } from 'zod';
-import { accountSchema, balanceEntrySchema, SCHEMA_VERSION, settingsSchema } from '../schema';
+import {
+  accountSchema,
+  balanceEntrySchema,
+  historyPointSchema,
+  SCHEMA_VERSION,
+  settingsSchema,
+} from '../schema';
 
-/** Stored file formats in `My Drive/TrackWorth/` since data format v3 (ADR-0014). */
+/**
+ * Stored file formats in `My Drive/TrackWorth/` since data format v3 (ADR-0014). v4 only added
+ * `netWorthHistory` to settings.json (ADR-0017); v3 files are still read (see `parseStoredFile`)
+ * and are written as v4 the next time they change.
+ */
 
 export const SETTINGS_FILE = 'settings.json';
 export const ACCOUNTS_FILE = 'accounts.json';
@@ -21,6 +31,8 @@ export const settingsFileSchema = z.object({
   settings: settingsSchema,
   /** Every balance file and the exact period it owns. */
   balanceFiles: z.array(periodSchema),
+  /** Earlier monthly net-worth totals (ADR-0017). */
+  netWorthHistory: z.array(historyPointSchema),
 });
 
 export const accountsFileSchema = z.object({
@@ -47,13 +59,25 @@ export type StoredParse<T> =
   | { ok: false; reason: 'newer-version'; schemaVersion: number }
   | { ok: false; reason: 'invalid'; message: string };
 
+/**
+ * A v3 stored file as v4: same shape, plus an empty `netWorthHistory` for settings.json (the
+ * only file whose shape changed). Other values pass through unchanged.
+ */
+function fromV3(raw: unknown): unknown {
+  const v3 = z.looseObject({ schemaVersion: z.literal(3) }).safeParse(raw);
+  if (!v3.success) return raw;
+  const upgraded: Record<string, unknown> = { ...v3.data, schemaVersion: SCHEMA_VERSION };
+  if ('balanceFiles' in upgraded) upgraded.netWorthHistory = [];
+  return upgraded;
+}
+
 /** Parse one stored file, refusing files written by a newer app version. */
 export function parseStoredFile<T>(schema: z.ZodType<T>, raw: unknown): StoredParse<T> {
   const version = z.object({ schemaVersion: z.int().positive() }).safeParse(raw);
   if (version.success && version.data.schemaVersion > SCHEMA_VERSION) {
     return { ok: false, reason: 'newer-version', schemaVersion: version.data.schemaVersion };
   }
-  const result = schema.safeParse(raw);
+  const result = schema.safeParse(fromV3(raw));
   return result.success
     ? { ok: true, value: result.data }
     : { ok: false, reason: 'invalid', message: z.prettifyError(result.error) };

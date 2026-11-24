@@ -42,6 +42,7 @@ export function splitDataset(data: DataFile, periods: readonly Period[]): Layout
       baseCurrency: data.baseCurrency,
       settings: data.settings,
       balanceFiles: covered,
+      netWorthHistory: data.netWorthHistory,
     },
     accounts: { schemaVersion: SCHEMA_VERSION, updatedAt: data.updatedAt, accounts: data.accounts },
     balances,
@@ -88,6 +89,7 @@ export function assembleDataset(
     settings: settings.settings,
     accounts: accounts.accounts,
     balances,
+    netWorthHistory: settings.netWorthHistory,
   });
 }
 

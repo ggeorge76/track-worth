@@ -63,7 +63,7 @@ describe('Export', () => {
     await user.click(screen.getByRole('button', { name: 'Everything (JSON)' }));
     const [fileName, contents = ''] = vi.mocked(saveExport).mock.calls[0] ?? [];
     expect(fileName).toMatch(/^trackworth-backup-.*\.json$/);
-    expect(JSON.parse(contents)).toMatchObject({ schemaVersion: 3, accounts: [{ name: 'Bank' }] });
+    expect(JSON.parse(contents)).toMatchObject({ schemaVersion: 4, accounts: [{ name: 'Bank' }] });
   });
 
   it('says nothing when the save dialog is cancelled', async () => {

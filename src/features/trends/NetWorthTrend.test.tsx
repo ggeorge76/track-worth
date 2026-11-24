@@ -81,4 +81,14 @@ describe('NetWorthTrend', () => {
     expect(screen.getByText('+€7.00 (+100%)')).toBeInTheDocument();
     expect(screen.getByText(`since ${d('2026-01-31')}`)).toBeInTheDocument();
   });
+
+  it('marks earlier imported history', async () => {
+    const user = show({
+      ...data,
+      netWorthHistory: [{ date: '2020-01-31', amountMinor: 50000, currency: 'USD' }],
+    });
+    await user.click(screen.getByRole('radio', { name: 'All' }));
+    expect(screen.getByText('┄ Earlier history (imported totals)')).toBeInTheDocument();
+    expect(screen.getByText(`since ${d('2020-01-31')}`)).toBeInTheDocument();
+  });
 });

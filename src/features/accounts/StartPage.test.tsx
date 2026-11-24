@@ -98,6 +98,20 @@ describe('StartPage', () => {
     );
   });
 
+  it('leaves imported history out of a filtered chart', async () => {
+    const user = userEvent.setup();
+    renderWithData(<Routes />, {
+      ...file,
+      netWorthHistory: [{ date: '2020-01-31', amountMinor: 1, currency: 'USD' }],
+    });
+    await user.click(screen.getByRole('radio', { name: 'All' }));
+    expect(screen.getByText(/Earlier history/)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Filter/ }));
+    await user.click(screen.getByRole('button', { name: 'Debt' }));
+    await user.click(screen.getByRole('button', { name: 'Close' }));
+    expect(screen.queryByText(/Earlier history/)).not.toBeInTheDocument();
+  });
+
   it('shows a way out when filters match nothing', async () => {
     const user = userEvent.setup();
     renderWithData(<Routes />, file);

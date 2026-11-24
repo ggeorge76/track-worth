@@ -19,7 +19,7 @@ describe('toBackupJson', () => {
       balances: [makeEntry({ accountId: 'a', amountMinor: 12345 })],
     });
     const json = toBackupJson(data);
-    expect(json).toContain('\n  "schemaVersion": 3');
+    expect(json).toContain('\n  "schemaVersion": 4');
     expect(json.endsWith('\n')).toBe(true);
     expect(parseDataFile(JSON.parse(json))).toEqual({ ok: true, data });
   });

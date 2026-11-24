@@ -92,6 +92,25 @@ describe('migration from v1', () => {
   });
 });
 
+describe('migration from v3', () => {
+  it('adds an empty net-worth history', () => {
+    const current = valid();
+    const v3: Record<string, unknown> = { ...current, schemaVersion: 3 };
+    delete v3.netWorthHistory;
+    expect(parseDataFile(roundTrip(v3))).toEqual({ ok: true, data: current, migratedFrom: 3 });
+  });
+});
+
+describe('earlier net-worth history', () => {
+  it('rejects two totals for the same currency and month', () => {
+    const point = { date: '2020-01-31', amountMinor: 1, currency: 'USD' };
+    const file = { ...valid(), netWorthHistory: [point, { ...point, amountMinor: 2 }] };
+    expect(parseDataFile(roundTrip(file))).toMatchObject({ ok: false, reason: 'invalid' });
+    const twoCurrencies = { ...valid(), netWorthHistory: [point, { ...point, currency: 'EUR' }] };
+    expect(parseDataFile(roundTrip(twoCurrencies)).ok).toBe(true);
+  });
+});
+
 describe('createEmptyDataFile', () => {
   it('round-trips through the parser', () => {
     const empty = createEmptyDataFile('EUR', new Date('2026-05-01T00:00:00Z'));
