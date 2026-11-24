@@ -1,7 +1,13 @@
 import { makeAccount, makeEntry, makeFile } from '@/test/builders';
 import { upsertBalance } from '../balances';
 import { createAccount } from '../accounts';
-import { settingsFileSchema, parseStoredFile, type BalanceFile } from './files';
+import {
+  accountsFileSchema,
+  balanceFileSchema,
+  parseStoredFile,
+  settingsFileSchema,
+  type BalanceFile,
+} from './files';
 import {
   assembleDataset,
   MissingBalanceFileError,
@@ -210,6 +216,39 @@ describe('planWrites', () => {
     expect(plan.indexOf('write settings.json')).toBeLessThan(
       plan.indexOf('trash balances/2027.json'),
     );
+  });
+});
+
+describe('earlier net-worth history (ADR-0017)', () => {
+  it('is kept in settings.json and round-trips', () => {
+    const history = [{ date: '2019-03-31', amountMinor: 5, currency: 'USD' }];
+    const layout = splitDataset({ ...data, netWorthHistory: history }, []);
+    expect(layout.settings.netWorthHistory).toEqual(history);
+    expect(assemble(layout).netWorthHistory).toEqual(history);
+  });
+
+  it('reads v3 files (before history existed) as v4 with no history', () => {
+    const layout = splitDataset(data, []);
+    const asV3 = (file: object) => {
+      const copy = { ...(JSON.parse(JSON.stringify(file)) as Record<string, unknown>) };
+      copy.schemaVersion = 3;
+      delete copy.netWorthHistory;
+      return copy;
+    };
+    const ok = <T>(result: ReturnType<typeof parseStoredFile<T>>): T => {
+      if (!result.ok) throw new Error('expected to parse');
+      return result.value;
+    };
+    const settings = ok(parseStoredFile(settingsFileSchema, asV3(layout.settings)));
+    const accounts = ok(parseStoredFile(accountsFileSchema, asV3(layout.accounts)));
+    const balances = Object.fromEntries(
+      Object.entries(layout.balances).map(([path, file]) => [
+        path,
+        ok(parseStoredFile(balanceFileSchema, asV3(file))),
+      ]),
+    );
+    expect(settings).toEqual(layout.settings);
+    expect(assembleDataset(settings, accounts, balances)).toEqual(assemble(layout));
   });
 });
 

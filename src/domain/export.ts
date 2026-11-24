@@ -11,7 +11,7 @@ export function exportFileName(kind: 'backup' | 'balances', today: string): stri
 }
 
 /**
- * Everything, as one readable JSON document in the same shape the app uses (schemaVersion 3).
+ * Everything, as one readable JSON document in the same shape the app uses (schemaVersion 4).
  * The Drive files remain the source of truth; this is a copy to keep elsewhere.
  */
 export function toBackupJson(data: DataFile): string {

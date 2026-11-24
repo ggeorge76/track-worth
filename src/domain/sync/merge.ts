@@ -8,7 +8,8 @@ import { dataFileSchema, type Account, type BalanceEntry, type DataFile } from '
  *   added one for the same account and date, the later `recordedAt` wins.
  * - Accounts are decided per account: changed on one side → that side; changed differently on
  *   both → a question (keep this device's or Drive's), never a field-by-field merge.
- * - Settings (and base currency) are decided as a whole, the same way.
+ * - Settings (with base currency and earlier net-worth history) are decided as a whole, the
+ *   same way.
  */
 
 export type Choice = 'local' | 'remote';
@@ -20,6 +21,8 @@ export type MergeQuestion =
 export interface SettingsPart {
   baseCurrency: string;
   settings: DataFile['settings'];
+  /** Earlier net-worth history (ADR-0017) is decided with the settings, as a whole. */
+  netWorthHistory: DataFile['netWorthHistory'];
 }
 
 /** Answers keyed by account id, or `settings`. */
@@ -112,6 +115,7 @@ export function threeWayMerge(
   const part = (d: DataFile): SettingsPart => ({
     baseCurrency: d.baseCurrency,
     settings: d.settings,
+    netWorthHistory: d.netWorthHistory,
   });
   const settingsPick = pick(part(base), part(local), part(remote));
   let settings = settingsPick.value ?? part(remote);
@@ -131,6 +135,7 @@ export function threeWayMerge(
     settings: settings.settings,
     accounts,
     balances,
+    netWorthHistory: settings.netWorthHistory,
   });
   return { data, questions };
 }

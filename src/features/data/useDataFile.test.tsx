@@ -133,7 +133,7 @@ describe('saving online', () => {
     });
     expect(fakeStore.save).toHaveBeenCalledWith(
       snapshot('s0'),
-      expect.objectContaining({ schemaVersion: 3 }),
+      expect.objectContaining({ schemaVersion: 4 }),
     );
     await waitFor(() => {
       expect(hook.result.current.file.data?.synced.snapshot.rootId).toBe('s1');

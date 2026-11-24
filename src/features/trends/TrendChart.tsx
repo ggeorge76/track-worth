@@ -18,6 +18,8 @@ export interface ChartPoint {
   valueMinor: number | null;
   /** Draw a dot here (a balance the user entered). */
   entry?: boolean;
+  /** An imported total (ADR-0017): drawn as a lighter, dashed line. */
+  imported?: boolean;
 }
 
 /** "$1.2M" style labels for the axis. Display only: amounts stay integer minor units. */
@@ -77,11 +79,18 @@ export function TrendChart({
   valueLabel: string;
   step?: boolean;
 }) {
-  const data = points.map((p) => ({
-    x: isoDateToUtcMs(p.date),
-    y: p.valueMinor,
-    entry: p.entry ?? false,
-  }));
+  // Imported totals get their own series; the first account point is in both, so they join.
+  const data = points.map((p, i) => {
+    const imported = p.imported ?? false;
+    const afterImported = !imported && (points[i - 1]?.imported ?? false);
+    return {
+      x: isoDateToUtcMs(p.date),
+      y: imported ? null : p.valueMinor,
+      yImported: imported || afterImported ? p.valueMinor : null,
+      entry: p.entry ?? false,
+    };
+  });
+  const hasImported = points.some((p) => p.imported);
   return (
     <>
       <div role="img" aria-label={summary} className="mt-3 h-32 w-full">
@@ -118,9 +127,9 @@ export function TrendChart({
               labelFormatter={(ms) =>
                 typeof ms === 'number' ? formatIsoDate(new Date(ms).toISOString().slice(0, 10)) : ''
               }
-              formatter={(v) => [
+              formatter={(v, name) => [
                 typeof v === 'number' ? formatMoney(v, currency) : '—',
-                valueLabel,
+                name === 'yImported' ? `${valueLabel} (imported)` : valueLabel,
               ]}
             />
             {financialYearStart && (
@@ -129,6 +138,21 @@ export function TrendChart({
                 stroke="#94a3b8"
                 strokeDasharray="3 3"
                 label={{ value: 'FY', position: 'insideTopLeft', fontSize: 11, fill: '#64748b' }}
+              />
+            )}
+            {hasImported && (
+              <Area
+                dataKey="yImported"
+                type="linear"
+                stroke="#94a3b8"
+                strokeWidth={2}
+                strokeDasharray="4 3"
+                fill="#cbd5e1"
+                fillOpacity={0.15}
+                isAnimationActive={false}
+                connectNulls={false}
+                dot={false}
+                activeDot={false}
               />
             )}
             <Area
@@ -165,11 +189,12 @@ export function TrendChart({
             onChange={onRangeChange}
           />
         </div>
-        {financialYearStart && (
-          <p className="text-xs text-slate-500">
-            ┆ Financial year started {formatIsoDate(financialYearStart)}
-          </p>
-        )}
+        <div className="text-xs text-slate-500">
+          {financialYearStart && (
+            <p>┆ Financial year started {formatIsoDate(financialYearStart)}</p>
+          )}
+          {hasImported && <p>┄ Earlier history (imported totals)</p>}
+        </div>
       </div>
     </>
   );

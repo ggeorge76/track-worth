@@ -12,7 +12,7 @@ are in [ADR-0006](adr/0006-data-file-schema-and-migrations.md); how data is spli
 
 ```
 My Drive/TrackWorth/
-  settings.json            settings + the period of every balance file
+  settings.json            settings, the period of every balance file, earlier net-worth history
   accounts.json            all accounts
   balances/
     2025.json              entries dated 2025-04-01 … 2026-03-31 (April financial year)
@@ -26,14 +26,15 @@ newer app version is refused, never overwritten.
 
 ```json
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "updatedAt": "2026-11-23T09:30:00.000Z",
   "baseCurrency": "INR",
   "settings": { "financialYearStartMonth": 4, "customTags": ["🪙 Gold"] },
   "balanceFiles": [
     { "file": "balances/2025.json", "from": "2025-04-01", "to": "2026-03-31" },
     { "file": "balances/2026.json", "from": "2026-04-01", "to": "2027-03-31" }
-  ]
+  ],
+  "netWorthHistory": [{ "date": "2011-04-30", "amountMinor": 157828533, "currency": "INR" }]
 }
 ```
 
@@ -41,11 +42,14 @@ newer app version is refused, never overwritten.
 the year its period starts, and a file only owns the entries dated within its period. Changing the
 financial year re-periods only the current and previous files (ADR-0014).
 
+`netWorthHistory` holds monthly totals from before the user had accounts in TrackWorth (ADR-0017).
+It is usually empty.
+
 ### accounts.json
 
 ```json
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "updatedAt": "2026-11-23T09:30:00.000Z",
   "accounts": [
     {
@@ -67,7 +71,7 @@ financial year re-periods only the current and previous files (ADR-0014).
 
 ```json
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "updatedAt": "2026-11-23T09:30:00.000Z",
   "from": "2026-04-01",
   "to": "2027-03-31",
@@ -89,7 +93,7 @@ by date.
 ## Fields
 
 In memory the app works with one combined dataset (`DataFile`): `schemaVersion`, `updatedAt`
-(latest of the files), `baseCurrency`, `settings`, `accounts`, `balances`.
+(latest of the files), `baseCurrency`, `settings`, `accounts`, `balances`, `netWorthHistory`.
 
 ### Settings
 
@@ -130,6 +134,17 @@ Assets, Cash. A tag typed for an account that isn't a default is added to
 
 Saving a balance for a date that already has an entry **updates** that entry.
 
+### HistoryPoint (earlier net-worth history, ADR-0017)
+
+| Field         | Type             | Notes                                                        |
+| ------------- | ---------------- | ------------------------------------------------------------ |
+| `date`        | `YYYY-MM-DD`     | The month's last day. **At most one per currency per date.** |
+| `amountMinor` | integer (signed) | Net worth on that date, in minor units.                      |
+| `currency`    | ISO 4217 code    |                                                              |
+
+Only the start-page net-worth chart uses these, for dates before the first account entry in that
+currency, and not while a tag or liquidity filter is on.
+
 ## Derived values (never stored)
 
 All in [`src/domain/`](../src/domain/):
@@ -152,3 +167,4 @@ All in [`src/domain/`](../src/domain/):
 | 1       | Initial. Fixed `category` list, liabilities stored as positive "amount owed".                                                                                                                                                                                                     |
 | 2       | `category` → free-text `tag`; added `liquidity`, `balanceSource`, `settings`; balances signed (liabilities negated); one entry per account per day (the latest recorded is kept). Migration: `src/domain/migrations/v1ToV2.ts`.                                                   |
 | 3       | Same fields; stored split across `settings.json`, `accounts.json` and one `balances/<year>.json` per financial year (ADR-0014). The old single file is upgraded on first load, verified, then moved to Drive's trash. Migration: `src/services/storage/dataStore.ts` (`migrate`). |
+| 4       | Added `netWorthHistory` (in `settings.json`; ADR-0017). v3 data loads with an empty list; v3 stored files are read and rewritten as v4 when they next change. Migration: `src/domain/schema.ts` (step 3) and `src/domain/storage/files.ts` (`fromV3`).                            |

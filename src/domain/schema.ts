@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { dataFileV1Schema } from './migrations/v1';
 import { migrateV1ToV2 } from './migrations/v1ToV2';
 import { dataFileV2Schema } from './migrations/v2';
+import { dataFileV3Schema } from './migrations/v3';
 import { DEFAULT_FINANCIAL_YEAR_START_MONTH } from './settings';
 
 /**
@@ -14,7 +15,7 @@ import { DEFAULT_FINANCIAL_YEAR_START_MONTH } from './settings';
  * - Never remove or rename a field without a migration; old files must keep loading.
  * - Money is always stored as integer minor units (cents) + ISO 4217 currency code.
  */
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 const id = z.string().min(1).max(64);
 const currencyCode = z.string().regex(/^[A-Z]{3}$/, 'Expected an ISO 4217 code like "USD"');
@@ -68,6 +69,16 @@ export const settingsSchema = z.object({
   customTags: z.array(tagSchema),
 });
 
+/**
+ * One month's net worth carried over from before the user had accounts in TrackWorth (ADR-0017),
+ * e.g. from a spreadsheet that only kept monthly totals. `date` is the month's last day.
+ */
+export const historyPointSchema = z.object({
+  date: z.iso.date(),
+  amountMinor: z.int(),
+  currency: currencyCode,
+});
+
 export const dataFileSchema = z
   .object({
     schemaVersion: z.literal(SCHEMA_VERSION),
@@ -76,8 +87,21 @@ export const dataFileSchema = z
     settings: settingsSchema,
     accounts: z.array(accountSchema),
     balances: z.array(balanceEntrySchema),
+    /** Earlier monthly totals (ADR-0017). Only the net-worth chart uses them. */
+    netWorthHistory: z.array(historyPointSchema),
   })
   .superRefine((file, ctx) => {
+    const historyDays = new Set<string>();
+    for (const point of file.netWorthHistory) {
+      const key = `${point.currency}|${point.date}`;
+      if (historyDays.has(key)) {
+        ctx.addIssue({
+          code: 'custom',
+          message: `More than one net-worth total for ${point.currency} on ${point.date}`,
+        });
+      }
+      historyDays.add(key);
+    }
     const accountIds = new Set<string>();
     for (const account of file.accounts) {
       if (accountIds.has(account.id)) {
@@ -111,6 +135,7 @@ export type Account = z.infer<typeof accountSchema>;
 export type BalanceEntry = z.infer<typeof balanceEntrySchema>;
 export type Settings = z.infer<typeof settingsSchema>;
 export type DataFile = z.infer<typeof dataFileSchema>;
+export type HistoryPoint = z.infer<typeof historyPointSchema>;
 
 export type ParseResult =
   | { ok: true; data: DataFile; migratedFrom?: number }
@@ -122,6 +147,8 @@ const MIGRATIONS: Record<number, (raw: unknown) => unknown> = {
   1: (raw) => migrateV1ToV2(dataFileV1Schema.parse(raw)),
   // v3 keeps the same shape; what changed is how it's stored (ADR-0014).
   2: (raw) => ({ ...dataFileV2Schema.parse(raw), schemaVersion: 3 }),
+  // v4 adds earlier net-worth history (ADR-0017), empty for existing data.
+  3: (raw) => ({ ...dataFileV3Schema.parse(raw), schemaVersion: 4, netWorthHistory: [] }),
 };
 
 /**
@@ -168,5 +195,6 @@ export function createEmptyDataFile(baseCurrency: string, now: Date = new Date()
     settings: { financialYearStartMonth: DEFAULT_FINANCIAL_YEAR_START_MONTH, customTags: [] },
     accounts: [],
     balances: [],
+    netWorthHistory: [],
   });
 }

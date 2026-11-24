@@ -88,7 +88,11 @@ export function NetWorthTrend({ data }: { data: DataFile }) {
       )}
       <ChangeLine trend={trend} range={range} currency={currency} />
       <TrendChart
-        points={trend.points.map((p) => ({ date: p.date, valueMinor: p.netMinor }))}
+        points={trend.points.map((p) => ({
+          date: p.date,
+          valueMinor: p.netMinor,
+          imported: p.imported ?? false,
+        }))}
         currency={currency}
         range={range}
         onRangeChange={setRange}
