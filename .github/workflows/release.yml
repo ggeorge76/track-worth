@@ -1,0 +1,85 @@
+# Release flow (ADR-0010, ADR-0007, ADR-0008):
+#   Conventional Commits on main -> release-please keeps a release PR open.
+#   Merging that PR tags vX.Y.Z and creates the GitHub Release. Then this workflow builds the
+#   desktop installers for macOS, Windows and Linux, signs the update bundles, and uploads
+#   everything plus `latest.json` to that release. Installed apps read `latest.json` from the
+#   latest release and offer the update; it installs only after the user confirms.
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - id: release
+        uses: googleapis/release-please-action@v5
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  desktop:
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    permissions:
+      contents: write # upload release assets
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest
+            args: --target universal-apple-darwin
+            rust-targets: aarch64-apple-darwin,x86_64-apple-darwin
+          - platform: windows-latest
+            args: ''
+            rust-targets: ''
+          - platform: ubuntu-24.04
+            args: ''
+            rust-targets: ''
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust-targets }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+      - name: Install Linux build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file \
+            libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+      - run: bun install --frozen-lockfile
+      - uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Signs update bundles so installed apps can verify them (ADR-0007).
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          # Compiled into the binary by src-tauri/build.rs (ADR-0004).
+          TRACKWORTH_GOOGLE_CLIENT_ID: ${{ secrets.TRACKWORTH_GOOGLE_CLIENT_ID }}
+          TRACKWORTH_GOOGLE_CLIENT_SECRET: ${{ secrets.TRACKWORTH_GOOGLE_CLIENT_SECRET }}
+        with:
+          tagName: ${{ needs.release-please.outputs.tag_name }}
+          tauriScript: bun run tauri
+          args: ${{ matrix.args }}
+          uploadUpdaterJson: true
+          updaterJsonPreferNsis: true

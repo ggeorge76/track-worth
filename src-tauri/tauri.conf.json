@@ -1,0 +1,60 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "TrackWorth",
+  "version": "../package.json",
+  "identifier": "com.trackworth.desktop",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:5173",
+    "beforeDevCommand": "bun run dev",
+    "beforeBuildCommand": "bun run build"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "TrackWorth",
+        "dragDropEnabled": false,
+        "width": 1100,
+        "height": 760,
+        "minWidth": 380,
+        "minHeight": 560,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ],
+    "security": {
+      "csp": {
+        "default-src": "'self'",
+        "connect-src": "ipc: http://ipc.localhost",
+        "img-src": "'self' data: https://*.googleusercontent.com",
+        "style-src": "'self' 'unsafe-inline'",
+        "script-src": "'self'",
+        "object-src": "'none'",
+        "base-uri": "'self'",
+        "form-action": "'none'"
+      }
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "createUpdaterArtifacts": true,
+    "category": "Finance",
+    "shortDescription": "Track account balances and net worth",
+    "longDescription": "Manually track account balances and net worth. Your data is a single JSON file in your own Google Drive.",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDBGODEwQkJDMDAwMEFBMkMKUldRc3FnQUF2QXVCRHg3dHRjMXFucnFMZ3ZyeDlOWlM5V21wMzB0UHBFYUxabzgxUTVUOEdLVnkK",
+      "endpoints": ["https://github.com/ggeorge76/track-worth/releases/latest/download/latest.json"]
+    }
+  }
+}

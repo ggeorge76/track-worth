@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(bun install)",
+      "Bash(bun run check)",
+      "Bash(bun run check:*)",
+      "Bash(bun run lint)",
+      "Bash(bun run lint:fix)",
+      "Bash(bun run format)",
+      "Bash(bun run format:check)",
+      "Bash(bun run typecheck)",
+      "Bash(bun run test)",
+      "Bash(bun run test:*)",
+      "Bash(bun run build)",
+      "Bash(bunx vitest run:*)",
+      "Bash(bunx playwright test:*)",
+      "Bash(cargo fmt:*)",
+      "Bash(cargo clippy:*)",
+      "Bash(cargo test:*)",
+      "Bash(cargo check:*)",
+      "Bash(git status)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(~/.tauri/**)",
+      "Read(**/*.key)",
+      "Bash(git push --force:*)",
+      "Bash(git push origin main)",
+      "Bash(git push origin dev)"
+    ]
+  }
+}

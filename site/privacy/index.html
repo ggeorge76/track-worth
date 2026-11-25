@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/png" href="../favicon-32.png" />
+    <link rel="stylesheet" href="../style.css" />
+    <title>Privacy Policy · TrackWorth</title>
+  </head>
+  <body>
+    <header class="site">
+      <a href="../"><img src="../symbol.png" alt="" /></a><a href="../">TrackWorth</a>
+      <nav>
+        <a href="../privacy/">Privacy</a><a href="../terms/">Terms</a
+        ><a href="https://github.com/ggeorge76/track-worth">GitHub</a>
+      </nav>
+    </header>
+    <main>
+      <h1>Privacy Policy</h1>
+      <p class="muted">Effective date: 26 November 2026</p>
+
+      <p>
+        TrackWorth ("the app") is a free application for desktop computers (macOS, Windows, Linux)
+        and Android, for manually tracking account balances and net worth. This policy explains what
+        information the app accesses, how it is used, and the choices you have. In short:
+        <strong
+          >your data stays on your device and in your own Google Drive. The developer never receives
+          it.</strong
+        >
+      </p>
+
+      <h2>1. No servers</h2>
+      <p>
+        TrackWorth has no backend server, database, or account system operated by the developer. The
+        app runs entirely on your device and communicates directly with Google (for sign-in and
+        Google Drive, and on Android, Google Play for app updates), GitHub (for update checks on
+        desktop) and Frankfurter (for exchange rates). The developer cannot see, access, or recover
+        your data.
+      </p>
+
+      <h2>2. Information accessed from your Google Account</h2>
+      <p>
+        When you choose "Sign in with Google", you are asked to grant these permissions. On desktop
+        this happens in your web browser; on Android, in Google's own account picker provided by
+        Google Play services. The permissions are the same on both:
+      </p>
+      <ul>
+        <li>
+          <strong>Basic profile: name, email address and profile picture</strong>
+          (<code>openid</code>, <code>email</code>, <code>profile</code>). Used only to show who is
+          signed in, for example your name in the app's header. Your name and email are kept on this
+          device so the app can show them when you open it offline; they are deleted when you sign
+          out and are never sent anywhere else.
+        </li>
+        <li>
+          <strong>Google Drive, files created by the app only</strong>
+          (<code>https://www.googleapis.com/auth/drive.file</code>). Used to create, read and update
+          the app's own files in a <code>My Drive/TrackWorth</code> folder, which hold the accounts
+          and balances you enter: <code>settings.json</code>, <code>accounts.json</code>, and one
+          file per financial year in <code>TrackWorth/balances</code>. With this permission the app
+          <strong>cannot see or access any other files</strong> in your Google Drive.
+        </li>
+      </ul>
+
+      <h2>3. Information you enter</h2>
+      <p>
+        Account names, tags, liquidity ratings, balance sources, currencies, balances, dates and
+        notes that you type into the app are saved in the <code>TrackWorth</code> folder in your
+        Google Drive, as readable JSON files, plus a local copy on your device (section 4). You can
+        open, download, edit or delete those files at any time with Google Drive.
+      </p>
+
+      <h2>4. Information stored on your device</h2>
+      <ul>
+        <li>
+          <strong>Desktop:</strong> a Google <strong>refresh token</strong>, which keeps you signed
+          in between launches, is stored in your operating system's secure credential store (macOS
+          Keychain, Windows Credential Manager, or Linux Secret Service). It is removed when you
+          sign out.
+        </li>
+        <li>
+          <strong>Android:</strong> no token or password is stored by the app. Google Play services
+          remembers the access you granted and gives the app short-lived access tokens when needed.
+          The app keeps only a small marker that you are signed in, which is removed when you sign
+          out.
+        </li>
+        <li>
+          A <strong>local copy of your TrackWorth files</strong> is kept in the app's private
+          storage on your device, so the app starts quickly, only downloads files that changed, and
+          can show your data when you're offline. Changes you make while offline are kept here until
+          they're uploaded to your Google Drive. It is never sent anywhere else, and it is deleted
+          when you sign out (and when you sign in again, in case it's a different account). Your
+          Google Drive stays the master copy.
+        </li>
+        <li>
+          Short-lived <strong>access tokens</strong> are held in memory only and discarded when the
+          app closes.
+        </li>
+        <li>
+          Your <strong>theme choice</strong>, downloaded <strong>exchange rates</strong> and any
+          rates you enter yourself are kept on the device. They contain no personal or financial
+          data.
+        </li>
+      </ul>
+
+      <h2>5. What the app does not do</h2>
+      <ul>
+        <li>
+          No analytics, telemetry, advertising, tracking, or crash reporting to third parties.
+        </li>
+        <li>No connection to banks, brokers, or other financial services.</li>
+        <li>No selling, renting, or sharing of your information with anyone.</li>
+        <li>
+          No use of your information to develop, improve, or train artificial intelligence or
+          machine-learning models.
+        </li>
+        <li>No human access to your data: the developer has no copy of it.</li>
+      </ul>
+
+      <h2>6. Google API Services User Data Policy</h2>
+      <div class="card">
+        <p>
+          TrackWorth's use and transfer to any other app of information received from Google APIs
+          will adhere to the
+          <a href="https://developers.google.com/terms/api-services-user-data-policy"
+            >Google API Services User Data Policy</a
+          >, including the Limited Use requirements.
+        </p>
+      </div>
+      <p>
+        Information obtained through Google APIs is used only to provide the features described
+        above, which are visible to you in the app, and is never transferred to third parties.
+      </p>
+
+      <h2>7. Update checks</h2>
+      <p>
+        On Android, updates are delivered by Google Play, under the
+        <a href="https://policies.google.com/privacy">Google Privacy Policy</a>; the app itself
+        makes no update checks. On desktop, to offer new versions, the app periodically downloads a
+        small version file from GitHub (<code>github.com</code>), and update packages when you
+        approve an update. Like any website, GitHub may log technical data such as your IP address.
+        See the
+        <a
+          href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement"
+          >GitHub Privacy Statement</a
+        >. No personal or financial data is sent in these requests.
+      </p>
+
+      <h2>8. Third-party services</h2>
+      <p>
+        Your use of Google sign-in, Google Drive, Google Play and Google Play services is also
+        governed by the
+        <a href="https://policies.google.com/privacy">Google Privacy Policy</a>. This website is
+        hosted on GitHub Pages, which may log visitors' IP addresses under the GitHub Privacy
+        Statement.
+      </p>
+      <p>
+        <strong>Exchange rates.</strong> When you have accounts in more than one currency, or open
+        the Currencies page, the app downloads published exchange rates from
+        <a href="https://frankfurter.dev">Frankfurter</a> (<code>api.frankfurter.dev</code>), a
+        free, open-source service that republishes central-bank reference rates. These requests
+        contain only currency codes and dates. No balances, account names or Google account details
+        are sent, though the service necessarily sees your IP address. Rates, and any rates you
+        enter yourself, are kept only on your device.
+      </p>
+
+      <h2>9. Security</h2>
+      <p>
+        All network traffic uses HTTPS. On desktop, Google sign-in happens in your own web browser
+        using the OAuth 2.0 PKCE flow; on Android, through Google Play services. The app's interface
+        has no direct internet access and can only reach the specific Google endpoints, the update
+        feed and the exchange-rate service it needs. App updates are cryptographically signed and
+        verified before installation. Exports you save go only where you choose: on Android, through
+        the system "Save to…" picker, which gives the app access to that one file only. The Android
+        app asks for no storage, contacts, location or other device permissions beyond internet
+        access.
+      </p>
+
+      <h2>10. Retention and deletion</h2>
+      <ul>
+        <li>
+          <strong>Your data files:</strong> stay in your Google Drive until you delete them. Delete
+          the <code>TrackWorth</code> folder in Google Drive to remove all app data.
+        </li>
+        <li>
+          <strong>Sign-in and local copy:</strong> choose "Sign out" in the app to revoke access and
+          delete the stored token and the local copy of your data. You can also remove TrackWorth's
+          access at any time at
+          <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>.
+        </li>
+        <li>
+          <strong>Uninstalling</strong> the app removes it from your device. On desktop, sign out
+          first to remove the stored token from your credential store and the local copy of your
+          data. On Android, uninstalling also deletes the app's local copy of your data; to remove
+          TrackWorth's access to your Google Account, sign out first or use the link above.
+        </li>
+      </ul>
+
+      <h2>11. Children</h2>
+      <p>
+        TrackWorth is not directed to children under 13 and does not knowingly collect information
+        from them.
+      </p>
+
+      <h2>12. Changes to this policy</h2>
+      <p>
+        If this policy changes, the updated version will be posted on this page with a new effective
+        date. Significant changes will be noted in the app's release notes.
+      </p>
+
+      <h2>13. Contact</h2>
+      <p>
+        Questions about this policy or your data? Email
+        <a href="mailto:geo.krupa@gmail.com">geo.krupa@gmail.com</a>, or open an issue at
+        <a href="https://github.com/ggeorge76/track-worth/issues"
+          >github.com/ggeorge76/track-worth/issues</a
+        >.
+      </p>
+    </main>
+    <footer>
+      TrackWorth is a free, open project. Not affiliated with Google. ·
+      <a href="../privacy/">Privacy Policy</a> · <a href="../terms/">Terms of Service</a> ·
+      <a href="https://github.com/ggeorge76/track-worth/issues">Contact</a>
+    </footer>
+  </body>
+</html>

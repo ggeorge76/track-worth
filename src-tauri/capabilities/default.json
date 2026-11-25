@@ -1,0 +1,38 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Least-privilege permissions for the main window. Every external URL the UI may reach is listed here (ADR-0003).",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    {
+      "identifier": "http:default",
+      "allow": [
+        {
+          "url": "https://www.googleapis.com/drive/v3/*"
+        },
+        {
+          "url": "https://www.googleapis.com/upload/drive/v3/*"
+        },
+        {
+          "url": "https://openidconnect.googleapis.com/v1/userinfo"
+        },
+        {
+          "url": "https://api.frankfurter.dev/v2/*"
+        }
+      ]
+    },
+    {
+      "identifier": "opener:allow-open-url",
+      "allow": [
+        {
+          "url": "https://github.com/ggeorge76/track-worth/*"
+        },
+        {
+          "url": "https://ggeorge76.github.io/track-worth/*"
+        }
+      ]
+    },
+    "process:allow-restart"
+  ]
+}

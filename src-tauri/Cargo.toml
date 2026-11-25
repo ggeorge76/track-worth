@@ -1,0 +1,56 @@
+[package]
+name = "trackworth"
+version = "0.1.0" # bumped together with package.json by release-please
+description = "Track account balances and net worth. Your data stays in your Google Drive."
+authors = ["TrackWorth contributors"]
+repository = "https://github.com/ggeorge76/track-worth"
+publish = false
+edition = "2024"
+rust-version = "1.90"
+
+[lib]
+name = "trackworth_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.7.6", features = [] }
+
+[dependencies]
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+log = "0.4"
+tauri = { version = "2.12.7", features = [] }
+tauri-plugin-log = "2"
+tauri-plugin-process = "2"
+tauri-plugin-http = "2"
+tauri-plugin-opener = "2"
+tokio = { version = "1.54.1", features = ["net", "io-util", "time", "macros", "rt-multi-thread", "sync"] }
+sha2 = "0.11.1"
+base64 = "0.23.1"
+rand = "0.10.4"
+url = "2.5.9"
+thiserror = "2.0.21"
+tauri-plugin-dialog = "2"
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-updater = "2"
+# Desktop sign-in keeps the refresh token in the OS keychain (ADR-0004).
+keyring = "4.2.0"
+
+# Android sign-in through Google Play services (ADR-0019); our own plugin, in this repo.
+[target.'cfg(target_os = "android")'.dependencies]
+tauri-plugin-google-auth = { path = "plugins/google-auth" }
+# Android "Save to…" for exports (ADR-0016); our own plugin, in this repo.
+tauri-plugin-android-files = { path = "plugins/android-files" }
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+must_use_candidate = "allow"
+cast_possible_truncation = "allow"
