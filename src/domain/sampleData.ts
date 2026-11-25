@@ -193,3 +193,8 @@ export function sampleDataFile(today: string, current: DataFile): DataFile {
     netWorthHistory: [],
   });
 }
+
+/** True when the data is (only) the sample: all accounts are sample accounts. */
+export function isSampleData(data: Pick<DataFile, 'accounts'>): boolean {
+  return data.accounts.length > 0 && data.accounts.every((a) => a.id.startsWith('sample-'));
+}

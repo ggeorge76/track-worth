@@ -1,7 +1,7 @@
 import { makeFile } from '@/test/builders';
 import { createConverter } from './fx';
 import { netWorthInBase } from './netWorth';
-import { sampleDataFile } from './sampleData';
+import { isSampleData, sampleDataFile } from './sampleData';
 
 const TODAY = '2026-11-26';
 
@@ -25,5 +25,18 @@ describe('sampleDataFile', () => {
     );
     // ₹36.6L in INR assets + $12,400 (₹9.92L) − ₹28.5L loan − ₹24.5k card = ₹17,77,500
     expect(netWorthInBase(data, fx, TODAY).netMinor).toBe(1_777_500_00);
+  });
+
+  it('is recognised as sample data; real or empty data is not', () => {
+    expect(isSampleData(data)).toBe(true);
+    expect(isSampleData(makeFile())).toBe(false);
+    expect(
+      isSampleData({
+        accounts: [
+          ...data.accounts,
+          { ...(data.accounts[0] as (typeof data.accounts)[number]), id: 'mine' },
+        ],
+      }),
+    ).toBe(false);
   });
 });
