@@ -2,7 +2,7 @@ import { addMonths, endOfMonth } from './dates';
 import { dataFileSchema, type Account, type BalanceEntry, type DataFile } from './schema';
 
 /**
- * Made-up data for store screenshots and demos (development builds only): nine accounts in INR
+ * Made-up data for store screenshots and demos (debug builds only): ten accounts in INR
  * and USD with three years of monthly balances. Deterministic, so screenshots are repeatable.
  * Never real figures.
  */
@@ -104,6 +104,18 @@ const ACCOUNTS: SampleAccount[] = [
     to: 12_400,
     wobble: 0.05,
   },
+  // The home the loan paid for: without it, a shrinking loan makes net worth swing wildly.
+  {
+    id: 'sample-house',
+    name: '🏡 Home',
+    kind: 'asset',
+    tag: 'Real Assets',
+    liquidity: 1,
+    currency: 'INR',
+    from: 6_000_000,
+    to: 6_800_000,
+    wobble: 0,
+  },
   {
     id: 'sample-home',
     name: '🏠 Home Loan',
@@ -198,3 +210,6 @@ export function sampleDataFile(today: string, current: DataFile): DataFile {
 export function isSampleData(data: Pick<DataFile, 'accounts'>): boolean {
   return data.accounts.length > 0 && data.accounts.every((a) => a.id.startsWith('sample-'));
 }
+
+/** Shown instead of the real Google profile while sample data is on screen (screenshots). */
+export const SAMPLE_PROFILE = { name: 'Alex Sample', email: 'alex@example.com' } as const;

@@ -174,7 +174,7 @@ export function SampleDataSection({ data }: { data: DataFile }) {
             <div role="group" aria-label="Confirm sample data" className="space-y-2">
               <p className="text-sm text-ink-soft">
                 Your data is backed up to <code>TrackWorth/{SAMPLE_BACKUP_FOLDER}</code> and checked
-                first; then nine made-up accounts replace it until you restore.
+                first; then ten made-up accounts replace it until you restore.
               </p>
               <div className="flex flex-wrap gap-2">
                 <button

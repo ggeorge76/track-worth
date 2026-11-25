@@ -1,6 +1,8 @@
-import { useQueryClient } from '@tanstack/react-query';
+import { skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 import { hrefFor } from '@/app/router';
+import { config } from '@/config';
+import { isSampleData, SAMPLE_PROFILE } from '@/domain/sampleData';
 import { Sheet } from '@/components/Sheet';
 import { DATA_FILE_KEY, type LoadedDataFile } from '@/features/data/useDataFile';
 import type { GoogleUser } from '@/services/auth/desktopAuth';
@@ -45,7 +47,12 @@ function Avatar({ user }: { user: GoogleUser }) {
  * Signing out deletes this device's copy, so it asks first if changes are still waiting to upload
  * (ADR-0015).
  */
-export function UserMenu({ user }: { user: GoogleUser }) {
+export function UserMenu({ user: signedIn }: { user: GoogleUser }) {
+  // Debug builds showing sample data (store screenshots) hide the real name, email and photo.
+  // Reads the already-loaded data without fetching it.
+  const shown = useQuery<LoadedDataFile>({ queryKey: DATA_FILE_KEY, queryFn: skipToken }).data;
+  const user: GoogleUser =
+    config.devTools && shown && isSampleData(shown.data) ? SAMPLE_PROFILE : signedIn;
   const { signOut } = useAuth();
   const queryClient = useQueryClient();
   const menuId = useId();

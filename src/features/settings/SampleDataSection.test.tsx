@@ -66,7 +66,7 @@ describe('SampleDataSection (development builds)', () => {
     await user.click(await screen.findByRole('button', { name: 'Load sample data' }));
     await user.click(screen.getByRole('button', { name: 'Back up and show sample data' }));
     await waitFor(() => {
-      expect(dataIn(client)?.accounts).toHaveLength(9);
+      expect(dataIn(client)?.accounts).toHaveLength(10);
     });
     expect(steps).toEqual(['backup Mine']);
 
