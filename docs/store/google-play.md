@@ -62,7 +62,7 @@ https://github.com/ggeorge76/track-worth
 closest to "Personal finance" and "Money tracker". Avoid budgeting or banking tags; the app
 does neither.
 
-**Contact details**: email (required, shown publicly): _owner to decide which address_.
+**Contact details**: email (required, shown publicly): `geo.krupa@gmail.com`.
 Website: `https://ggeorge76.github.io/track-worth/`. Privacy policy:
 `https://ggeorge76.github.io/track-worth/privacy/`.
 
@@ -97,7 +97,7 @@ personal finance _tracking_ tool where users enter their own figures. Select the
 doesn't provide any financial features" option if offered, otherwise "Personal finance:
 budgeting / tracking" without transactions.
 
-**Data safety**: conservative and honest. Data the user enters is sent off the device to
+**Data safety** (confirmed by the owner): conservative and honest. Data the user enters is sent off the device to
 their own Google Drive, so we declare it as collected even though the developer never
 receives it:
 
