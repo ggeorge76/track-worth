@@ -15,6 +15,7 @@
     "app:build": "tauri build",
     "android:dev": "tauri android dev",
     "android:build": "tauri android build --debug --apk --target aarch64",
+    "android:release": "tauri android build --aab",
     "tauri": "tauri",
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
     "lint": "eslint .",

@@ -40,6 +40,8 @@ keyring = "4.2.0"
 # Android sign-in through Google Play services (ADR-0019); our own plugin, in this repo.
 [target.'cfg(target_os = "android")'.dependencies]
 tauri-plugin-google-auth = { path = "plugins/google-auth" }
+# Android "Save to…" for exports (ADR-0016); our own plugin, in this repo.
+tauri-plugin-android-files = { path = "plugins/android-files" }
 
 [lints.rust]
 unsafe_code = "forbid"

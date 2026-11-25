@@ -46,6 +46,28 @@ Java 17.
   to the same OAuth client.
 - **Play:** Play-signed builds need another client entry with the Play App Signing SHA-1.
 
+## Release signing (Play upload key)
+
+- **The key:** Play requires a signed **app bundle (AAB)**. It's signed with our **upload key**,
+  and Google then re-signs the app for users ("Play App Signing").
+- **Where it lives:** outside the repo.
+  - `~/.android/trackworth-upload.jks` is the keystore (alias `upload`, RSA 4096).
+  - `~/.android/trackworth-upload.properties` holds `storeFile`, `storePassword`, `keyAlias` and
+    `keyPassword`.
+  - Both are readable only by you (`chmod 600`).
+- **Back up both files and the password** in a password manager. A lost upload key can be reset
+  through Play support, but that takes days.
+- **Build:** `bun run android:release` builds a signed AAB for all architectures into
+  `src-tauri/gen/android/app/build/outputs/bundle/universalRelease/`. Without the properties file,
+  the release build is left unsigned.
+- **CI** (later): set `TRACKWORTH_UPLOAD_STORE_FILE` (the keystore, decoded from a secret) and
+  `TRACKWORTH_UPLOAD_STORE_PASSWORD`, or point `TRACKWORTH_UPLOAD_PROPERTIES` at a properties
+  file.
+- **OAuth:** after the first upload, Play shows the **app signing key** SHA-1 (Setup → App
+  signing). Add it to the Android OAuth client for `com.trackworth.app`. To test a locally signed
+  release build, also add the upload key's SHA-1:
+  `keytool -list -v -keystore ~/.android/trackworth-upload.jks -alias upload | grep SHA1`.
+
 ## Connecting a phone (no root needed)
 
 1. **Developer options:** on the phone, open Settings → About phone and tap "Build number" 7
@@ -78,7 +100,13 @@ the headers and the bottom menu pad by `env(safe-area-inset-*)`.
 - **Status bar:** `MainActivity.kt` sets white status-bar icons, because the top edge is always
   the logo navy.
 
+## Exports on Android
+
+Export uses our own plugin `src-tauri/plugins/android-files`. It opens Android's "Save to…"
+document picker and writes the text to the chosen document, because the save dialog returns a
+`content://` address rather than a file path (ADR-0016). Only Rust calls it, so the UI has no
+file-system access.
+
 ## Known gaps (next steps)
 
-- **Export:** the save dialog returns a content URI on Android (ADR-0016 follow-up).
 - **Play:** release signing, the Play App Signing SHA-1 in the OAuth client, and store listing.

@@ -1,0 +1,18 @@
+[package]
+name = "tauri-plugin-android-files"
+version = "0.1.0"
+description = "TrackWorth's Android \"Save to…\" for exports (ADR-0016). Called from Rust only."
+edition = "2021"
+rust-version = "1.90"
+publish = false
+links = "tauri-plugin-android-files"
+
+[dependencies]
+tauri = { version = "2.12.7" }
+serde = { version = "1.0", features = ["derive"] }
+
+[build-dependencies]
+tauri-plugin = { version = "2.7.4", features = ["build"] }
+
+[lints.rust]
+unsafe_code = "forbid"
