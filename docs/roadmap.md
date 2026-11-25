@@ -25,7 +25,8 @@ Delivered as three PRs, each merged before the next:
    balance history, update-balance popup, swipe/keyboard previous/next, settings for the
    financial year (R-V1–R-V8, R-B1, R-C2, R-S6).
 
-Then: first release (secrets configured, installers tested on macOS, Windows and Linux).
+Then: first release v0.1.0 (release secrets configured 2026-11-25; installers to be tested on macOS,
+Windows and Linux).
 
 ## M2: Insights and polish
 
@@ -35,20 +36,32 @@ Then: first release (secrets configured, installers tested on macOS, Windows and
 - [ ] "Update all" quick-entry flow (R-B2)
 - [x] Export JSON and CSV (R-S2)
 - [x] Dark mode and a brighter visual refresh (R-S3)
-- [ ] Offline read-only mode from the last loaded data (N-8)
+- [x] Offline use: shows the device copy and keeps editing offline, uploads later (N-8, ADR-0015)
 - [ ] Publish releases only after all OS builds finish (draft → publish) (ADR-0007 follow-up)
 - [ ] OS code signing: Apple Developer ID + notarization, Windows signing (ADR-0008 follow-up)
 
 ## M3: Android
 
-- [ ] `tauri android init`, CI build of a signed APK/AAB attached to the GitHub Release (ADR-0009)
-- [ ] Android sign-in behind the same `auth_*` commands (ADR)
-- [ ] Android update flow: Play In-App Updates or a GitHub-Release APK, user-confirmed (ADR-0007)
-- [ ] Decide between Play Store and GitHub-only distribution (ADR)
+- [x] `tauri android init`, package `com.trackworth.app`, phone layout (safe areas, bottom menu)
+- [x] Android sign-in behind the same `auth_*` commands (ADR-0019)
+- [x] Export on Android ("Save to…" picker) and release signing with the Play upload key
+- [x] Distribution: Google Play (store listing drafted in `docs/store/google-play.md`)
+- [ ] CI build of the signed AAB (needs approval: workflow change)
+- [ ] Play Console: app created, internal test, Play App Signing SHA-1 in the OAuth client,
+      12-tester closed test for 14 days, then production
+- [ ] Android updates through Google Play (no in-app updater on Android)
+
+## Done beyond the plan
+
+- Base currency and conversion with Frankfurter rates, own rates, Currencies page (R-S1, R-S5,
+  ADR-0018)
+- Earlier net-worth history (monthly totals) on the chart (ADR-0017)
+- Main menu (header tabs / bottom bar), light/dark/system theme
 
 ## Later / ideas
 
+- Full CSV importer (#2)
+
 - Google Picker "open existing file" (R-S4)
-- Multi-currency totals with user-entered FX rates (R-S5)
 - ESLint import-boundary rule to enforce `features → services → domain`
 - PR-title lint for Conventional Commits
