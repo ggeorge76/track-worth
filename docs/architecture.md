@@ -18,6 +18,7 @@ flowchart LR
   rust -- "token exchange / refresh" --> google
   rust -- "HTTP plugin (allow-listed)" --> drive[(Google Drive<br/>TrackWorth/ settings, accounts,<br/>balances/year files)]
   rust -- "HTTP plugin" --> userinfo[Google userinfo]
+  rust -- "HTTP plugin: exchange rates (ADR-0018)" --> fx[Frankfurter]
   rust -- "updater: latest.json + signed bundle" --> gh[GitHub Releases]
 ```
 

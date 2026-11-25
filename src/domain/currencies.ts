@@ -1,11 +1,22 @@
 /** Currencies offered when creating or editing an account. */
 
 /** Shown first, in this order. */
-const COMMON = ['INR', 'USD', 'EUR', 'GBP', 'AED', 'SGD', 'AUD', 'CAD', 'JPY', 'CHF'];
+export const COMMON_CURRENCIES = [
+  'INR',
+  'USD',
+  'EUR',
+  'GBP',
+  'AED',
+  'SGD',
+  'AUD',
+  'CAD',
+  'JPY',
+  'CHF',
+];
 
 /** Used if the runtime can't list currencies (older webviews). */
 const FALLBACK = [
-  ...COMMON,
+  ...COMMON_CURRENCIES,
   'CNY',
   'HKD',
   'NZD',
@@ -38,8 +49,8 @@ export function currencyCodes(): string[] {
   } catch {
     all = FALLBACK;
   }
-  const rest = all.filter((c) => !COMMON.includes(c)).sort();
-  return [...COMMON, ...rest];
+  const rest = all.filter((c) => !COMMON_CURRENCIES.includes(c)).sort();
+  return [...COMMON_CURRENCIES, ...rest];
 }
 
 /** "INR · Indian Rupee" */

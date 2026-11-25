@@ -1,11 +1,12 @@
+import type { Converter } from './fx';
 import { LIQUIDITY_LABELS, type Liquidity } from './liquidity';
 import { latestBalance } from './netWorth';
 import type { Account, DataFile } from './schema';
 
 /**
- * Where the money sits (R-D5): current balances of active accounts in one currency, grouped by
- * tag or by liquidity, with assets and liabilities kept apart. Same accounts and balances as the
- * headline net worth; currencies are never mixed.
+ * Where the money sits (R-D5): current balances of active accounts, in the base currency at
+ * today's rates (ADR-0018), grouped by tag or by liquidity, with assets and liabilities kept
+ * apart. Same accounts, balances and rates as the headline net worth.
  */
 
 export type GroupBy = 'tag' | 'liquidity';
@@ -31,6 +32,8 @@ export interface BreakdownSection {
 export interface Breakdown {
   assets: BreakdownSection;
   liabilities: BreakdownSection;
+  /** Currencies left out because there's no exchange rate for them yet. */
+  unconverted: string[];
 }
 
 function groupOf(account: Account, groupBy: GroupBy) {
@@ -62,17 +65,25 @@ function section(items: { account: Account; amountMinor: number }[], groupBy: Gr
 
 export function breakdown(
   data: Pick<DataFile, 'accounts' | 'balances'>,
-  currency: string,
+  fx: Converter,
   groupBy: GroupBy,
+  today: string,
 ): Breakdown {
   const assets: { account: Account; amountMinor: number }[] = [];
   const liabilities: { account: Account; amountMinor: number }[] = [];
+  const unconverted = new Set<string>();
   for (const account of data.accounts) {
-    if (account.archived || account.currency !== currency) continue;
-    const entry = latestBalance(account.id, data.balances);
+    if (account.archived) continue;
+    const entry = latestBalance(account.id, data.balances, today);
     if (!entry) continue;
-    if (account.kind === 'asset') assets.push({ account, amountMinor: entry.amountMinor });
-    else liabilities.push({ account, amountMinor: -entry.amountMinor });
+    const amountMinor = fx.toBase(entry.amountMinor, account.currency, today);
+    if (amountMinor === null) unconverted.add(account.currency);
+    else if (account.kind === 'asset') assets.push({ account, amountMinor });
+    else liabilities.push({ account, amountMinor: -amountMinor });
   }
-  return { assets: section(assets, groupBy), liabilities: section(liabilities, groupBy) };
+  return {
+    assets: section(assets, groupBy),
+    liabilities: section(liabilities, groupBy),
+    unconverted: [...unconverted].sort(),
+  };
 }

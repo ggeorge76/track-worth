@@ -1,12 +1,20 @@
 import { useId, type ReactNode } from 'react';
-import { goBack } from '@/app/router';
+import { goBack, hrefFor } from '@/app/router';
 import { setPreference, useTheme, type ThemePreference } from '@/app/theme';
 import { useToday } from '@/app/useToday';
 import { Segmented } from '@/components/Segmented';
-import { BackIcon, CalendarIcon, MonitorIcon, MoonIcon, SunIcon } from '@/components/icons';
+import {
+  BackIcon,
+  CalendarIcon,
+  CoinsIcon,
+  MonitorIcon,
+  MoonIcon,
+  SunIcon,
+} from '@/components/icons';
 import { financialYearEnd, financialYearStart, formatIsoDate, monthNames } from '@/domain/dates';
 import type { DataFile } from '@/domain/schema';
-import { updateSettings } from '@/domain/settingsOps';
+import { currencyCodes, currencyLabel } from '@/domain/currencies';
+import { setBaseCurrency, updateSettings } from '@/domain/settingsOps';
 import { useUpdateDataFile } from '@/features/data/useDataFile';
 import { inputClass } from '../accounts/formParts';
 import { ExportSection } from './ExportSection';
@@ -74,6 +82,38 @@ export function SettingsPage({ data }: { data: DataFile }) {
             ]}
             onChange={setPreference}
           />
+        </SettingsCard>
+
+        <SettingsCard
+          icon={<CoinsIcon />}
+          tone="green"
+          title="Base currency"
+          description="Net worth, charts and insights are shown in this currency. Each account keeps its own."
+        >
+          <label htmlFor={`${fyId}-base`} className="sr-only">
+            Base currency
+          </label>
+          <select
+            id={`${fyId}-base`}
+            className={inputClass}
+            value={data.baseCurrency}
+            onChange={(e) => {
+              const code = e.target.value;
+              save.mutate((file) => setBaseCurrency(file, code));
+            }}
+          >
+            {currencyCodes().map((code) => (
+              <option key={code} value={code}>
+                {currencyLabel(code)}
+              </option>
+            ))}
+          </select>
+          <a
+            href={hrefFor({ name: 'currencies' })}
+            className="inline-flex text-sm font-semibold text-brand hover:underline"
+          >
+            Exchange rates and converter →
+          </a>
         </SettingsCard>
 
         <SettingsCard

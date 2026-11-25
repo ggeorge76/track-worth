@@ -12,7 +12,10 @@ import {
 import { LIQUIDITY_COLORS } from '@/domain/liquidity';
 import { formatMoney } from '@/domain/money';
 import type { DataFile } from '@/domain/schema';
-import { trendCurrencies } from '@/domain/trend';
+import { useToday } from '@/app/useToday';
+import { hasBalances } from '@/domain/netWorth';
+import { RatesNote } from '@/features/fx/RatesNote';
+import { useExchangeRates } from '@/features/fx/useExchangeRates';
 
 const percent = new Intl.NumberFormat(undefined, { style: 'percent', maximumFractionDigits: 0 });
 
@@ -120,12 +123,13 @@ function Section({
   );
 }
 
-/** Where the money sits (R-D5): by tag or by liquidity, one currency at a time. */
+/** Where the money sits (R-D5): by tag or by liquidity, in the base currency (ADR-0018). */
 export function InsightsPage({ data }: { data: DataFile }) {
-  const currencies = trendCurrencies(data);
-  const [picked, setPicked] = useState<string>();
+  const today = useToday();
+  const { fx, loaded } = useExchangeRates(data);
   const [groupBy, setGroupBy] = useState<GroupBy>('tag');
-  const currency = picked && currencies.includes(picked) ? picked : currencies[0];
+  const currency = fx.base;
+  const result = breakdown(data, fx, groupBy, today);
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 pb-10 pt-4">
@@ -141,7 +145,7 @@ export function InsightsPage({ data }: { data: DataFile }) {
         <h1 className="text-xl font-semibold">Insights</h1>
       </div>
 
-      {!currency ? (
+      {!hasBalances(data) ? (
         <p className="mt-10 text-center text-ink-muted">
           Nothing to show yet. Add a balance to an account to see where your money is.
         </p>
@@ -159,36 +163,20 @@ export function InsightsPage({ data }: { data: DataFile }) {
                 onChange={setGroupBy}
               />
             </div>
-            {currencies.length > 1 && (
-              <div className="w-48">
-                <Segmented
-                  label="Currency"
-                  value={currency}
-                  options={currencies.map((c) => ({ value: c, label: c }))}
-                  onChange={setPicked}
-                />
-              </div>
-            )}
           </div>
-          {(() => {
-            const result = breakdown(data, currency, groupBy);
-            return (
-              <>
-                <Section
-                  title="Assets"
-                  empty="No asset balances yet."
-                  section={result.assets}
-                  currency={currency}
-                />
-                <Section
-                  title="Liabilities"
-                  empty="No liability balances yet."
-                  section={result.liabilities}
-                  currency={currency}
-                />
-              </>
-            );
-          })()}
+          <RatesNote unconverted={result.unconverted} problem={loaded?.problem} />
+          <Section
+            title="Assets"
+            empty="No asset balances yet."
+            section={result.assets}
+            currency={currency}
+          />
+          <Section
+            title="Liabilities"
+            empty="No liability balances yet."
+            section={result.liabilities}
+            currency={currency}
+          />
         </>
       )}
     </div>

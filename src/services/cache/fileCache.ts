@@ -24,9 +24,12 @@ export function createMemoryCache(): FileCache {
 }
 
 const DB_NAME = 'trackworth';
-const DB_VERSION = 2;
-/** Object stores: the local copy of Drive files (ADR-0014) and the workspace (ADR-0015). */
-export const STORES = ['drive-files', 'workspace'] as const;
+const DB_VERSION = 3;
+/**
+ * Object stores: the local copy of Drive files (ADR-0014), the workspace (ADR-0015), and
+ * exchange rates with the user's own rates (ADR-0018; kept across sign-out, nothing personal).
+ */
+export const STORES = ['drive-files', 'workspace', 'fx'] as const;
 export type StoreName = (typeof STORES)[number];
 
 function promisify<T>(request: IDBRequest<T>): Promise<T> {

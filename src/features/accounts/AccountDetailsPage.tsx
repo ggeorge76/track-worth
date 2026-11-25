@@ -21,6 +21,7 @@ import { balanceStats } from '@/domain/stats';
 import { BalanceHistory } from './details/BalanceHistory';
 import { BalanceChart } from './details/BalanceChart';
 import { ChangeSummary, DeltaBadge } from './details/ChangeSummary';
+import { useExchangeRates } from '@/features/fx/useExchangeRates';
 import { DeleteAccountSheet } from './details/DeleteAccountSheet';
 import { EditAccountSheet, type EditableField } from './details/EditAccountSheet';
 import { UpdateBalanceSheet } from './details/UpdateBalanceSheet';
@@ -112,6 +113,16 @@ function NavButton({
  * previous/next account in balance-source order (R-C6). These replace the history entry, so
  * Back always returns to where you came from.
  */
+/** The balance in the base currency at today's rate (ADR-0018); the account keeps its own. */
+function BaseValue({ value, base }: { value: number | null; base: string }) {
+  if (value === null) return null;
+  return (
+    <p className="mt-2 inline-flex rounded-full bg-subtle px-3 py-1 text-sm text-ink-soft ring-1 ring-line">
+      ≈ {formatMoney(value, base)} at today’s rate
+    </p>
+  );
+}
+
 export function AccountDetailsPage({ data, accountId }: { data: DataFile; accountId: string }) {
   const today = useToday();
   const [popup, setPopup] = useState<Popup>({ kind: 'none' });
@@ -121,6 +132,7 @@ export function AccountDetailsPage({ data, accountId }: { data: DataFile; accoun
     setToast(null);
   }, []);
   const account = data.accounts.find((a) => a.id === accountId);
+  const { fx } = useExchangeRates(data);
 
   const ordered = orderByBalanceSource(data.accounts.filter((a) => !a.archived));
   const { previous, next } = adjacentAccounts(ordered, accountId);
@@ -270,6 +282,12 @@ export function AccountDetailsPage({ data, accountId }: { data: DataFile; accoun
         <p className="text-sm text-ink-muted">
           {current ? `Updated ${describeDateAgo(current.date, today)}` : 'No balance yet'}
         </p>
+        {current && account.currency !== fx.base && (
+          <BaseValue
+            value={fx.toBase(current.amountMinor, account.currency, today)}
+            base={fx.base}
+          />
+        )}
       </section>
 
       <ChangeSummary

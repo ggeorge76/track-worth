@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { formatIsoDate as d } from '@/domain/dates';
 import type { DataFile } from '@/domain/schema';
 import { makeAccount, makeEntry, makeFile } from '@/test/builders';
+import { createConverter, sameCurrencyConverter, type Converter } from '@/domain/fx';
 import { NetWorthTrend } from './NetWorthTrend';
 
 beforeEach(() => {
@@ -25,9 +26,9 @@ const data = makeFile({
   ],
 });
 
-function show(file: DataFile = data) {
+function show(file: DataFile = data, fx: Converter = sameCurrencyConverter('USD')) {
   const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime.bind(vi) });
-  render(<NetWorthTrend data={file} />);
+  render(<NetWorthTrend data={file} fx={fx} />);
   return user;
 }
 
@@ -37,7 +38,9 @@ const pill = (text: string) => (_: string, el: Element | null) =>
 
 describe('NetWorthTrend', () => {
   it('shows nothing without balances', () => {
-    const { container } = render(<NetWorthTrend data={makeFile()} />);
+    const { container } = render(
+      <NetWorthTrend data={makeFile()} fx={sameCurrencyConverter('USD')} />,
+    );
     expect(container).toBeEmptyDOMElement();
   });
 
@@ -66,8 +69,15 @@ describe('NetWorthTrend', () => {
     expect(screen.getByText('in the last month')).toBeInTheDocument();
   });
 
-  it('charts one currency at a time', async () => {
-    const user = show(
+  it('shows every currency in the base currency', () => {
+    // 1 USD = 0.5 EUR, so 1 EUR = $2.
+    const fx = createConverter(
+      'USD',
+      { base: 'USD', latest: { date: '2026-11-23', rates: { EUR: 0.5 } }, monthly: {} },
+      {},
+      '2026-11-23',
+    );
+    show(
       makeFile({
         accounts: [
           makeAccount({ id: 'usd', currency: 'USD' }),
@@ -79,12 +89,11 @@ describe('NetWorthTrend', () => {
           makeEntry({ accountId: 'eur', date: '2026-11-01', amountMinor: 1400 }),
         ],
       }),
+      fx,
     );
-    expect(screen.getByRole('radio', { name: 'USD' })).toBeChecked();
-    expect(screen.queryByText(/\+/)).not.toBeInTheDocument(); // no change in USD
-    await user.click(screen.getByRole('radio', { name: 'EUR' }));
-    expect(screen.getByText(pill('▲ +€7.00 (+100%)'))).toBeInTheDocument();
-    expect(screen.getByText(`since ${d('2026-01-31')}`)).toBeInTheDocument();
+    expect(screen.queryByRole('radio', { name: 'EUR' })).not.toBeInTheDocument();
+    expect(screen.getByText(pill('▲ +$14.00 (+93.3%)'))).toBeInTheDocument();
+    expect(screen.getByText('Assets').parentElement).toHaveTextContent('Assets$29.00');
   });
 
   it('marks earlier imported history', async () => {

@@ -95,6 +95,9 @@ by date.
 In memory the app works with one combined dataset (`DataFile`): `schemaVersion`, `updatedAt`
 (latest of the files), `baseCurrency`, `settings`, `accounts`, `balances`, `netWorthHistory`.
 
+`baseCurrency` is the currency totals, charts and insights are shown in. Other currencies are
+converted with exchange rates kept on the device, never stored in Drive (ADR-0018).
+
 ### Settings
 
 | Field                     | Type     | Notes                                                                  |
@@ -156,7 +159,8 @@ All in [`src/domain/`](../src/domain/):
   - the last entry dated before the current financial year.
 - **All-time high:** assets: highest balance. Liabilities: peak debt (most negative). Ties go to
   the earliest date.
-- **Net worth:** sum of active accounts' current balances, per currency (`netWorthByCurrency()`).
+- **Net worth:** sum of active accounts' current balances, converted to the base currency at
+  today's rate (`netWorthInBase()`, ADR-0018).
 - **Balance-source order:** grouped by source alphabetically (no source last), then by name
   (`orderByBalanceSource()`). Used for previous/next on the details page.
 

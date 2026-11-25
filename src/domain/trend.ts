@@ -1,6 +1,7 @@
 import { addMonths, endOfMonth, financialYearStart, startOfMonth } from './dates';
 import { percentChange } from './money';
-import type { AccountKind, BalanceEntry, DataFile } from './schema';
+import type { Converter } from './fx';
+import type { AccountKind, BalanceEntry, DataFile, HistoryPoint } from './schema';
 
 /**
  * Net worth over time (R-D3) and the change over the shown period (R-D4).
@@ -8,7 +9,8 @@ import type { AccountKind, BalanceEntry, DataFile } from './schema';
  * Honest-numbers rules (SOUL.md):
  * - An account's balance on a date is its latest entry on or before that date (carried forward).
  *   Nothing is interpolated or projected. Before an account's first entry it counts as nothing.
- * - One currency per series; currencies are never mixed.
+ * - Everything is shown in the base currency: each balance is valued at the rate for the date
+ *   being plotted (ADR-0018). A currency without a rate is left out and reported, never guessed.
  * - Uses the same accounts as the headline net worth (archived accounts are left out), so the
  *   last point always equals the number shown above the chart.
  */
@@ -19,7 +21,7 @@ export const DEFAULT_TREND_RANGE: TrendRange = '1Y';
 
 export interface TrendPoint {
   date: string;
-  /** `null` before any account in this currency has a balance (and no earlier history). */
+  /** In the base currency. `null` before any account has a balance (and no earlier history). */
   netMinor: number | null;
   /** From earlier net-worth history (ADR-0017), not from accounts. Drawn lighter. */
   imported?: true;
@@ -31,20 +33,8 @@ export interface Trend {
   change?: { fromDate: string; deltaMinor: number; percent: number | null };
   /** Start of the current financial year, when it falls inside the range (drawn as a line). */
   financialYearStart?: string;
-}
-
-/** Currencies that have a net worth to chart: the base currency first, then A–Z. */
-export function trendCurrencies(
-  data: Pick<DataFile, 'accounts' | 'balances' | 'baseCurrency' | 'netWorthHistory'>,
-) {
-  const withEntries = new Set(data.balances.map((e) => e.accountId));
-  const currencies = new Set([
-    ...data.accounts.filter((a) => !a.archived && withEntries.has(a.id)).map((a) => a.currency),
-    ...data.netWorthHistory.map((p) => p.currency),
-  ]);
-  return [...currencies].sort((a, b) =>
-    a === data.baseCurrency ? -1 : b === data.baseCurrency ? 1 : a.localeCompare(b),
-  );
+  /** Currencies left out of some points for lack of an exchange rate (ADR-0018). */
+  unconverted?: string[];
 }
 
 /** First date shown for a range; `All` starts at the earliest entry. */
@@ -86,64 +76,86 @@ function monthEnds(start: string, today: string): string[] {
 
 export function netWorthTrend(
   data: Pick<DataFile, 'accounts' | 'balances' | 'settings' | 'netWorthHistory'>,
-  options: { currency: string; range: TrendRange; today: string },
+  options: { fx: Converter; range: TrendRange; today: string },
 ): Trend {
-  const { currency, range, today } = options;
-  const accountIds = new Set(
-    data.accounts.filter((a) => !a.archived && a.currency === currency).map((a) => a.id),
+  const { fx, range, today } = options;
+  const currencyOf = new Map(
+    data.accounts.filter((a) => !a.archived).map((a) => [a.id, a.currency]),
   );
   // Entries per account, oldest first (one entry per account per day, enforced by the schema).
   const histories = new Map<string, BalanceEntry[]>();
   for (const entry of data.balances) {
-    if (!accountIds.has(entry.accountId) || entry.date > today) continue;
+    if (!currencyOf.has(entry.accountId) || entry.date > today) continue;
     const list = histories.get(entry.accountId) ?? [];
     list.push(entry);
     histories.set(entry.accountId, list);
   }
   const all = [...histories.values()].flat();
   for (const list of histories.values()) list.sort((a, b) => a.date.localeCompare(b.date));
-  // Earlier monthly totals (ADR-0017) fill only the time before the first account entry.
-  const imported = data.netWorthHistory
-    .filter((p) => p.currency === currency && p.date <= today)
-    .sort((a, b) => a.date.localeCompare(b.date));
+  // Earlier monthly totals (ADR-0017), per currency, fill only the time before the first entry.
+  const imported = new Map<string, HistoryPoint[]>();
+  for (const point of data.netWorthHistory) {
+    if (point.date > today) continue;
+    const list = imported.get(point.currency) ?? [];
+    list.push(point);
+    imported.set(point.currency, list);
+  }
+  for (const list of imported.values()) list.sort((a, b) => a.date.localeCompare(b.date));
+  const importedDates = [...imported.values()].flat().map((p) => p.date);
+
   const firstEntry = all.reduce<string | undefined>(
     (min, e) => (min === undefined || e.date < min ? e.date : min),
     undefined,
   );
-  const earliest = [imported[0]?.date, firstEntry]
+  const earliest = [...importedDates, firstEntry]
     .filter((d): d is string => d !== undefined)
     .sort()[0];
   if (earliest === undefined) return { points: [] };
 
   const start = rangeStart(range, today, earliest);
-  const dates = sampleDates(start, today, range, [
-    ...all.map((e) => e.date),
-    ...imported.map((p) => p.date),
-  ]);
+  const dates = sampleDates(start, today, range, [...all.map((e) => e.date), ...importedDates]);
 
-  // Sweep the dates in order, moving each pointer forward (linear in entries).
-  const cursor = new Map<string, number>();
-  let importedAt = -1;
+  // Sweep the dates in order, moving each pointer forward (linear in entries). Each balance is
+  // valued at the sample date's rate.
+  const unconverted = new Set<string>();
+  const latestOn = <T extends { date: string }>(
+    cursor: Map<string, number>,
+    key: string,
+    list: readonly T[],
+    date: string,
+  ): T | undefined => {
+    let i = cursor.get(key) ?? -1;
+    for (let next = list[i + 1]; next && next.date <= date; next = list[i + 1]) i++;
+    cursor.set(key, i);
+    return list[i];
+  };
+  const entryCursor = new Map<string, number>();
+  const importedCursor = new Map<string, number>();
   const points = dates.map((date): TrendPoint => {
     let sum = 0;
     for (const [id, list] of histories) {
-      let i = cursor.get(id) ?? -1;
-      for (let next = list[i + 1]; next && next.date <= date; next = list[i + 1]) i++;
-      cursor.set(id, i);
-      const entry = list[i];
-      if (entry) sum += entry.amountMinor;
+      const entry = latestOn(entryCursor, id, list, date);
+      if (!entry) continue;
+      const currency = currencyOf.get(id) as string;
+      const amount = fx.toBase(entry.amountMinor, currency, date);
+      if (amount === null) unconverted.add(currency);
+      else sum += amount;
     }
     if (firstEntry !== undefined && date >= firstEntry) return { date, netMinor: sum };
-    for (let next = imported[importedAt + 1]; next && next.date <= date;) {
-      importedAt++;
-      next = imported[importedAt + 1];
-    }
-    const total = imported[importedAt];
     // Before the first entry no account has a balance yet, so only imported totals can show.
-    return total ? { date, netMinor: total.amountMinor, imported: true } : { date, netMinor: null };
+    let total: number | null = null;
+    for (const [currency, list] of imported) {
+      const point = latestOn(importedCursor, currency, list, date);
+      if (!point) continue;
+      const amount = fx.toBase(point.amountMinor, currency, date);
+      if (amount === null) unconverted.add(currency);
+      else total = (total ?? 0) + amount;
+    }
+    return total === null ? { date, netMinor: null } : { date, netMinor: total, imported: true };
   });
 
   const trend: Trend = { points };
+  if (unconverted.size > 0) trend.unconverted = [...unconverted].sort();
   const first = points.find((p) => p.netMinor !== null);
   const last = points.at(-1);
   if (first && last && first !== last && first.netMinor !== null && last.netMinor !== null) {

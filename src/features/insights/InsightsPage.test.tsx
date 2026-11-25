@@ -54,12 +54,16 @@ describe('InsightsPage', () => {
     expect(rows('Liabilities')).toEqual(['1 · Very low · 1 account$400.00100%']);
   });
 
-  it('shows one currency at a time, and says when a section is empty', async () => {
+  it('leaves out a currency it can’t convert, says so, and says when a section is empty', async () => {
     window.history.replaceState({ idx: 1 }, '', '#/insights');
-    const user = userEvent.setup();
-    renderWithData(<Routes />, data);
-    await user.click(screen.getByRole('radio', { name: 'EUR' }));
-    expect(rows('Assets')).toEqual(['Cash · 1 account€10.00100%']);
+    renderWithData(<Routes />, {
+      ...data,
+      accounts: data.accounts.filter((a) => a.kind === 'asset'),
+      balances: data.balances.filter((e) => e.accountId !== 'loan'),
+    });
+    expect(await screen.findByRole('note')).toHaveTextContent(
+      'Not included: EUR (no exchange rate yet).',
+    );
     expect(section('Liabilities')).toHaveTextContent('No liability balances yet.');
   });
 

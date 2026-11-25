@@ -100,14 +100,14 @@ how each account and their total net worth change over time. All data lives in r
 
 ### Settings & data
 
-| ID   | Requirement                                                                               | Status |
-| ---- | ----------------------------------------------------------------------------------------- | ------ |
-| R-S1 | Choose the base currency.                                                                 | ⬜     |
-| R-S2 | Export everything as JSON and the balances as CSV, saved where the user picks (ADR-0016). | ✅     |
-| R-S3 | Light and dark theme, following the system by default (Settings → Appearance).            | ✅     |
-| R-S4 | "Open existing file" via Google Picker, to restore a manually uploaded backup (ADR-0005). | 💭     |
-| R-S5 | Multi-currency net worth with user-entered exchange rates.                                | 💭     |
-| R-S6 | Financial year start month (default April, i.e. April–March). Used by R-V2.               | ✅     |
+| ID   | Requirement                                                                                                                           | Status |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| R-S1 | Choose the base currency (Settings); totals, charts and insights use it (ADR-0018).                                                   | ✅     |
+| R-S2 | Export everything as JSON and the balances as CSV, saved where the user picks (ADR-0016).                                             | ✅     |
+| R-S3 | Light and dark theme, following the system by default (Settings → Appearance).                                                        | ✅     |
+| R-S4 | "Open existing file" via Google Picker, to restore a manually uploaded backup (ADR-0005).                                             | 💭     |
+| R-S5 | Multi-currency net worth: rates from Frankfurter, with your own rates as overrides; a Currencies page converts any amount (ADR-0018). | ✅     |
+| R-S6 | Financial year start month (default April, i.e. April–March). Used by R-V2.                                                           | ✅     |
 
 ## Non-functional requirements
 
