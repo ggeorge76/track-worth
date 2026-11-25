@@ -10,3 +10,6 @@ src-tauri/icons
 
 # Google Search Console verification files must stay byte-for-byte as downloaded
 site/google*.html
+
+# Written by release-please (ADR-0010); its format isn't Prettier's.
+CHANGELOG.md
