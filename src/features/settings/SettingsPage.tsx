@@ -19,6 +19,7 @@ import { useUpdateDataFile } from '@/features/data/useDataFile';
 import { inputClass } from '../accounts/formParts';
 import { ExportSection } from './ExportSection';
 import { HistoryImportSection } from './HistoryImportSection';
+import { SampleDataSection } from './SampleDataSection';
 import { SettingsCard } from './SettingsCard';
 
 function Choice({ icon, text }: { icon: ReactNode; text: string }) {
@@ -151,6 +152,7 @@ export function SettingsPage({ data }: { data: DataFile }) {
 
         {/* One-time import until the full importer exists (ADR-0017, #2). */}
         {import.meta.env.DEV && <HistoryImportSection data={data} />}
+        {import.meta.env.DEV && <SampleDataSection data={data} />}
       </div>
     </div>
   );
