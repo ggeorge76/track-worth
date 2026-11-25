@@ -4,6 +4,7 @@
     ".": {
       "release-type": "node",
       "release-as": "0.1.0",
+      "include-component-in-tag": false,
       "package-name": "trackworth",
       "changelog-path": "CHANGELOG.md",
       "bump-minor-pre-major": true,
