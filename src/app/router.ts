@@ -129,3 +129,17 @@ export function useBackShortcuts(): void {
     };
   }, []);
 }
+
+/**
+ * Every screen opens at the top, including when going back: scroll positions aren't carried
+ * from one page to the next.
+ */
+export function useScrollToTop(route: Route): void {
+  const key = hrefFor(route);
+  useEffect(() => {
+    window.history.scrollRestoration = 'manual';
+  }, []);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [key]);
+}

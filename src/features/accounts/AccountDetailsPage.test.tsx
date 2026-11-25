@@ -232,8 +232,30 @@ describe('AccountDetailsPage', () => {
     const down = createEvent.pointerDown(page, { clientX: 50, clientY: 300 });
     const up = createEvent.pointerUp(page, { clientX: 220, clientY: 310 });
     fireEvent(page, down);
+    fireEvent(page, createEvent.pointerMove(page, { clientX: 150, clientY: 305 }));
+    expect(page.style.transform).toBe('translateX(100px)'); // follows the finger
     fireEvent(page, up);
     expect(await screen.findByRole('heading', { name: /Axis card/ })).toBeInTheDocument();
+    // The previous account slides in from the left.
+    const next = screen.getByRole('heading', { name: /Axis card/ }).closest('div.mx-auto');
+    expect(next).toHaveClass('slide-in-from-left');
+    expect((next as HTMLElement).style.transform).toBe(''); // no transform at rest
+
+    // First account: nothing to the right, so the drag resists and springs back.
+    fireEvent(
+      next as HTMLElement,
+      createEvent.pointerDown(next as HTMLElement, { clientX: 50, clientY: 300 }),
+    );
+    fireEvent(
+      next as HTMLElement,
+      createEvent.pointerMove(next as HTMLElement, { clientX: 250, clientY: 300 }),
+    );
+    expect((next as HTMLElement).style.transform).toBe('translateX(50px)');
+    fireEvent(
+      next as HTMLElement,
+      createEvent.pointerUp(next as HTMLElement, { clientX: 250, clientY: 300 }),
+    );
+    expect(screen.getByRole('heading', { name: /Axis card/ })).toBeInTheDocument();
   });
 });
 

@@ -80,3 +80,16 @@ export function formatPercent(percent: number, locale?: string): string {
     }).format(percent) + '%'
   );
 }
+
+/**
+ * An amount for an editable field, grouped the reader's way ("1,00,000" or "100,000"), with
+ * decimals only when there are any ("12.50"). Parse it back with `parseMoneyInput`.
+ */
+export function formatAmountInput(amountMinor: number, currency: string, locale?: string): string {
+  const digits = fractionDigits(currency);
+  const decimals = amountMinor % 10 ** digits === 0 ? 0 : digits;
+  return new Intl.NumberFormat(locale, {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  }).format(amountMinor / 10 ** digits);
+}

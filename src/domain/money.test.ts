@@ -1,4 +1,5 @@
 import {
+  formatAmountInput,
   formatMoney,
   formatPercent,
   formatSignedMoney,
@@ -68,5 +69,20 @@ describe('minorToDecimal', () => {
     expect(minorToDecimal(-5, 'USD')).toBe('-0.05');
     expect(minorToDecimal(0, 'USD')).toBe('0.00');
     expect(minorToDecimal(-1500, 'JPY')).toBe('-1500');
+  });
+});
+
+describe('formatAmountInput', () => {
+  it('groups digits and shows decimals only when there are any', () => {
+    expect(formatAmountInput(1_000_000_00, 'INR', 'en-IN')).toBe('10,00,000');
+    expect(formatAmountInput(1_000_000_00, 'USD', 'en-US')).toBe('1,000,000');
+    expect(formatAmountInput(12_50, 'USD', 'en-US')).toBe('12.50');
+    expect(formatAmountInput(1_500, 'JPY', 'en-US')).toBe('1,500');
+  });
+
+  it('parses back to the same amount', () => {
+    expect(parseMoneyInput(formatAmountInput(1_234_567_89, 'INR', 'en-IN'), 'INR')).toBe(
+      1_234_567_89,
+    );
   });
 });

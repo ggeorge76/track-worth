@@ -1,5 +1,14 @@
 import { act, renderHook } from '@testing-library/react';
-import { goBack, hrefFor, navigate, parseHash, useHistoryIndex, useRoute } from './router';
+import {
+  goBack,
+  hrefFor,
+  navigate,
+  parseHash,
+  useHistoryIndex,
+  useRoute,
+  useScrollToTop,
+  type Route,
+} from './router';
 
 describe('parseHash / hrefFor', () => {
   it.each([
@@ -76,5 +85,25 @@ describe('navigation and back', () => {
       goBack();
     });
     expect(window.location.hash).toBe('#/');
+  });
+});
+
+describe('useScrollToTop', () => {
+  it('scrolls to the top whenever the page changes', () => {
+    const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
+    const { rerender } = renderHook(
+      ({ route }: { route: Route }) => {
+        useScrollToTop(route);
+      },
+      { initialProps: { route: { name: 'home' } as Route } },
+    );
+    expect(scrollTo).toHaveBeenCalledTimes(1);
+    rerender({ route: { name: 'home' } });
+    expect(scrollTo).toHaveBeenCalledTimes(1); // same page: stays put
+    rerender({ route: { name: 'insights' } });
+    rerender({ route: { name: 'account', id: 'a' } });
+    expect(scrollTo).toHaveBeenCalledTimes(3);
+    expect(window.history.scrollRestoration).toBe('manual');
+    scrollTo.mockRestore();
   });
 });

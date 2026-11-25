@@ -1,14 +1,24 @@
 import { useId, useState } from 'react';
 import { goBack } from '@/app/router';
 import { BackIcon, PencilIcon } from '@/components/icons';
-import { COMMON_CURRENCIES, currencyLabel } from '@/domain/currencies';
+import { COMMON_CURRENCIES, currencyFlag, currencyLabel } from '@/domain/currencies';
 import { formatIsoDate } from '@/domain/dates';
 import { convertMinor } from '@/domain/fx';
-import { formatMoney, minorToInput, parseMoneyInput } from '@/domain/money';
+import { formatAmountInput, formatMoney, parseMoneyInput } from '@/domain/money';
 import type { DataFile } from '@/domain/schema';
 import { inputClass } from '@/features/accounts/formParts';
 import { useToday } from '@/app/useToday';
 import { useExchangeRates, useSetRateOverride, type ExchangeRates } from './useExchangeRates';
+
+/** The currency's flag (decorative: the code and name say which currency it is). */
+function Flag({ code }: { code: string }) {
+  const flag = currencyFlag(code);
+  return flag ? (
+    <span aria-hidden="true" className="mr-2">
+      {flag}
+    </span>
+  ) : null;
+}
 
 /** Shown on the page besides the user's own account currencies. */
 const LISTED = [
@@ -82,7 +92,10 @@ function RateRow({
           className="flex min-w-0 flex-1 items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-subtle disabled:cursor-default disabled:hover:bg-transparent"
         >
           <span className="min-w-0">
-            <span className="block font-medium text-ink">{currencyLabel(code)}</span>
+            <span className="block font-medium text-ink">
+              <Flag code={code} />
+              {currencyLabel(code)}
+            </span>
             <span className="block text-xs text-ink-muted">
               {rate === null ? (
                 'No rate yet'
@@ -191,7 +204,7 @@ export function CurrenciesPage({ data }: { data: DataFile }) {
   };
   const select = (code: string, valueMinor: number) => {
     setView(code === rates.base ? null : code);
-    setAmount(minorToInput(valueMinor, code));
+    setAmount(formatAmountInput(valueMinor, code));
   };
 
   return (
@@ -218,6 +231,7 @@ export function CurrenciesPage({ data }: { data: DataFile }) {
             htmlFor={amountId}
             className="text-xs font-semibold tracking-wider text-ink-muted uppercase"
           >
+            <Flag code={top} />
             Amount in {currencyLabel(top)}
           </label>
           {view !== null && (
@@ -226,7 +240,7 @@ export function CurrenciesPage({ data }: { data: DataFile }) {
               onClick={() => {
                 const back = amountMinor === null ? null : convertBack(amountMinor);
                 setView(null);
-                setAmount(back === null ? '1' : minorToInput(back, rates.base));
+                setAmount(back === null ? '1' : formatAmountInput(back, rates.base));
               }}
               className="shrink-0 rounded-full bg-brand-soft px-3 py-1 text-xs font-semibold text-brand-ink hover:bg-brand hover:text-white"
             >
@@ -241,6 +255,10 @@ export function CurrenciesPage({ data }: { data: DataFile }) {
           value={amount}
           onChange={(e) => {
             setAmount(e.target.value);
+          }}
+          onBlur={() => {
+            // Show what was typed grouped the reader's way (10,00,000), once they're done.
+            if (amountMinor !== null) setAmount(formatAmountInput(amountMinor, top));
           }}
         />
         {amountMinor === null && amount.trim() !== '' && (

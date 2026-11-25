@@ -28,7 +28,7 @@ const data = makeFile({ baseCurrency: 'INR', accounts: [makeAccount({ currency: 
 const row = (code: string) =>
   within(screen.getByRole('list', { name: 'Converted amounts' }))
     .getAllByRole('listitem')
-    .find((li) => li.textContent.startsWith(code)) as HTMLElement;
+    .find((li) => li.textContent.includes(`${code} ·`)) as HTMLElement;
 
 describe('CurrenciesPage', () => {
   it('converts the base amount into other currencies, and takes your own rate', async () => {
@@ -84,7 +84,23 @@ describe('CurrenciesPage', () => {
     expect(dataIn(client)?.baseCurrency).toBe('INR'); // settings unchanged
 
     await user.click(screen.getByRole('button', { name: 'Back to INR' }));
-    expect(screen.getByLabelText(/Amount in INR/)).toHaveValue('1000.00');
+    expect(screen.getByLabelText(/Amount in INR/)).toHaveValue('1,000');
+  });
+
+  it('shows flags, and groups the typed amount once done', async () => {
+    window.history.replaceState({ idx: 1 }, '', '#/currencies');
+    const user = userEvent.setup();
+    renderWithData(<Routes />, data);
+    await waitFor(() => {
+      expect(row('USD')).toHaveTextContent('🇺🇸');
+    });
+    expect(row('EUR')).toHaveTextContent('🇪🇺');
+    const amount = screen.getByLabelText(/Amount in INR/);
+    await user.clear(amount);
+    await user.type(amount, '1000000');
+    await user.tab();
+    expect(amount).toHaveValue('1,000,000');
+    expect(row('USD')).toHaveTextContent('$12,500.00');
   });
 
   it('flags an amount it can’t read', async () => {
