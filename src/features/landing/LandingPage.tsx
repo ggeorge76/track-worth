@@ -164,8 +164,7 @@ const FEATURES: [Icon.IconName, string, string, string?][] = [
   [
     'chart',
     'Wealth Growth Charts',
-    'See balances and net worth over months and years.',
-    'Coming soon',
+    'See your net worth and each account over months and years, with your financial year marked.',
   ],
   [
     'devices',
@@ -207,11 +206,11 @@ const FAQ: [string, string][] = [
   ],
   [
     'Can I export my information?',
-    'Yes. Your data is plain, readable JSON files in a TrackWorth folder in your Google Drive. Download or copy them whenever you like.',
+    'Yes. Your data is plain, readable JSON files in a TrackWorth folder in your Google Drive. You can also export everything as JSON, or your balances as CSV for a spreadsheet, from Settings.',
   ],
   [
     'Does TrackWorth support Indian investments?',
-    'Yes. Track the value of mutual funds, stocks, EPF, PPF, NPS and more, in rupees or any other currency.',
+    'Yes. Track the value of mutual funds, stocks, EPF, PPF, NPS and more, in rupees or any other currency, with totals shown in the currency you choose.',
   ],
   [
     'Can I use it on multiple devices?',
@@ -414,7 +413,7 @@ export function LandingPage() {
                   'Unified wealth dashboard',
                   'Automatic net worth calculation',
                   'Complete asset and liability tracking',
-                  'Clear summaries, with charts coming soon',
+                  'Charts over months and years',
                 ].map((t) => (
                   <li key={t} className="flex gap-3">
                     <span aria-hidden="true" className="text-emerald-300">
