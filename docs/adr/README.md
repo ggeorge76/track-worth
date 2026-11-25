@@ -25,3 +25,4 @@ this index. Accepted ADRs are immutable. Supersede them with a new ADR instead o
 | [0016](0016-export-via-native-save-dialog.md)            | Save exports with the system "Save as…" dialog, written by Rust                  | Proposed                                                           |
 | [0017](0017-earlier-net-worth-history.md)                | Keep earlier net-worth history as monthly totals, apart from accounts            | Proposed                                                           |
 | [0018](0018-currency-conversion.md)                      | Show totals in a base currency, with rates from Frankfurter                      | Proposed                                                           |
+| [0019](0019-android-google-sign-in.md)                   | Android sign-in with Google's native authorization API, with no stored tokens    | Proposed                                                           |
