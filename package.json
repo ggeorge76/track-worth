@@ -13,6 +13,8 @@
     "preview": "vite preview",
     "app:dev": "tauri dev",
     "app:build": "tauri build",
+    "android:dev": "tauri android dev",
+    "android:build": "tauri android build --debug --apk --target aarch64",
     "tauri": "tauri",
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
     "lint": "eslint .",

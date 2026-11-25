@@ -228,7 +228,7 @@ export function LandingPage() {
 
   return (
     <div ref={root} className="min-h-dvh bg-canvas text-ink">
-      <header className="sticky top-0 z-30 border-b border-line/80 bg-surface/90 backdrop-blur">
+      <header className="sticky top-0 z-30 border-b border-line/80 bg-surface/90 pt-[env(safe-area-inset-top)] backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
           <span className="flex items-center gap-2 font-semibold text-brand-ink">
             <img src={symbolUrl} alt="" width={28} height={28} className="h-7 w-7" />

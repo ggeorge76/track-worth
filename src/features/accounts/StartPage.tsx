@@ -40,8 +40,7 @@ export function StartPage({ data }: { data: DataFile }) {
   const showTotal = hasBalances(counted);
   const totals = netWorthInBase(counted, fx, today);
   const { groups, shown, total } = buildAccountList(data.accounts, data.balances, options);
-  // The app header is 56 px tall (h-14 in App.tsx).
-  const [headline, scrolledPast] = useOutOfView<HTMLDivElement>(56);
+  const [headline, scrolledPast] = useOutOfView<HTMLDivElement>();
   const netWorthText = showTotal ? formatMoney(totals.netMinor, fx.base) : '—';
   const openFilter = () => {
     setFilterOpen(true);
@@ -53,7 +52,7 @@ export function StartPage({ data }: { data: DataFile }) {
           repeats the heading's content, so it's hidden from assistive technology. */}
       <div
         aria-hidden="true"
-        className={`fixed inset-x-0 top-14 z-20 transition-all duration-200 ${
+        className={`fixed inset-x-0 top-[calc(3.5rem+env(safe-area-inset-top))] z-20 transition-all duration-200 ${
           scrolledPast
             ? 'translate-y-0 opacity-100'
             : 'pointer-events-none -translate-y-2 opacity-0'
