@@ -68,11 +68,11 @@ Website: `https://ggeorge76.github.io/track-worth/`. Privacy policy:
 
 ## Graphics checklist
 
-| Asset             | Spec                               | Source                                                                                                                                                      |
-| ----------------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| App icon          | 512×512 PNG, 32-bit                | `assets/branding/` symbol (export at 512)                                                                                                                   |
-| Feature graphic   | 1024×500 PNG/JPG, no transparency  | to make: navy background, symbol + "TrackWorth", tagline "Your net worth, in your own Drive"                                                                |
-| Phone screenshots | 2–8, 16:9 or 9:16, min 320 px side | from the phone (`adb exec-out screencap`): start page with chart, account details, Insights, Currencies, dark mode. **Use made-up data**, not real balances |
+| Asset             | Spec                                                 | Source                                                                                                                                                                                                                                                         |
+| ----------------- | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| App icon          | 512×512 PNG, 32-bit                                  | `assets/branding/` symbol (export at 512)                                                                                                                                                                                                                      |
+| Feature graphic   | 1024×500 PNG/JPG, no transparency                    | made: navy background, symbol + "TrackWorth", headline "Your net worth. Your data. Your Drive.", subline "Private · Manual · No bank logins", phone showing the home screen with sample data. No "Google" trademark in graphics, to avoid implying endorsement |
+| Phone screenshots | 2–8, long side at most 2× the short side, min 320 px | from the phone (`adb exec-out screencap`): start page with chart, account details, Insights, Currencies, dark mode. **Use made-up data**, not real balances                                                                                                    |
 
 ## Play Console forms: draft answers (owner to confirm)
 
