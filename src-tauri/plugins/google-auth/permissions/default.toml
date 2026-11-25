@@ -1,0 +1,3 @@
+[default]
+description = "No webview permissions: the plugin is only called from Rust (ADR-0019)."
+permissions = []

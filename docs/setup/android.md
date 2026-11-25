@@ -65,8 +65,20 @@ Then run `bun run android:dev` (hot reload), or `bun run android:build` and
 Android draws apps behind the status and navigation bars. The page uses `viewport-fit=cover`, and
 the headers and the bottom menu pad by `env(safe-area-inset-*)`.
 
+## Google sign-in on Android (ADR-0019)
+
+- **Plugin:** our own Tauri plugin `src-tauri/plugins/google-auth`, written in Kotlin, calls Google
+  Play services' `AuthorizationClient`. Only the app's Rust auth code calls it. The webview has no
+  access, so there are no new UI permissions.
+- **First sign-in** shows Google's account picker and consent. After that, tokens come silently
+  from Play services.
+- **What's stored:** only a `signed-in` flag in the app's data folder, no token.
+- **Requirements:** the phone needs Google Play services, and the Android OAuth client must list
+  the signing key's SHA-1 (above).
+- **Status bar:** `MainActivity.kt` sets white status-bar icons, because the top edge is always
+  the logo navy.
+
 ## Known gaps (next steps)
 
-- **Google sign-in:** the desktop loopback flow and the macOS keychain don't apply on Android.
-  The native sign-in and secure token storage come in an ADR to be proposed.
 - **Export:** the save dialog returns a content URI on Android (ADR-0016 follow-up).
+- **Play:** release signing, the Play App Signing SHA-1 in the OAuth client, and store listing.

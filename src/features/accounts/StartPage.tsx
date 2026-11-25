@@ -123,8 +123,8 @@ export function StartPage({ data }: { data: DataFile }) {
             >
               <WalletIcon />
               {shown === total
-                ? `${String(total)} accounts`
-                : `${String(shown)} of ${String(total)} accounts`}
+                ? `${String(total)} ${total === 1 ? 'account' : 'accounts'}`
+                : `${String(shown)} of ${String(total)} ${total === 1 ? 'account' : 'accounts'}`}
             </button>
             <button
               type="button"

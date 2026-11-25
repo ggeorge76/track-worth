@@ -143,6 +143,11 @@ describe('StartPage', () => {
     vi.unstubAllGlobals();
   });
 
+  it('says "1 account", not "1 accounts"', () => {
+    renderWithData(<Routes />, makeFile({ accounts: [makeAccount({ id: 'only' })] }));
+    expect(screen.getByRole('button', { name: /^1 account$/ })).toBeInTheDocument();
+  });
+
   it('shows a way out when filters match nothing', async () => {
     const user = userEvent.setup();
     renderWithData(<Routes />, file);

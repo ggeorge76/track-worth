@@ -80,7 +80,10 @@ src/                     React UI (runs in the Tauri webview)
   features/landing/      Page shown before sign-in. Claims must match what the app does today
   App.tsx, main.tsx      Composition root
 src-tauri/               Rust app shell
-  src/auth/              Google OAuth: loopback + PKCE, keychain storage, token refresh
+  src/auth/              Google OAuth: desktop loopback + PKCE + keychain (ADR-0004); Android via
+                         plugins/google-auth, Play services, no stored tokens (ADR-0019)
+  plugins/google-auth/   Our Android sign-in plugin (Kotlin + Rust bridge), called from Rust only
+  gen/android/           Generated Android project (package com.trackworth.app); see docs/setup/android.md
   src/export.rs          Save dialog + file write for exports (ADR-0016)
   src/config.rs          OAuth client compiled in by build.rs
   capabilities/          What the UI may do: URL allow-lists for HTTP/opener, updater, restart

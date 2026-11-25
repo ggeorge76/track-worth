@@ -24,7 +24,6 @@ tauri-plugin-log = "2"
 tauri-plugin-process = "2"
 tauri-plugin-http = "2"
 tauri-plugin-opener = "2"
-keyring = "4.2.0"
 tokio = { version = "1.54.1", features = ["net", "io-util", "time", "macros", "rt-multi-thread", "sync"] }
 sha2 = "0.11.1"
 base64 = "0.23.1"
@@ -35,6 +34,12 @@ tauri-plugin-dialog = "2"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-updater = "2"
+# Desktop sign-in keeps the refresh token in the OS keychain (ADR-0004).
+keyring = "4.2.0"
+
+# Android sign-in through Google Play services (ADR-0019); our own plugin, in this repo.
+[target.'cfg(target_os = "android")'.dependencies]
+tauri-plugin-google-auth = { path = "plugins/google-auth" }
 
 [lints.rust]
 unsafe_code = "forbid"
