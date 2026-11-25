@@ -216,7 +216,7 @@ export function StartPage({ data }: { data: DataFile }) {
         href={hrefFor({ name: 'new-account' })}
         aria-label="Add account"
         title="Add account"
-        className="fixed right-6 bottom-6 rounded-2xl bg-gradient-to-br from-accent-2 to-brand p-4 text-white shadow-lg shadow-brand/30 transition-transform hover:scale-105 hover:shadow-xl"
+        className="fixed right-6 bottom-[calc(5rem+env(safe-area-inset-bottom))] sm:bottom-6 rounded-2xl bg-gradient-to-br from-accent-2 to-brand p-4 text-white shadow-lg shadow-brand/30 transition-transform hover:scale-105 hover:shadow-xl"
       >
         <PlusIcon width={28} height={28} />
       </a>
