@@ -23,7 +23,7 @@ export function UpdatePrompt() {
       role="dialog"
       aria-live="polite"
       aria-label="Update available"
-      className="fixed inset-x-4 bottom-4 mx-auto max-w-md space-y-3 rounded-lg bg-slate-900 p-4 text-white shadow-lg"
+      className="fixed inset-x-4 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-40 sm:bottom-4 mx-auto max-w-md space-y-3 rounded-lg bg-slate-900 p-4 text-white shadow-lg"
     >
       <p>
         TrackWorth {update.version} is available.{' '}

@@ -114,3 +114,14 @@ export const CoinsIcon = (p: SVGProps<SVGSVGElement>) => (
     <path d="M15.5 9.3A6 6 0 1 1 9.3 15.5M9 6.5v5M7 8h3.5a1.5 1.5 0 0 1 0 3H7" />
   </svg>
 );
+export const HomeIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" />
+  </svg>
+);
+export const ChartIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M3 3v18h18" />
+    <path d="M7 15l4-4 3 3 5-6" />
+  </svg>
+);

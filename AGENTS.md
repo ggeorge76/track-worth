@@ -54,7 +54,8 @@ Framework-level dependencies (router, state library, UI kit, new Tauri plugin) n
 
 ```
 src/                     React UI (runs in the Tauri webview)
-  app/                   Router (hash routes + back button, ADR-0013), Routes, useToday
+  app/                   Router (hash routes + back button, ADR-0013), Routes, NavBar + the
+                         menu's page list (navigation.tsx: add new pages there), theme, useToday
   components/            Shared UI: Sheet (popup), Chip, Segmented, LiquidityPicker, icons
   test/                  Builders (made-up data), renderWithData, mockStore, fakeDriveApi
   config.ts              Frontend constants: fixed Drive path, GitHub repo

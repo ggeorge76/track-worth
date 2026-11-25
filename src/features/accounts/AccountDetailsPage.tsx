@@ -395,7 +395,7 @@ export function AccountDetailsPage({ data, accountId }: { data: DataFile; accoun
         onClick={() => {
           setPopup({ kind: 'balance' });
         }}
-        className="fixed bottom-6 right-6 rounded-2xl bg-brand px-6 py-4 text-lg font-medium text-white shadow-lg hover:bg-brand-strong"
+        className="fixed right-6 bottom-[calc(5rem+env(safe-area-inset-bottom))] sm:bottom-6 rounded-2xl bg-brand px-6 py-4 text-lg font-medium text-white shadow-lg hover:bg-brand-strong"
       >
         Update
       </button>
