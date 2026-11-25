@@ -1,4 +1,5 @@
 mod auth;
+#[cfg(desktop)]
 mod config;
 mod export;
 
@@ -14,6 +15,10 @@ pub fn run() {
     // Self-update from GitHub Releases (ADR-0007). Desktop only.
     #[cfg(desktop)]
     let builder = builder.plugin(tauri_plugin_updater::Builder::new().build());
+
+    // Google sign-in through Play services (ADR-0019).
+    #[cfg(target_os = "android")]
+    let builder = builder.plugin(tauri_plugin_google_auth::init());
 
     builder
         .manage(auth::AuthState::new())

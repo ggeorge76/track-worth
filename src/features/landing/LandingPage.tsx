@@ -228,6 +228,12 @@ export function LandingPage() {
 
   return (
     <div ref={root} className="min-h-dvh bg-canvas text-ink">
+      {/* On phones, the status bar area is navy like the app's header, so its white icons stay
+          readable (Android theme: light status-bar icons). Zero height on desktop. */}
+      <div
+        aria-hidden="true"
+        className="fixed inset-x-0 top-0 z-40 h-[env(safe-area-inset-top)] bg-header"
+      />
       <header className="sticky top-0 z-30 border-b border-line/80 bg-surface/90 pt-[env(safe-area-inset-top)] backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
           <span className="flex items-center gap-2 font-semibold text-brand-ink">

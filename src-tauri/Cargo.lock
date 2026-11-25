@@ -4650,6 +4650,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "tauri-plugin-google-auth"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "tauri",
+ "tauri-plugin",
+]
+
+[[package]]
 name = "tauri-plugin-http"
 version = "2.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5206,6 +5215,7 @@ dependencies = [
  "tauri",
  "tauri-build",
  "tauri-plugin-dialog",
+ "tauri-plugin-google-auth",
  "tauri-plugin-http",
  "tauri-plugin-log",
  "tauri-plugin-opener",

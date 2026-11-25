@@ -1,14 +1,20 @@
 //! Google OAuth endpoints for installed apps.
 //! <https://developers.google.com/identity/protocols/oauth2/native-app>
 
+#[cfg(desktop)]
 use serde::Deserialize;
 use tauri_plugin_http::reqwest;
+#[cfg(desktop)]
 use url::Url;
 
+#[cfg(desktop)]
 use super::error::AuthError;
+#[cfg(desktop)]
 use crate::config::OAuthClient;
 
+#[cfg(desktop)]
 const AUTH_ENDPOINT: &str = "https://accounts.google.com/o/oauth2/v2/auth";
+#[cfg(desktop)]
 const TOKEN_ENDPOINT: &str = "https://oauth2.googleapis.com/token";
 const REVOKE_ENDPOINT: &str = "https://oauth2.googleapis.com/revoke";
 
@@ -16,6 +22,7 @@ pub const DRIVE_SCOPE: &str = "https://www.googleapis.com/auth/drive.file";
 /// Least privilege (ADR-0004): profile for the user's name, drive.file for our one data file.
 pub const SCOPES: [&str; 4] = ["openid", "email", "profile", DRIVE_SCOPE];
 
+#[cfg(desktop)]
 #[derive(Debug, Deserialize)]
 pub struct TokenResponse {
     pub access_token: String,
@@ -24,12 +31,14 @@ pub struct TokenResponse {
     pub scope: Option<String>,
 }
 
+#[cfg(desktop)]
 #[derive(Debug, Deserialize)]
 struct ErrorResponse {
     error: String,
     error_description: Option<String>,
 }
 
+#[cfg(desktop)]
 pub fn authorization_url(
     client_id: &str,
     redirect_uri: &str,
@@ -51,10 +60,12 @@ pub fn authorization_url(
     url.into()
 }
 
+#[cfg(desktop)]
 pub fn has_scope(granted: Option<&str>, scope: &str) -> bool {
     granted.is_some_and(|s| s.split_whitespace().any(|g| g == scope))
 }
 
+#[cfg(desktop)]
 pub async fn exchange_code(
     http: &reqwest::Client,
     client: &OAuthClient,
@@ -76,6 +87,7 @@ pub async fn exchange_code(
     .await
 }
 
+#[cfg(desktop)]
 pub async fn refresh(
     http: &reqwest::Client,
     client: &OAuthClient,
@@ -93,7 +105,8 @@ pub async fn refresh(
     .await
 }
 
-/// Revoking the refresh token also invalidates its access tokens. Best effort.
+/// Revoking a refresh token (desktop) or an access token (Android) removes the app's grant, so
+/// all its tokens stop working. Best effort.
 pub async fn revoke(http: &reqwest::Client, token: &str) {
     let _ = http
         .post(REVOKE_ENDPOINT)
@@ -102,6 +115,7 @@ pub async fn revoke(http: &reqwest::Client, token: &str) {
         .await;
 }
 
+#[cfg(desktop)]
 async fn post_token(
     http: &reqwest::Client,
     params: &[(&str, &str)],
@@ -120,6 +134,7 @@ async fn post_token(
     parse_token_response(status.is_success(), &body)
 }
 
+#[cfg(desktop)]
 pub fn parse_token_response(success: bool, body: &str) -> Result<TokenResponse, AuthError> {
     if success {
         return serde_json::from_str(body)
@@ -133,7 +148,7 @@ pub fn parse_token_response(success: bool, body: &str) -> Result<TokenResponse, 
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, desktop))]
 mod tests {
     use super::*;
 
