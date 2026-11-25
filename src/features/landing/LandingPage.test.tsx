@@ -60,7 +60,7 @@ describe('LandingPage', () => {
     renderPage();
     const platforms = screen.getByRole('region', { name: 'Available Where You Need It' });
     expect(within(platforms).getByRole('heading', { name: /Android App/ })).toHaveTextContent(
-      'Coming soon',
+      'Coming soon to Google Play',
     );
     // Charts are built, so they're no longer marked as coming.
     expect(screen.getByRole('heading', { name: /Wealth Growth Charts/ })).not.toHaveTextContent(

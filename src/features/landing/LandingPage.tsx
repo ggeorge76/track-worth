@@ -7,7 +7,7 @@ import * as Icon from './landingIcons';
 
 /**
  * The page shown before sign-in. Claims here must stay true to what the app does today
- * (SOUL.md "Honest numbers"): sample data is labelled, Android and charts are marked "coming
+ * (SOUL.md "Honest numbers"): sample data is labelled, Android is marked "coming
  * soon", and there is no sign-up, pricing or testimonials, only "Sign In".
  */
 
@@ -169,7 +169,7 @@ const FEATURES: [Icon.IconName, string, string, string?][] = [
   [
     'devices',
     'Cross-Device Access',
-    'Your data syncs through your own Google Drive to every computer you use; Android is coming soon.',
+    'Your data syncs through your own Google Drive to every computer you use; Android is coming soon to Google Play.',
   ],
   [
     'shield',
@@ -214,7 +214,7 @@ const FAQ: [string, string][] = [
   ],
   [
     'Can I use it on multiple devices?',
-    'Yes. Install it on each computer and sign in with the same Google account. An Android app is coming soon.',
+    'Yes. Install it on each computer and sign in with the same Google account. An Android app is coming soon to Google Play.',
   ],
 ];
 
@@ -258,7 +258,7 @@ export function LandingPage() {
               </h1>
               <p className="mt-4 max-w-xl text-lg text-ink-muted">
                 Track assets, liabilities and investments, and watch your net worth grow. On Desktop
-                today, with Android coming soon.
+                today, with Android coming soon to Google Play.
               </p>
               <div className="mt-6 flex flex-wrap items-center gap-3">
                 <SignInButton large />
@@ -538,7 +538,7 @@ export function LandingPage() {
             </div>
             <div className="rounded-3xl bg-canvas p-6 ring-1 ring-line">
               <h3 className="flex items-center gap-2 font-semibold text-ink">
-                <Icon.Glyph name="phone" /> Android App <Badge>Coming soon</Badge>
+                <Icon.Glyph name="phone" /> Android App <Badge>Coming soon to Google Play</Badge>
               </h3>
               <p className="mt-1 text-sm text-ink-muted">
                 The same app and the same data, on your phone.
