@@ -1,17 +1,11 @@
 import { useState } from 'react';
 import { useToday } from '@/app/useToday';
-import { Segmented } from '@/components/Segmented';
 import { formatIsoDate } from '@/domain/dates';
 import { formatMoney, formatPercent, formatSignedMoney } from '@/domain/money';
-import { netWorthByCurrency } from '@/domain/netWorth';
+import type { Converter } from '@/domain/fx';
+import { netWorthInBase } from '@/domain/netWorth';
 import type { DataFile } from '@/domain/schema';
-import {
-  DEFAULT_TREND_RANGE,
-  netWorthTrend,
-  trendCurrencies,
-  type Trend,
-  type TrendRange,
-} from '@/domain/trend';
+import { DEFAULT_TREND_RANGE, netWorthTrend, type Trend, type TrendRange } from '@/domain/trend';
 import { TrendChart } from './TrendChart';
 
 const PERIOD: Record<TrendRange, string> = {
@@ -58,18 +52,16 @@ function ChangeLine({
 
 /**
  * Net worth over time (R-D3), the change over the range (R-D4) and assets/liabilities (R-D2),
- * shown under the headline number. One currency at a time; see domain/trend.ts for the rules.
+ * shown under the headline number, in the base currency (ADR-0018). See domain/trend.ts.
  */
-export function NetWorthTrend({ data }: { data: DataFile }) {
+export function NetWorthTrend({ data, fx }: { data: DataFile; fx: Converter }) {
   const today = useToday();
-  const currencies = trendCurrencies(data);
   const [range, setRange] = useState<TrendRange>(DEFAULT_TREND_RANGE);
-  const [picked, setPicked] = useState<string>();
-  const currency = picked && currencies.includes(picked) ? picked : currencies[0];
-  if (!currency) return null;
+  const currency = fx.base;
+  const trend = netWorthTrend(data, { fx, range, today });
+  if (trend.points.length === 0) return null;
 
-  const trend = netWorthTrend(data, { currency, range, today });
-  const totals = netWorthByCurrency(data)[currency];
+  const totals = netWorthInBase(data, fx, today);
   const first = trend.points.find((p) => p.netMinor !== null);
   const last = trend.points.at(-1);
   const summary =
@@ -79,16 +71,6 @@ export function NetWorthTrend({ data }: { data: DataFile }) {
 
   return (
     <div className="mt-2">
-      {currencies.length > 1 && (
-        <div className="mb-2 max-w-xs">
-          <Segmented
-            label="Chart currency"
-            value={currency}
-            options={currencies.map((c) => ({ value: c, label: c }))}
-            onChange={setPicked}
-          />
-        </div>
-      )}
       <ChangeLine trend={trend} range={range} currency={currency} />
       <TrendChart
         points={trend.points.map((p) => ({
@@ -103,28 +85,26 @@ export function NetWorthTrend({ data }: { data: DataFile }) {
         summary={summary}
         valueLabel="Net worth"
       />
-      {totals && (
-        <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-line pt-4 text-sm">
-          <div>
-            <dt className="flex items-center gap-1.5 text-ink-muted">
-              <span aria-hidden="true" className="h-2 w-2 rounded-full bg-positive" />
-              Assets
-            </dt>
-            <dd className="mt-0.5 font-semibold tabular-nums">
-              {formatMoney(totals.assetsMinor, currency)}
-            </dd>
-          </div>
-          <div>
-            <dt className="flex items-center gap-1.5 text-ink-muted">
-              <span aria-hidden="true" className="h-2 w-2 rounded-full bg-negative" />
-              Liabilities
-            </dt>
-            <dd className="mt-0.5 font-semibold tabular-nums">
-              {formatMoney(totals.liabilitiesMinor, currency)}
-            </dd>
-          </div>
-        </dl>
-      )}
+      <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-line pt-4 text-sm">
+        <div>
+          <dt className="flex items-center gap-1.5 text-ink-muted">
+            <span aria-hidden="true" className="h-2 w-2 rounded-full bg-positive" />
+            Assets
+          </dt>
+          <dd className="mt-0.5 font-semibold tabular-nums">
+            {formatMoney(totals.assetsMinor, currency)}
+          </dd>
+        </div>
+        <div>
+          <dt className="flex items-center gap-1.5 text-ink-muted">
+            <span aria-hidden="true" className="h-2 w-2 rounded-full bg-negative" />
+            Liabilities
+          </dt>
+          <dd className="mt-0.5 font-semibold tabular-nums">
+            {formatMoney(totals.liabilitiesMinor, currency)}
+          </dd>
+        </div>
+      </dl>
     </div>
   );
 }

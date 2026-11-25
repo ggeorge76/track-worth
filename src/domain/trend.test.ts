@@ -1,6 +1,7 @@
 import { makeAccount, makeEntry, makeFile } from '@/test/builders';
-import { netWorthByCurrency } from './netWorth';
-import { accountTrend, netWorthTrend, trendCurrencies } from './trend';
+import { netWorthInBase } from './netWorth';
+import { createConverter, sameCurrencyConverter } from './fx';
+import { accountTrend, netWorthTrend } from './trend';
 
 const TODAY = '2026-11-23';
 
@@ -9,7 +10,9 @@ const loan = makeAccount({ id: 'loan', kind: 'liability', currency: 'USD' });
 
 describe('netWorthTrend', () => {
   it('is empty with no balances in that currency', () => {
-    expect(netWorthTrend(makeFile(), { currency: 'USD', range: '1Y', today: TODAY })).toEqual({
+    expect(
+      netWorthTrend(makeFile(), { fx: sameCurrencyConverter('USD'), range: '1Y', today: TODAY }),
+    ).toEqual({
       points: [],
     });
   });
@@ -23,7 +26,11 @@ describe('netWorthTrend', () => {
         makeEntry({ accountId: 'loan', date: '2026-06-10', amountMinor: -500 }),
       ],
     });
-    const { points } = netWorthTrend(data, { currency: 'USD', range: '6M', today: TODAY });
+    const { points } = netWorthTrend(data, {
+      fx: sameCurrencyConverter('USD'),
+      range: '6M',
+      today: TODAY,
+    });
     expect(points).toEqual([
       { date: '2026-05-23', netMinor: 1000 },
       { date: '2026-05-31', netMinor: 1000 },
@@ -49,8 +56,9 @@ describe('netWorthTrend', () => {
         makeEntry({ accountId: 'eur', date: '2026-01-01', amountMinor: 55 }),
       ],
     });
-    const trend = netWorthTrend(data, { currency: 'USD', range: '1Y', today: TODAY });
-    expect(trend.points.at(-1)?.netMinor).toBe(netWorthByCurrency(data, TODAY).USD?.netMinor);
+    const fx = sameCurrencyConverter('USD');
+    const trend = netWorthTrend(data, { fx, range: '1Y', today: TODAY });
+    expect(trend.points.at(-1)?.netMinor).toBe(netWorthInBase(data, fx, TODAY).netMinor);
   });
 
   it('shows nothing before the first balance and measures change from the first one', () => {
@@ -61,7 +69,11 @@ describe('netWorthTrend', () => {
         makeEntry({ accountId: 'bank', date: '2026-11-01', amountMinor: 2500 }),
       ],
     });
-    const trend = netWorthTrend(data, { currency: 'USD', range: '1Y', today: TODAY });
+    const trend = netWorthTrend(data, {
+      fx: sameCurrencyConverter('USD'),
+      range: '1Y',
+      today: TODAY,
+    });
     expect(trend.points[0]).toEqual({ date: '2025-11-23', netMinor: null });
     expect(trend.change).toEqual({ fromDate: '2026-09-30', deltaMinor: 500, percent: 25 });
   });
@@ -74,7 +86,11 @@ describe('netWorthTrend', () => {
         makeEntry({ accountId: 'bank', date: '2026-12-01', amountMinor: 999 }),
       ],
     });
-    const trend = netWorthTrend(data, { currency: 'USD', range: '1M', today: TODAY });
+    const trend = netWorthTrend(data, {
+      fx: sameCurrencyConverter('USD'),
+      range: '1M',
+      today: TODAY,
+    });
     expect(trend.points.at(-1)?.netMinor).toBe(1);
   });
 
@@ -88,7 +104,11 @@ describe('netWorthTrend', () => {
         makeEntry({ accountId: 'bank', date: '2026-11-20', amountMinor: 300 }),
       ],
     });
-    const { points, change } = netWorthTrend(data, { currency: 'USD', range: '1M', today: TODAY });
+    const { points, change } = netWorthTrend(data, {
+      fx: sameCurrencyConverter('USD'),
+      range: '1M',
+      today: TODAY,
+    });
     expect(points.map((p) => [p.date, p.netMinor])).toEqual([
       ['2026-10-23', 100],
       ['2026-11-05', 150],
@@ -103,14 +123,22 @@ describe('netWorthTrend', () => {
       accounts: [bank],
       balances: [makeEntry({ accountId: 'bank', date: TODAY, amountMinor: 5 })],
     });
-    const trend = netWorthTrend(one, { currency: 'USD', range: 'All', today: TODAY });
+    const trend = netWorthTrend(one, {
+      fx: sameCurrencyConverter('USD'),
+      range: 'All',
+      today: TODAY,
+    });
     expect(trend).toEqual({ points: [{ date: TODAY, netMinor: 5 }] });
 
     const longer = makeFile({
       accounts: [bank],
       balances: [makeEntry({ accountId: 'bank', date: '2010-03-31', amountMinor: 5 })],
     });
-    const all = netWorthTrend(longer, { currency: 'USD', range: 'All', today: TODAY });
+    const all = netWorthTrend(longer, {
+      fx: sameCurrencyConverter('USD'),
+      range: 'All',
+      today: TODAY,
+    });
     expect(all.points[0]?.date).toBe('2010-03-31');
     expect(all.points[1]?.date).toBe('2010-04-30');
     expect(all.points).toHaveLength(2 + 199);
@@ -125,7 +153,7 @@ describe('netWorthTrend', () => {
     const at = (range: '1M' | '6M' | '1Y' | 'All', month = 4) =>
       netWorthTrend(
         { ...data, settings: { ...data.settings, financialYearStartMonth: month } },
-        { currency: 'USD', range, today: TODAY },
+        { fx: sameCurrencyConverter('USD'), range, today: TODAY },
       ).financialYearStart;
     expect(at('1Y')).toBe('2026-04-01');
     expect(at('6M')).toBeUndefined(); // 2026-05-23 onwards
@@ -149,7 +177,11 @@ describe('netWorthTrend with earlier history (ADR-0017)', () => {
       balances: [makeEntry({ accountId: 'bank', date: '2026-11-05', amountMinor: 1100 })],
       netWorthHistory: history(),
     });
-    const trend = netWorthTrend(data, { currency: 'USD', range: '6M', today: TODAY });
+    const trend = netWorthTrend(data, {
+      fx: sameCurrencyConverter('USD'),
+      range: '6M',
+      today: TODAY,
+    });
     expect(trend.points).toEqual([
       { date: '2026-05-23', netMinor: null },
       { date: '2026-05-31', netMinor: null },
@@ -167,7 +199,7 @@ describe('netWorthTrend with earlier history (ADR-0017)', () => {
     });
   });
 
-  it('starts All at the earliest history and ignores other currencies’ history', () => {
+  it('starts All at the earliest history, in any currency, and reports unconvertible ones', () => {
     const data = makeFile({
       accounts: [bank],
       balances: [makeEntry({ accountId: 'bank', date: '2026-11-05', amountMinor: 1100 })],
@@ -178,41 +210,32 @@ describe('netWorthTrend with earlier history (ADR-0017)', () => {
         (p, i, all) => all.findIndex((q) => q.currency === p.currency && q.date === p.date) === i,
       ),
     });
-    const trend = netWorthTrend(data, { currency: 'USD', range: 'All', today: TODAY });
-    expect(trend.points[0]).toEqual({ date: '2026-07-31', netMinor: 700, imported: true });
+    const trend = netWorthTrend(data, {
+      fx: sameCurrencyConverter('USD'),
+      range: 'All',
+      today: TODAY,
+    });
+    expect(trend.points[0]).toEqual({ date: '2001-01-31', netMinor: null });
+    expect(trend.points.find((p) => p.date === '2026-07-31')).toEqual({
+      date: '2026-07-31',
+      netMinor: 700,
+      imported: true,
+    });
+    expect(trend.unconverted).toEqual(['EUR']);
   });
 
   it('shows history alone when there are no account entries yet', () => {
     const data = makeFile({ netWorthHistory: history() });
-    const trend = netWorthTrend(data, { currency: 'USD', range: '1M', today: TODAY });
+    const trend = netWorthTrend(data, {
+      fx: sameCurrencyConverter('USD'),
+      range: '1M',
+      today: TODAY,
+    });
     expect(trend.points).toEqual([
       { date: '2026-10-23', netMinor: 800, imported: true },
       { date: '2026-10-31', netMinor: 1000, imported: true },
       { date: TODAY, netMinor: 1000, imported: true },
     ]);
-  });
-});
-
-describe('trendCurrencies', () => {
-  it('lists currencies with balances on active accounts, base currency first', () => {
-    const data = makeFile({
-      baseCurrency: 'USD',
-      accounts: [
-        makeAccount({ id: 'g', currency: 'GBP' }),
-        makeAccount({ id: 'u', currency: 'USD' }),
-        makeAccount({ id: 'e', currency: 'EUR' }),
-        makeAccount({ id: 'j', currency: 'JPY' }),
-        makeAccount({ id: 'x', currency: 'CHF', archived: true }),
-      ],
-      balances: ['g', 'u', 'e', 'x'].map((accountId) => makeEntry({ accountId })),
-    });
-    expect(trendCurrencies(data)).toEqual(['USD', 'EUR', 'GBP']);
-    expect(
-      trendCurrencies({
-        ...data,
-        netWorthHistory: [{ date: '2020-01-31', amountMinor: 1, currency: 'INR' }],
-      }),
-    ).toEqual(['USD', 'EUR', 'GBP', 'INR']);
   });
 });
 
@@ -265,5 +288,52 @@ describe('accountTrend', () => {
         { date: TODAY, valueMinor: 400, entry: false },
       ],
     });
+  });
+});
+
+describe('netWorthTrend in the base currency (ADR-0018)', () => {
+  it('values each balance at the rate for the plotted date, and reports what it can’t convert', () => {
+    const fx = createConverter(
+      'INR',
+      {
+        base: 'INR',
+        latest: { date: TODAY, rates: { USD: 0.0125 } },
+        monthly: { '2026-09': { USD: 0.01 }, '2026-10': { USD: 0.01 } },
+      },
+      {},
+      TODAY,
+    );
+    const data = makeFile({
+      accounts: [
+        makeAccount({ id: 'inr', currency: 'INR' }),
+        makeAccount({ id: 'usd', currency: 'USD' }),
+        makeAccount({ id: 'gbp', currency: 'GBP' }),
+      ],
+      balances: [
+        makeEntry({ accountId: 'inr', date: '2026-10-01', amountMinor: 1_000_00 }),
+        makeEntry({ accountId: 'usd', date: '2026-10-01', amountMinor: 10_00 }),
+        makeEntry({ accountId: 'gbp', date: '2026-10-01', amountMinor: 1_00 }),
+      ],
+      netWorthHistory: [{ date: '2026-09-30', amountMinor: 50_00, currency: 'USD' }],
+    });
+    const trend = netWorthTrend(data, { fx, range: '1M', today: TODAY });
+    expect(trend.points).toEqual([
+      { date: '2026-10-23', netMinor: 2_000_00 }, // $10 at 100 ₹/$ (October)
+      { date: TODAY, netMinor: 1_800_00 }, // $10 at 80 ₹/$ (now)
+    ]);
+    expect(trend.unconverted).toEqual(['GBP']);
+
+    const all = netWorthTrend(data, { fx, range: 'All', today: TODAY });
+    expect(all.points[0]).toEqual({ date: '2026-09-30', netMinor: 5_000_00, imported: true });
+    const noRate = netWorthTrend(
+      {
+        ...data,
+        balances: [],
+        netWorthHistory: [{ date: '2026-09-30', amountMinor: 1, currency: 'GBP' }],
+      },
+      { fx, range: 'All', today: TODAY },
+    );
+    expect(noRate.points.every((p) => p.netMinor === null)).toBe(true);
+    expect(noRate.unconverted).toEqual(['GBP']);
   });
 });

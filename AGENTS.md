@@ -71,8 +71,9 @@ src/                     React UI (runs in the Tauri webview)
                          (last synced data, pending changes, display name); cleared on sign-out
     update/              Wraps the Tauri updater + relaunch
     export/              Saves an export: Rust save dialog in the app, download in a browser
+    fx/                  Exchange rates (Frankfurter client, once-a-day device cache, own rates; ADR-0018)
   features/data/         useDataFile (load) + useUpdateDataFile (optimistic, serial, conflict-safe save)
-  features/<feature>/    Screens + hooks for one feature (accounts, auth, data, settings, update)
+  features/<feature>/    Screens + hooks for one feature (accounts, auth, data, fx, settings, update)
   features/landing/      Page shown before sign-in. Claims must match what the app does today
   App.tsx, main.tsx      Composition root
 src-tauri/               Rust app shell

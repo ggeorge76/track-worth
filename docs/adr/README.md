@@ -24,3 +24,4 @@ this index. Accepted ADRs are immutable. Supersede them with a new ADR instead o
 | [0015](0015-offline-editing-and-sync.md)                 | Offline editing: save on the device, upload when back online                     | Accepted                                                           |
 | [0016](0016-export-via-native-save-dialog.md)            | Save exports with the system "Save as…" dialog, written by Rust                  | Proposed                                                           |
 | [0017](0017-earlier-net-worth-history.md)                | Keep earlier net-worth history as monthly totals, apart from accounts            | Proposed                                                           |
+| [0018](0018-currency-conversion.md)                      | Show totals in a base currency, with rates from Frankfurter                      | Proposed                                                           |

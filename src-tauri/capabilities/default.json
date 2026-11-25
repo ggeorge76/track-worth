@@ -16,6 +16,9 @@
         },
         {
           "url": "https://openidconnect.googleapis.com/v1/userinfo"
+        },
+        {
+          "url": "https://api.frankfurter.dev/v2/*"
         }
       ]
     },

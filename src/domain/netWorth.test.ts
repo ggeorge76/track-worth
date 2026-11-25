@@ -1,17 +1,7 @@
-import { latestBalance, netWorthByCurrency } from './netWorth';
-import type { Account, BalanceEntry } from './schema';
-
-const account = (over: Partial<Account>): Account => ({
-  id: 'a',
-  name: 'A',
-  kind: 'asset',
-  tag: 'Cash',
-  liquidity: 3,
-  currency: 'USD',
-  archived: false,
-  createdAt: '2026-01-01T00:00:00.000Z',
-  ...over,
-});
+import { makeAccount, makeEntry } from '@/test/builders';
+import { createConverter } from './fx';
+import { hasBalances, latestBalance, netWorthInBase } from './netWorth';
+import type { BalanceEntry } from './schema';
 
 const entry = (over: Partial<BalanceEntry>): BalanceEntry => ({
   id: crypto.randomUUID(),
@@ -46,23 +36,42 @@ describe('latestBalance', () => {
   });
 });
 
-describe('netWorthByCurrency', () => {
-  it('subtracts liabilities, skips archived accounts and groups by currency', () => {
-    const accounts = [
-      account({ id: 'bank' }),
-      account({ id: 'card', kind: 'liability', tag: 'Debt' }),
-      account({ id: 'old', archived: true }),
-      account({ id: 'eur', currency: 'EUR' }),
-    ];
-    const balances = [
-      entry({ accountId: 'bank', amountMinor: 10_000 }),
-      entry({ accountId: 'card', amountMinor: -2_500 }),
-      entry({ accountId: 'old', amountMinor: 99_999 }),
-      entry({ accountId: 'eur', amountMinor: 700 }),
-    ];
-    expect(netWorthByCurrency({ accounts, balances })).toEqual({
-      USD: { assetsMinor: 10_000, liabilitiesMinor: -2_500, netMinor: 7_500 },
-      EUR: { assetsMinor: 700, liabilitiesMinor: 0, netMinor: 700 },
+describe('netWorthInBase', () => {
+  const fx = createConverter(
+    'INR',
+    { base: 'INR', latest: { date: '2026-11-25', rates: { USD: 0.0125 } }, monthly: {} },
+    {},
+    '2026-11-25',
+  );
+  const data = {
+    accounts: [
+      makeAccount({ id: 'inr', currency: 'INR' }),
+      makeAccount({ id: 'usd', currency: 'USD' }),
+      makeAccount({ id: 'loan', currency: 'USD', kind: 'liability' }),
+      makeAccount({ id: 'gbp', currency: 'GBP' }),
+      makeAccount({ id: 'old', currency: 'INR', archived: true }),
+      makeAccount({ id: 'new', currency: 'INR' }), // no balance yet
+    ],
+    balances: [
+      makeEntry({ accountId: 'inr', amountMinor: 1_000_00 }),
+      makeEntry({ accountId: 'usd', amountMinor: 10_00 }),
+      makeEntry({ accountId: 'loan', amountMinor: -1_00 }),
+      makeEntry({ accountId: 'gbp', amountMinor: 5_00 }),
+      makeEntry({ accountId: 'old', amountMinor: 9_00 }),
+    ],
+  };
+
+  it('converts every active account at the date’s rate and lists what it couldn’t convert', () => {
+    expect(netWorthInBase(data, fx, '2026-11-25')).toEqual({
+      assetsMinor: 1_800_00,
+      liabilitiesMinor: -80_00,
+      netMinor: 1_720_00,
+      unconverted: ['GBP'],
     });
+  });
+
+  it('knows whether there is anything to show', () => {
+    expect(hasBalances(data)).toBe(true);
+    expect(hasBalances({ accounts: data.accounts, balances: [] })).toBe(false);
   });
 });

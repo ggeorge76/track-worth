@@ -11,8 +11,10 @@ import {
   type ListOptions,
 } from '@/domain/accountList';
 import { formatMoney } from '@/domain/money';
-import { netWorthByCurrency } from '@/domain/netWorth';
+import { hasBalances, netWorthInBase } from '@/domain/netWorth';
 import type { DataFile } from '@/domain/schema';
+import { RatesNote } from '@/features/fx/RatesNote';
+import { useExchangeRates } from '@/features/fx/useExchangeRates';
 import { NetWorthTrend } from '@/features/trends/NetWorthTrend';
 import { useOutOfView } from './useOutOfView';
 import { AccountRow } from './AccountRow';
@@ -34,14 +36,13 @@ export function StartPage({ data }: { data: DataFile }) {
         netWorthHistory: [],
       }
     : data;
-  const totals = Object.entries(netWorthByCurrency(counted));
+  const { fx, loaded } = useExchangeRates(data);
+  const showTotal = hasBalances(counted);
+  const totals = netWorthInBase(counted, fx, today);
   const { groups, shown, total } = buildAccountList(data.accounts, data.balances, options);
   // The app header is 56 px tall (h-14 in App.tsx).
   const [headline, scrolledPast] = useOutOfView<HTMLDivElement>(56);
-  const netWorthText =
-    totals.length === 0
-      ? '—'
-      : totals.map(([currency, t]) => formatMoney(t.netMinor, currency)).join(' · ');
+  const netWorthText = showTotal ? formatMoney(totals.netMinor, fx.base) : '—';
   const openFilter = () => {
     setFilterOpen(true);
   };
@@ -81,7 +82,7 @@ export function StartPage({ data }: { data: DataFile }) {
           >
             Net worth{filtered && ' · filtered'}
           </h1>
-          {totals.length > 0 && (
+          {showTotal && (
             <a
               href={hrefFor({ name: 'insights' })}
               className="shrink-0 rounded-full bg-brand-soft px-3 py-1 text-xs font-semibold text-brand-ink hover:bg-brand hover:text-white"
@@ -91,20 +92,16 @@ export function StartPage({ data }: { data: DataFile }) {
           )}
         </div>
         <div ref={headline}>
-          {totals.length === 0 ? (
-            <p className="mt-1 text-4xl font-bold tracking-tight tabular-nums text-ink-faint">—</p>
+          {showTotal ? (
+            <p className="mt-1 text-4xl font-bold tracking-tight tabular-nums sm:text-5xl">
+              {formatMoney(totals.netMinor, fx.base)}
+            </p>
           ) : (
-            totals.map(([currency, t]) => (
-              <p
-                key={currency}
-                className="mt-1 text-4xl font-bold tracking-tight tabular-nums sm:text-5xl"
-              >
-                {formatMoney(t.netMinor, currency)}
-              </p>
-            ))
+            <p className="mt-1 text-4xl font-bold tracking-tight tabular-nums text-ink-faint">—</p>
           )}
         </div>
-        <NetWorthTrend data={counted} />
+        <RatesNote unconverted={totals.unconverted} problem={loaded?.problem} />
+        <NetWorthTrend data={counted} fx={fx} />
       </section>
 
       {data.accounts.length === 0 ? (

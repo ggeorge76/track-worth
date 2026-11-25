@@ -1,3 +1,4 @@
+import type { Converter } from './fx';
 import type { BalanceEntry, DataFile } from './schema';
 
 /** Latest balance entry for an account on or before `asOf` (YYYY-MM-DD), if any. */
@@ -30,24 +31,42 @@ export interface CurrencyTotals {
   netMinor: number;
 }
 
+export interface BaseTotals extends CurrencyTotals {
+  /** Currencies left out because there's no exchange rate for them yet. */
+  unconverted: string[];
+}
+
 /**
- * Net worth grouped by currency, from each active account's latest balance. Balances are signed
- * (liabilities negative), so net worth is a plain sum. No FX conversion yet: mixing currencies
- * needs exchange rates, which is a separate, deliberate decision (see roadmap).
+ * Net worth in the base currency on `date` (ADR-0018): each active account's latest balance on or
+ * before that date, valued at that date's rate (what the money was worth then, not when it was
+ * entered). Accounts whose currency has no rate are left out and listed.
  */
-export function netWorthByCurrency(
+export function netWorthInBase(
   data: Pick<DataFile, 'accounts' | 'balances'>,
-  asOf?: string,
-): Record<string, CurrencyTotals> {
-  const totals: Record<string, CurrencyTotals> = {};
+  fx: Converter,
+  date: string,
+): BaseTotals {
+  const totals: BaseTotals = { assetsMinor: 0, liabilitiesMinor: 0, netMinor: 0, unconverted: [] };
+  const missing = new Set<string>();
   for (const account of data.accounts) {
     if (account.archived) continue;
-    const entry = latestBalance(account.id, data.balances, asOf);
+    const entry = latestBalance(account.id, data.balances, date);
     if (!entry) continue;
-    const t = (totals[account.currency] ??= { assetsMinor: 0, liabilitiesMinor: 0, netMinor: 0 });
-    if (account.kind === 'asset') t.assetsMinor += entry.amountMinor;
-    else t.liabilitiesMinor += entry.amountMinor;
-    t.netMinor += entry.amountMinor;
+    const amount = fx.toBase(entry.amountMinor, account.currency, date);
+    if (amount === null) {
+      missing.add(account.currency);
+      continue;
+    }
+    if (account.kind === 'asset') totals.assetsMinor += amount;
+    else totals.liabilitiesMinor += amount;
+    totals.netMinor += amount;
   }
+  totals.unconverted = [...missing].sort();
   return totals;
+}
+
+/** Whether any active account has a balance (so there is a net worth to show). */
+export function hasBalances(data: Pick<DataFile, 'accounts' | 'balances'>): boolean {
+  const active = new Set(data.accounts.filter((a) => !a.archived).map((a) => a.id));
+  return data.balances.some((e) => active.has(e.accountId));
 }

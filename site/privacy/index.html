@@ -17,7 +17,7 @@
     </header>
     <main>
       <h1>Privacy Policy</h1>
-      <p class="muted">Effective date: 23 November 2026</p>
+      <p class="muted">Effective date: 25 November 2026</p>
 
       <p>
         TrackWorth ("the app") is a free desktop application for manually tracking account balances
@@ -33,8 +33,8 @@
       <p>
         TrackWorth has no backend server, database, or account system operated by the developer. The
         app runs entirely on your device and communicates directly with Google (for sign-in and
-        Google Drive) and GitHub (for update checks). The developer cannot see, access, or recover
-        your data.
+        Google Drive), GitHub (for update checks) and Frankfurter (for exchange rates). The
+        developer cannot see, access, or recover your data.
       </p>
 
       <h2>2. Information accessed from your Google Account</h2>
@@ -133,13 +133,22 @@
         hosted on GitHub Pages, which may log visitors' IP addresses under the GitHub Privacy
         Statement.
       </p>
+      <p>
+        <strong>Exchange rates.</strong> When you have accounts in more than one currency, or open
+        the Currencies page, the app downloads published exchange rates from
+        <a href="https://frankfurter.dev">Frankfurter</a> (<code>api.frankfurter.dev</code>), a
+        free, open-source service that republishes central-bank reference rates. These requests
+        contain only currency codes and dates. No balances, account names or Google account details
+        are sent, though the service necessarily sees your IP address. Rates, and any rates you
+        enter yourself, are kept only on your device.
+      </p>
 
       <h2>9. Security</h2>
       <p>
         All network traffic uses HTTPS. Google sign-in happens in your own web browser using the
         OAuth 2.0 PKCE flow. The app's interface has no direct internet access and can only reach
-        the specific Google endpoints it needs. App updates are cryptographically signed and
-        verified before installation.
+        the specific Google endpoints, the update feed and the exchange-rate service it needs. App
+        updates are cryptographically signed and verified before installation.
       </p>
 
       <h2>10. Retention and deletion</h2>

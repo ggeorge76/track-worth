@@ -108,3 +108,9 @@ export const HistoryIcon = (p: SVGProps<SVGSVGElement>) => (
     <path d="M3 3v5h5M12 7v5l3 3" />
   </svg>
 );
+export const CoinsIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <circle cx="9" cy="9" r="6" />
+    <path d="M15.5 9.3A6 6 0 1 1 9.3 15.5M9 6.5v5M7 8h3.5a1.5 1.5 0 0 1 0 3H7" />
+  </svg>
+);

@@ -1,5 +1,9 @@
 import { makeAccount, makeEntry, makeFile } from '@/test/builders';
 import { breakdown } from './breakdown';
+import { sameCurrencyConverter } from './fx';
+
+const TODAY = '2026-11-25';
+const usd = sameCurrencyConverter('USD');
 
 const data = makeFile({
   accounts: [
@@ -26,7 +30,7 @@ const data = makeFile({
 
 describe('breakdown', () => {
   it('groups current balances by tag (any case), largest first; liabilities as owed', () => {
-    expect(breakdown(data, 'USD', 'tag')).toEqual({
+    expect(breakdown(data, usd, 'tag', TODAY)).toEqual({
       assets: {
         totalMinor: 1000,
         rows: [
@@ -41,11 +45,12 @@ describe('breakdown', () => {
           { key: 'credit card', label: 'Credit card', amountMinor: 200, accounts: 1, share: 0.2 },
         ],
       },
+      unconverted: ['EUR'], // no EUR rate: left out and reported
     });
   });
 
   it('groups by liquidity, most liquid first', () => {
-    const { assets, liabilities } = breakdown(data, 'USD', 'liquidity');
+    const { assets, liabilities } = breakdown(data, usd, 'liquidity', TODAY);
     expect(assets.rows.map((r) => [r.label, r.level, r.amountMinor])).toEqual([
       ['5 · Very high', 5, 100],
       ['4 · High', 4, 200],
@@ -62,13 +67,14 @@ describe('breakdown', () => {
         makeEntry({ accountId: 'a', amountMinor: 0 }),
       ],
     });
-    expect(breakdown(odd, 'USD', 'tag').assets.rows.map((r) => [r.label, r.share])).toEqual([
+    expect(breakdown(odd, usd, 'tag', TODAY).assets.rows.map((r) => [r.label, r.share])).toEqual([
       ['A', null],
       ['B', null],
     ]);
-    expect(breakdown(odd, 'EUR', 'tag')).toEqual({
+    expect(breakdown(odd, sameCurrencyConverter('EUR'), 'tag', TODAY)).toEqual({
       assets: { totalMinor: 0, rows: [] },
       liabilities: { totalMinor: 0, rows: [] },
+      unconverted: ['USD'],
     });
   });
 });
