@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Routes } from '@/app/Routes';
 import { makeAccount, makeFile } from '@/test/builders';
@@ -73,5 +73,25 @@ describe('HistoryImportSection (development builds)', () => {
     await waitFor(() => {
       expect(dataIn(client)?.netWorthHistory).toEqual([]);
     });
+  });
+
+  it('lists the imported months, newest first', async () => {
+    const { user } = open(
+      makeFile({
+        ...data,
+        netWorthHistory: [
+          { date: '2011-03-31', amountMinor: 1_000_00, currency: 'INR' },
+          { date: '2011-04-30', amountMinor: -50_00, currency: 'INR' },
+          { date: '2011-04-30', amountMinor: 7, currency: 'USD' },
+        ],
+      }),
+    );
+    await user.click(screen.getByText('View the imported 2 months in INR'));
+    const table = screen.getByRole('table', { name: /Imported net worth in INR/ });
+    const rows = within(table).getAllByRole('row').slice(1);
+    expect(rows.map((r) => r.textContent)).toEqual([
+      expect.stringContaining('-₹50.00') as string,
+      expect.stringContaining('₹1,000.00') as string,
+    ]);
   });
 });

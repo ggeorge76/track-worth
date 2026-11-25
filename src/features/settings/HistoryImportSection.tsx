@@ -38,7 +38,10 @@ export function HistoryImportSection({ data }: { data: DataFile }) {
   };
 
   const parsed = text.trim() === '' ? null : parseHistoryCsv(text, currency);
-  const existing = data.netWorthHistory.filter((p) => p.currency === currency).length;
+  const imported = data.netWorthHistory
+    .filter((p) => p.currency === currency)
+    .sort((a, b) => b.date.localeCompare(a.date));
+  const existing = imported.length;
   const months = (n: number) => `${String(n)} ${n === 1 ? 'month' : 'months'}`;
 
   const run = (change: (file: DataFile) => DataFile, message: string) => {
@@ -204,6 +207,40 @@ export function HistoryImportSection({ data }: { data: DataFile }) {
         >
           Remove the imported {months(existing)} in {currency}
         </button>
+      )}
+      {existing > 0 && (
+        <details className="rounded-xl bg-subtle ring-1 ring-line">
+          <summary className="cursor-pointer px-3 py-2 text-sm font-medium text-ink-soft hover:text-ink">
+            View the imported {months(existing)} in {currency}
+          </summary>
+          <div className="max-h-80 overflow-y-auto border-t border-line">
+            <table className="w-full text-sm">
+              <caption className="sr-only">Imported net worth in {currency}, newest first</caption>
+              <thead className="sticky top-0 bg-subtle text-xs text-ink-muted">
+                <tr>
+                  <th scope="col" className="px-3 py-1.5 text-left font-medium">
+                    Month end
+                  </th>
+                  <th scope="col" className="px-3 py-1.5 text-right font-medium">
+                    Net worth
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-line">
+                {imported.map((point) => (
+                  <tr key={point.date}>
+                    <td className="px-3 py-1.5 text-ink-soft">{formatIsoDate(point.date)}</td>
+                    <td
+                      className={`px-3 py-1.5 text-right tabular-nums ${point.amountMinor < 0 ? 'text-negative' : ''}`}
+                    >
+                      {formatMoney(point.amountMinor, currency)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
       )}
       {done && (
         <p role="status" className="text-sm text-positive">
