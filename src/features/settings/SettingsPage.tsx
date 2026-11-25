@@ -1,5 +1,6 @@
 import { useId, type ReactNode } from 'react';
 import { goBack, hrefFor } from '@/app/router';
+import { config } from '@/config';
 import { setPreference, useTheme, type ThemePreference } from '@/app/theme';
 import { useToday } from '@/app/useToday';
 import { Segmented } from '@/components/Segmented';
@@ -19,6 +20,7 @@ import { useUpdateDataFile } from '@/features/data/useDataFile';
 import { inputClass } from '../accounts/formParts';
 import { ExportSection } from './ExportSection';
 import { HistoryImportSection } from './HistoryImportSection';
+import { SampleDataSection } from './SampleDataSection';
 import { SettingsCard } from './SettingsCard';
 
 function Choice({ icon, text }: { icon: ReactNode; text: string }) {
@@ -150,7 +152,8 @@ export function SettingsPage({ data }: { data: DataFile }) {
         <ExportSection data={data} />
 
         {/* One-time import until the full importer exists (ADR-0017, #2). */}
-        {import.meta.env.DEV && <HistoryImportSection data={data} />}
+        {config.devTools && <HistoryImportSection data={data} />}
+        {config.devTools && <SampleDataSection data={data} />}
       </div>
     </div>
   );

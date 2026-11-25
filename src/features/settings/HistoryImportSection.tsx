@@ -61,7 +61,7 @@ export function HistoryImportSection({ data }: { data: DataFile }) {
         <>
           Import earlier net-worth history{' '}
           <span className="ml-1 rounded-full bg-warn-soft px-2 py-0.5 align-middle text-xs font-medium text-warn">
-            Development build only
+            Debug builds only
           </span>
         </>
       }

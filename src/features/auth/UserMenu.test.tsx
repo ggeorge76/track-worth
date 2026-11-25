@@ -1,6 +1,10 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { sampleDataFile } from '@/domain/sampleData';
+import type { DataFile } from '@/domain/schema';
+import { DATA_FILE_KEY } from '@/features/data/useDataFile';
+import { makeFile } from '@/test/builders';
 import { AuthContext, type AuthContextValue } from './authContext';
 import { UserMenu } from './UserMenu';
 
@@ -87,5 +91,32 @@ describe('UserMenu', () => {
     await user.click(button);
     await user.click(screen.getByText('Outside'));
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+  });
+});
+
+describe('UserMenu with sample data (debug builds)', () => {
+  function renderWith(data: DataFile) {
+    const client = new QueryClient();
+    client.setQueryData(DATA_FILE_KEY, { data });
+    return render(
+      <QueryClientProvider client={client}>
+        <AuthContext value={auth}>
+          <UserMenu user={{ name: 'Ada Lovelace', email: 'ada@example.com' }} />
+        </AuthContext>
+      </QueryClientProvider>,
+    );
+  }
+
+  it('hides the real profile while sample data is showing', async () => {
+    const user = userEvent.setup();
+    renderWith(sampleDataFile('2026-11-26', makeFile()));
+    await user.click(screen.getByRole('button', { name: /Alex Sample/ }));
+    expect(screen.getByText('alex@example.com')).toBeInTheDocument();
+    expect(screen.queryByText(/Ada Lovelace|ada@example.com/)).not.toBeInTheDocument();
+  });
+
+  it('shows the real profile with real data', () => {
+    renderWith(makeFile());
+    expect(screen.getByRole('button', { name: /Ada Lovelace/ })).toBeInTheDocument();
   });
 });

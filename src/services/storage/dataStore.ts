@@ -83,7 +83,7 @@ function byName(items: readonly DriveItem[]): Map<string, DriveItem> {
 }
 
 /** Same user data, ignoring timestamps and order of entries. */
-function sameData(a: DataFile, b: DataFile): boolean {
+export function sameData(a: DataFile, b: DataFile): boolean {
   const canonical = (d: DataFile) =>
     JSON.stringify({
       baseCurrency: d.baseCurrency,
