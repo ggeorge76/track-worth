@@ -1,5 +1,6 @@
 import { useId, type ReactNode } from 'react';
 import { goBack, hrefFor } from '@/app/router';
+import { config } from '@/config';
 import { setPreference, useTheme, type ThemePreference } from '@/app/theme';
 import { useToday } from '@/app/useToday';
 import { Segmented } from '@/components/Segmented';
@@ -151,8 +152,8 @@ export function SettingsPage({ data }: { data: DataFile }) {
         <ExportSection data={data} />
 
         {/* One-time import until the full importer exists (ADR-0017, #2). */}
-        {import.meta.env.DEV && <HistoryImportSection data={data} />}
-        {import.meta.env.DEV && <SampleDataSection data={data} />}
+        {config.devTools && <HistoryImportSection data={data} />}
+        {config.devTools && <SampleDataSection data={data} />}
       </div>
     </div>
   );

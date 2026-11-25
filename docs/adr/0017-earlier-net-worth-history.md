@@ -50,8 +50,8 @@ Chosen option: **1**.
   - The change line under the chart measures from the first value shown, imported or not,
     since both are the same quantity (net worth).
   - Not used by account pages, Insights or the headline number.
-- **Import (for now):** a one-time import in development builds only (Settings, behind
-  `import.meta.env.DEV`). It takes a CSV of month and closing net worth, shows a preview and
+- **Import (for now):** a one-time import in development and debug builds only (Settings, behind
+  `config.devTools`; never in release builds). It takes a CSV of month and closing net worth, shows a preview and
   replaces the list. A user-facing importer comes with the full import work (#2).
 
 ### Consequences

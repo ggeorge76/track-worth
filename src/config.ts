@@ -13,6 +13,11 @@ export const config = {
   drive: {
     folderName: 'TrackWorth',
   },
+  /**
+   * Developer-only tools (history import, sample data): on in the dev server and in debug builds
+   * (e.g. `bun run android:build`), never in release builds.
+   */
+  devTools: import.meta.env.DEV || import.meta.env.TAURI_ENV_DEBUG === 'true',
 } as const;
 
 /**
