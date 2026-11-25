@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { Routes } from '@/app/Routes';
 import { makeAccount, makeFile } from '@/test/builders';
 import type * as RateStoreModule from '@/services/fx/rateStore';
-import { renderWithData } from '@/test/renderWithData';
+import { dataIn, renderWithData } from '@/test/renderWithData';
 
 // The page's rates come from the (mocked) service; keep them in memory, fresh per test.
 vi.mock('@/services/fx/rateStore', async (importOriginal) => {
@@ -61,6 +61,30 @@ describe('CurrenciesPage', () => {
     await waitFor(() => {
       expect(row('USD')).toHaveTextContent('$12.50');
     });
+  });
+
+  it('converts from another currency for this view only, keeping the amount it showed', async () => {
+    window.history.replaceState({ idx: 1 }, '', '#/currencies');
+    const user = userEvent.setup();
+    const { client } = renderWithData(<Routes />, data);
+    const amount = screen.getByLabelText(/Amount in INR/);
+    await user.clear(amount);
+    await user.type(amount, '1000');
+    await waitFor(() => {
+      expect(row('USD')).toHaveTextContent('$12.50');
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Show amounts in USD' }));
+    expect(screen.getByLabelText(/Amount in USD/)).toHaveValue('12.50');
+    expect(row('INR')).toHaveTextContent('1 INR = 0.0125 USD');
+    expect(row('INR')).toHaveTextContent('₹1,000.00');
+    expect(row('EUR')).toHaveTextContent('€10.00');
+    // Own rates are set against the settings base, so not from this view.
+    expect(screen.queryByRole('button', { name: /own rate/ })).not.toBeInTheDocument();
+    expect(dataIn(client)?.baseCurrency).toBe('INR'); // settings unchanged
+
+    await user.click(screen.getByRole('button', { name: 'Back to INR' }));
+    expect(screen.getByLabelText(/Amount in INR/)).toHaveValue('1000.00');
   });
 
   it('flags an amount it can’t read', async () => {
