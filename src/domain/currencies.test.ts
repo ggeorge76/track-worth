@@ -1,4 +1,4 @@
-import { currencyCodes, currencyLabel, suggestedCurrency } from './currencies';
+import { currencyCodes, currencyFlag, currencyLabel, suggestedCurrency } from './currencies';
 
 describe('currencies', () => {
   it('lists common currencies first, then the rest alphabetically, without duplicates', () => {
@@ -15,5 +15,15 @@ describe('currencies', () => {
   it('suggests the most used currency, else the base currency', () => {
     expect(suggestedCurrency(['INR', 'USD', 'INR'], 'USD')).toBe('INR');
     expect(suggestedCurrency([], 'EUR')).toBe('EUR');
+  });
+});
+
+describe('currencyFlag', () => {
+  it('shows the issuing country’s flag, and none for X codes', () => {
+    expect(currencyFlag('INR')).toBe('🇮🇳');
+    expect(currencyFlag('USD')).toBe('🇺🇸');
+    expect(currencyFlag('EUR')).toBe('🇪🇺');
+    expect(currencyFlag('XAU')).toBe('');
+    expect(currencyFlag('usd')).toBe('');
   });
 });

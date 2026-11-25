@@ -12,3 +12,6 @@ if (!('ResizeObserver' in globalThis))
 // Tests never reach the network: code that would fetch (e.g. exchange rates) gets a failure, the
 // same as being offline. Tests that need responses inject their own fetch.
 globalThis.fetch = () => Promise.reject(new TypeError('No network in tests'));
+
+// jsdom doesn't implement scrolling; pages scroll to the top on navigation (router.ts).
+window.scrollTo = () => undefined;

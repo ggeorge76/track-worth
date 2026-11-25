@@ -5,13 +5,14 @@ import { DataGate } from '@/features/data/DataGate';
 import { CurrenciesPage } from '@/features/fx/CurrenciesPage';
 import { InsightsPage } from '@/features/insights/InsightsPage';
 import { SettingsPage } from '@/features/settings/SettingsPage';
-import { useBackShortcuts, useHistoryIndex, useRoute } from './router';
+import { useBackShortcuts, useHistoryIndex, useRoute, useScrollToTop } from './router';
 
 /** Signed-in screens (ADR-0013). */
 export function Routes() {
   const route = useRoute();
   useHistoryIndex();
   useBackShortcuts();
+  useScrollToTop(route);
 
   return (
     <DataGate>

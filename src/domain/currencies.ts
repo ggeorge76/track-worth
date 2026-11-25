@@ -80,3 +80,14 @@ export function suggestedCurrency(
   }
   return best;
 }
+
+/**
+ * The flag emoji for a currency: ISO 4217 codes start with the issuer's ISO 3166 country code
+ * (INR → IN 🇮🇳, EUR → EU 🇪🇺). Codes starting with X (gold, SDR, CFA francs…) have no single
+ * country, so they get no flag.
+ */
+export function currencyFlag(code: string): string {
+  if (!/^[A-W][A-Z]{2}$/.test(code)) return '';
+  const regional = (letter: string) => String.fromCodePoint(0x1f1e6 + letter.charCodeAt(0) - 65);
+  return regional(code.charAt(0)) + regional(code.charAt(1));
+}

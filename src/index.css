@@ -144,3 +144,25 @@
     transform: none;
   }
 }
+
+/* Account details: the next account slides in from the side it was swiped from (useSwipe.ts). */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes slide-in-from-right {
+    from {
+      transform: translateX(40%);
+      opacity: 0;
+    }
+  }
+  @keyframes slide-in-from-left {
+    from {
+      transform: translateX(-40%);
+      opacity: 0;
+    }
+  }
+  .slide-in-from-right {
+    animation: slide-in-from-right 220ms ease-out;
+  }
+  .slide-in-from-left {
+    animation: slide-in-from-left 220ms ease-out;
+  }
+}

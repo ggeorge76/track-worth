@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { goBack, navigate } from '@/app/router';
-import { useSwipe } from '@/app/useSwipe';
+import { slideNextFrom, takeSlideIn, useSwipe } from '@/app/useSwipe';
 import { useToday } from '@/app/useToday';
 import { BackIcon, PencilIcon } from '@/components/icons';
 import { Toast } from '@/components/Toast';
@@ -99,7 +99,9 @@ function NavButton({
       }
       title={account?.name}
       onClick={() => {
-        if (account) navigate({ name: 'account', id: account.id }, { replace: true });
+        if (!account) return;
+        slideNextFrom(direction === 'previous' ? 'left' : 'right');
+        navigate({ name: 'account', id: account.id }, { replace: true });
       }}
       className="rounded-full p-2 text-xl leading-none text-ink-muted hover:bg-muted disabled:invisible"
     >
@@ -136,16 +138,24 @@ export function AccountDetailsPage({ data, accountId }: { data: DataFile; accoun
 
   const ordered = orderByBalanceSource(data.accounts.filter((a) => !a.archived));
   const { previous, next } = adjacentAccounts(ordered, accountId);
-  const goTo = (target: Account | undefined) => {
-    if (target) navigate({ name: 'account', id: target.id }, { replace: true });
+  // This page is keyed by account, so it mounts fresh after each move: slide in if one is due.
+  const [slideIn] = useState(takeSlideIn);
+  const goTo = (target: Account | undefined, from?: 'left' | 'right') => {
+    if (!target) return;
+    if (from) slideNextFrom(from);
+    navigate({ name: 'account', id: target.id }, { replace: true });
   };
   const swipe = useSwipe({
-    onLeft: () => {
-      goTo(next);
-    },
-    onRight: () => {
-      goTo(previous);
-    },
+    ...(next && {
+      onLeft: () => {
+        goTo(next);
+      },
+    }),
+    ...(previous && {
+      onRight: () => {
+        goTo(previous);
+      },
+    }),
   });
 
   // ←/→ when nothing else wants the keys (no popup open, not typing).
@@ -154,8 +164,8 @@ export function AccountDetailsPage({ data, accountId }: { data: DataFile; accoun
       if (e.altKey || e.metaKey || e.ctrlKey || e.shiftKey) return;
       if (document.querySelector('[role="dialog"]')) return;
       if ((e.target as HTMLElement | null)?.closest('input, textarea, select')) return;
-      if (e.key === 'ArrowLeft') goTo(previous);
-      else if (e.key === 'ArrowRight') goTo(next);
+      if (e.key === 'ArrowLeft') goTo(previous, 'left');
+      else if (e.key === 'ArrowRight') goTo(next, 'right');
     };
     window.addEventListener('keydown', onKey);
     return () => {
@@ -217,7 +227,13 @@ export function AccountDetailsPage({ data, accountId }: { data: DataFile; accoun
   };
 
   return (
-    <div {...swipe} className="mx-auto w-full max-w-2xl touch-pan-y px-4 pb-28 pt-4">
+    <div
+      {...swipe.handlers}
+      style={swipe.style}
+      className={`mx-auto w-full max-w-2xl touch-pan-y px-4 pt-4 pb-28 ${
+        slideIn ? `slide-in-from-${slideIn}` : ''
+      }`}
+    >
       <div className="flex items-center justify-between">
         {backButton}
         <div className="flex items-center gap-1 text-sm text-ink-muted">
