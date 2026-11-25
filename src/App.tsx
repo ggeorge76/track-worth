@@ -16,7 +16,10 @@ function Shell() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-canvas pb-[calc(4rem+env(safe-area-inset-bottom))] text-ink sm:pb-0">
-      <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-4 bg-header px-4 text-white shadow-md shadow-black/10 sm:px-6">
+      <header
+        data-app-header
+        className="sticky top-0 z-30 flex h-[calc(3.5rem+env(safe-area-inset-top))] items-center pt-[env(safe-area-inset-top)] justify-between gap-4 bg-header px-4 text-white shadow-md shadow-black/10 sm:px-6"
+      >
         <a
           href="#/"
           className="flex shrink-0 items-center gap-2.5 text-lg font-semibold tracking-tight"

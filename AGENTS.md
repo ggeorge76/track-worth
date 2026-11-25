@@ -33,6 +33,8 @@ Command Line Tools are also required.
 | Format (Prettier + rustfmt)                     | `bun run format`                                                    |
 | E2E smoke (UI in a browser)                     | `bun run test:e2e` (first time: `bunx playwright install chromium`) |
 | Build installers for this OS                    | `bun run app:build`                                                 |
+| Android: run on a connected phone (hot reload)  | `bun run android:dev` (setup: docs/setup/android.md)                |
+| Android: debug APK (arm64)                      | `bun run android:build`                                             |
 
 > ⚠️ Use **`bun run test`**, never `bun test`. `bun test` starts Bun's own runner, which is
 > deliberately blocked (`bunfig.toml`). Our tests are written for Vitest.
