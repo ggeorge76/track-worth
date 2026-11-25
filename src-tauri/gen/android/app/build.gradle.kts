@@ -14,6 +14,26 @@ val tauriProperties = Properties().apply {
     }
 }
 
+/**
+ * Play upload key (docs/setup/android.md). Kept outside the repo: locally in
+ * ~/.android/trackworth-upload.properties, or on CI in environment variables. Without it, release
+ * builds are left unsigned.
+ */
+val uploadKey = Properties().apply {
+    val path = System.getenv("TRACKWORTH_UPLOAD_PROPERTIES")
+        ?: "${System.getProperty("user.home")}/.android/trackworth-upload.properties"
+    val propFile = File(path)
+    if (propFile.exists()) {
+        propFile.inputStream().use { load(it) }
+    }
+    System.getenv("TRACKWORTH_UPLOAD_STORE_FILE")?.let { setProperty("storeFile", it) }
+    System.getenv("TRACKWORTH_UPLOAD_STORE_PASSWORD")?.let {
+        setProperty("storePassword", it)
+        setProperty("keyPassword", it)
+        setProperty("keyAlias", "upload")
+    }
+}
+
 android {
     compileSdk = 37
     namespace = "com.trackworth.app"
@@ -24,6 +44,16 @@ android {
         targetSdk = 37
         versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt()
         versionName = tauriProperties.getProperty("tauri.android.versionName", "1.0")
+    }
+    signingConfigs {
+        if (uploadKey.getProperty("storeFile") != null) {
+            create("upload") {
+                storeFile = file(uploadKey.getProperty("storeFile"))
+                storePassword = uploadKey.getProperty("storePassword")
+                keyAlias = uploadKey.getProperty("keyAlias")
+                keyPassword = uploadKey.getProperty("keyPassword")
+            }
+        }
     }
     buildTypes {
         getByName("debug") {
@@ -39,6 +69,7 @@ android {
             }
         }
         getByName("release") {
+            signingConfigs.findByName("upload")?.let { signingConfig = it }
             optimization {
                enable = true
             }

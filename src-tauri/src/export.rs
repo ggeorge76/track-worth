@@ -3,7 +3,6 @@
 //! only hand over a suggested file name and the text to save.
 
 use serde::ser::{Serialize, SerializeStruct, Serializer};
-use tauri_plugin_dialog::DialogExt;
 
 /// Errors returned to the frontend as `{ code, message }`. Messages are shown to users.
 #[derive(Debug, thiserror::Error)]
@@ -61,10 +60,26 @@ pub async fn export_save(
     contents: String,
 ) -> Result<bool, ExportError> {
     let (label, extension) = filter_for(&file_name)?;
+    #[cfg(desktop)]
+    return save(&app, &file_name, label, extension, contents);
+    #[cfg(target_os = "android")]
+    return save(app, file_name, extension, contents).await;
+}
+
+/// Desktop: the system "Save as…" dialog gives a path, and we write the file there.
+#[cfg(desktop)]
+fn save(
+    app: &tauri::AppHandle,
+    file_name: &str,
+    label: &str,
+    extension: &str,
+    contents: String,
+) -> Result<bool, ExportError> {
+    use tauri_plugin_dialog::DialogExt;
     let Some(chosen) = app
         .dialog()
         .file()
-        .set_file_name(&file_name)
+        .set_file_name(file_name)
         .add_filter(label, &[extension])
         .blocking_save_file()
     else {
@@ -75,6 +90,29 @@ pub async fn export_save(
         .map_err(|e| ExportError::Write(e.to_string()))?;
     std::fs::write(&path, contents).map_err(|e| ExportError::Write(e.to_string()))?;
     Ok(true)
+}
+
+/// Android: the picker returns a document (a `content://` address, not a path), so our plugin
+/// picks it and writes to it (ADR-0016).
+#[cfg(target_os = "android")]
+async fn save(
+    app: tauri::AppHandle,
+    file_name: String,
+    extension: &str,
+    contents: String,
+) -> Result<bool, ExportError> {
+    use tauri_plugin_android_files::AndroidFilesExt;
+    let mime = if extension == "csv" {
+        "text/csv"
+    } else {
+        "application/json"
+    };
+    tauri::async_runtime::spawn_blocking(move || {
+        app.android_files().save(&file_name, mime, &contents)
+    })
+    .await
+    .map_err(|e| ExportError::Write(e.to_string()))?
+    .map_err(ExportError::Write)
 }
 
 #[cfg(test)]

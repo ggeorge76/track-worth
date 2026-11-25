@@ -18,7 +18,10 @@ pub fn run() {
 
     // Google sign-in through Play services (ADR-0019).
     #[cfg(target_os = "android")]
-    let builder = builder.plugin(tauri_plugin_google_auth::init());
+    let builder = builder
+        .plugin(tauri_plugin_google_auth::init())
+        // "Save to…" for exports (ADR-0016).
+        .plugin(tauri_plugin_android_files::init());
 
     builder
         .manage(auth::AuthState::new())

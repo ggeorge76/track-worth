@@ -35,6 +35,7 @@ Command Line Tools are also required.
 | Build installers for this OS                    | `bun run app:build`                                                 |
 | Android: run on a connected phone (hot reload)  | `bun run android:dev` (setup: docs/setup/android.md)                |
 | Android: debug APK (arm64)                      | `bun run android:build`                                             |
+| Android: signed release AAB (needs upload key)  | `bun run android:release`                                           |
 
 > ⚠️ Use **`bun run test`**, never `bun test`. `bun test` starts Bun's own runner, which is
 > deliberately blocked (`bunfig.toml`). Our tests are written for Vitest.
@@ -83,6 +84,7 @@ src-tauri/               Rust app shell
   src/auth/              Google OAuth: desktop loopback + PKCE + keychain (ADR-0004); Android via
                          plugins/google-auth, Play services, no stored tokens (ADR-0019)
   plugins/google-auth/   Our Android sign-in plugin (Kotlin + Rust bridge), called from Rust only
+  plugins/android-files/ Our Android "Save to…" plugin for exports, called from Rust only
   gen/android/           Generated Android project (package com.trackworth.app); see docs/setup/android.md
   src/export.rs          Save dialog + file write for exports (ADR-0016)
   src/config.rs          OAuth client compiled in by build.rs

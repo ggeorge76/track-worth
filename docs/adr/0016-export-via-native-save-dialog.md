@@ -67,7 +67,9 @@ is the `export_save` command, which:
 
 ## More Information
 
-- On Android the dialog returns a content URI rather than a file path. Revisit the write step
-  (for example with the fs plugin's Android support) when the Android work starts (ADR-0009).
+- **Android** (done): the dialog returns a content URI rather than a file path, so our own
+  plugin `src-tauri/plugins/android-files` opens Android's "Save to…" picker
+  (`ACTION_CREATE_DOCUMENT`) and writes to the chosen document. As on desktop, only Rust calls
+  it, so the UI gets no file-system access.
 - The exported JSON has the same shape as the in-app data (schema v3). Restoring from it isn't
   built yet. That would be part of the importer work.
