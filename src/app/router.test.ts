@@ -18,6 +18,7 @@ describe('parseHash / hrefFor', () => {
     ['#/settings', { name: 'settings' }],
     ['#/insights', { name: 'insights' }],
     ['#/currencies', { name: 'currencies' }],
+    ['#/update', { name: 'update-all' }],
     ['#/accounts/abc%20123', { name: 'account', id: 'abc 123' }],
     ['#/nope', { name: 'not-found' }],
   ])('parses %s', (hash, route) => {
@@ -31,6 +32,7 @@ describe('parseHash / hrefFor', () => {
       { name: 'settings' },
       { name: 'insights' },
       { name: 'currencies' },
+      { name: 'update-all' },
       { name: 'account', id: 'id/with?chars' },
     ] as const) {
       expect(parseHash(hrefFor(route))).toEqual(route);

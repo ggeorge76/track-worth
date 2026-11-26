@@ -1,6 +1,7 @@
 import { AccountDetailsPage } from '@/features/accounts/AccountDetailsPage';
 import { NewAccountPage } from '@/features/accounts/NewAccountPage';
 import { StartPage } from '@/features/accounts/StartPage';
+import { UpdateAllPage } from '@/features/accounts/UpdateAllPage';
 import { DataGate } from '@/features/data/DataGate';
 import { CurrenciesPage } from '@/features/fx/CurrenciesPage';
 import { InsightsPage } from '@/features/insights/InsightsPage';
@@ -24,6 +25,8 @@ export function Routes() {
             return <SettingsPage data={data} />;
           case 'insights':
             return <InsightsPage data={data} />;
+          case 'update-all':
+            return <UpdateAllPage data={data} />;
           case 'currencies':
             return <CurrenciesPage data={data} />;
           case 'account':
