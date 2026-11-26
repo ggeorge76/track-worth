@@ -44,7 +44,7 @@ Java 17.
 
 - **Other developers' keys:** each developer's debug key has its own SHA-1, which has to be added
   to the same OAuth client.
-- **Play:** Play-signed builds need another client entry with the Play App Signing SHA-1.
+- **Play:** Play-signed builds need their own clients too (see "OAuth clients" below).
 
 ## Release signing (Play upload key)
 
@@ -70,10 +70,32 @@ Java 17.
   To build Android for an existing release, run the workflow by hand (Actions → Release → Run
   workflow) with the tag, e.g. `v0.1.0`.
 
-- **OAuth:** after the first upload, Play shows the **app signing key** SHA-1 (Setup → App
-  signing). Add it to the Android OAuth client for `com.trackworth.app`. To test a locally signed
-  release build, also add the upload key's SHA-1:
-  `keytool -list -v -keystore ~/.android/trackworth-upload.jks -alias upload | grep SHA1`.
+## OAuth clients (one per signing key)
+
+Google matches sign-in by **package name + signing certificate SHA-1**, and an Android OAuth
+client holds exactly one SHA-1. The Google Cloud project therefore has one Android client for
+`com.trackworth.app` per key the app can be signed with:
+
+| Client name                                           | Key                                                   | Needed for                                    |
+| ----------------------------------------------------- | ----------------------------------------------------- | --------------------------------------------- |
+| TrackWorth Android (Debug Key)                        | `~/.android/debug.keystore`                           | `bun run android:dev` / `android:build`       |
+| TrackWorth Android (Upload Key)                       | upload key `A8:29:7A:33:…:F9:BF`                      | locally signed release builds, the GitHub APK |
+| TrackWorth Android (Play Signing Key)                 | Play's current app signing key `B8:30:62:08:…:45:E2`  | Play installs on Android 17+                  |
+| TrackWorth Android (Play Signing Key, pre-Android 17) | Play's previous app signing key `4A:EC:DE:59:…:7D:BA` | Play installs on Android 16 and older         |
+
+- **Why two Play keys:** Play ("Protected with Play") moved the app to a hybrid classical +
+  post-quantum signing key, which only Android 17 (API 37) and later understand. Older phones
+  still see the app signed with the previous key. Play Console lists it under **Protected with
+  Play → app signing → Previous app signing keys**; the current key's **classic** SHA-1 is shown
+  above it. The post-quantum SHA-1 isn't used for OAuth.
+- **Check a real install:** pull the APK and list every certificate it carries:
+  `adb shell pm path com.trackworth.app`, `adb pull <path> base.apk`, then
+  `apksigner verify --print-certs base.apk`. The `V3.0 Signer` is what phones below Android 17
+  use; the `V3.2 Hybrid Classical Signer` is for Android 17+.
+- **Symptom of a missing client:** Google's account picker closes right after you pick an account,
+  and `adb logcat` shows `UNREGISTERED_ON_API_CONSOLE`. A new client can take a few minutes to
+  start working.
+- Upload key SHA-1: `keytool -list -v -keystore ~/.android/trackworth-upload.jks -alias upload | grep SHA1`.
 
 ## Connecting a phone (no root needed)
 
@@ -116,4 +138,5 @@ file-system access.
 
 ## Known gaps (next steps)
 
-- **Play:** release signing, the Play App Signing SHA-1 in the OAuth client, and store listing.
+- **Play:** closed test (12 testers for 14 days), then production. Release signing, OAuth clients
+  and the store listing are done.

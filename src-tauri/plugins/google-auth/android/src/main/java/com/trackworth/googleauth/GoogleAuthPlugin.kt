@@ -15,6 +15,8 @@ import com.google.android.gms.auth.api.identity.AuthorizationRequest
 import com.google.android.gms.auth.api.identity.AuthorizationResult
 import com.google.android.gms.auth.api.identity.ClearTokenRequest
 import com.google.android.gms.auth.api.identity.Identity
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.common.api.CommonStatusCodes
 import com.google.android.gms.common.api.Scope
 import java.util.UUID
 
@@ -69,7 +71,7 @@ class GoogleAuthPlugin(private val activity: Activity) : Plugin(activity) {
         ) { outcome ->
             launcher?.unregister()
             if (outcome.resultCode != Activity.RESULT_OK) {
-                invoke.reject("Sign-in was cancelled", "cancelled")
+                rejectUnsuccessful(invoke, outcome.data)
                 return@register
             }
             try {
@@ -79,6 +81,33 @@ class GoogleAuthPlugin(private val activity: Activity) : Plugin(activity) {
             }
         }
         launcher.launch(IntentSenderRequest.Builder(sender).build())
+    }
+
+    /**
+     * Google's screen also closes without success when Google itself refuses, e.g. when no OAuth
+     * client matches this app's signing key (UNREGISTERED_ON_API_CONSOLE). Its status rides in the
+     * result, so tell that apart from the user backing out and don't call a refusal "cancelled".
+     */
+    private fun rejectUnsuccessful(invoke: Invoke, data: android.content.Intent?) {
+        val status = try {
+            data?.let { client.getAuthorizationResultFromIntent(it) }
+            null
+        } catch (e: ApiException) {
+            e.statusCode
+        } catch (e: Exception) {
+            null
+        }
+        when (status) {
+            null, CommonStatusCodes.CANCELED ->
+                invoke.reject("Sign-in was cancelled", "cancelled")
+            CommonStatusCodes.NETWORK_ERROR ->
+                invoke.reject("Couldn't reach Google. Check your internet connection.", "failed")
+            else -> invoke.reject(
+                "Google didn't allow sign-in for this copy of TrackWorth. " +
+                    "Please try again later, or reinstall the app from Google Play. (code $status)",
+                "failed",
+            )
+        }
     }
 
     private fun resolveToken(invoke: Invoke, result: AuthorizationResult) {
