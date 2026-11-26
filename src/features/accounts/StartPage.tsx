@@ -2,14 +2,7 @@ import { useState } from 'react';
 import { hrefFor } from '@/app/router';
 import { useToday } from '@/app/useToday';
 import { FilterIcon, GroupIcon, PlusIcon, WalletIcon } from '@/components/icons';
-import {
-  buildAccountList,
-  DEFAULT_LIST_OPTIONS,
-  isFiltered,
-  matchesFilter,
-  tagsInUse,
-  type ListOptions,
-} from '@/domain/accountList';
+import { buildAccountList, isFiltered, matchesFilter, tagsInUse } from '@/domain/accountList';
 import { formatMoney } from '@/domain/money';
 import { hasBalances, netWorthInBase } from '@/domain/netWorth';
 import type { DataFile } from '@/domain/schema';
@@ -18,11 +11,12 @@ import { useExchangeRates } from '@/features/fx/useExchangeRates';
 import { NetWorthTrend } from '@/features/trends/NetWorthTrend';
 import { useOutOfView } from './useOutOfView';
 import { AccountRow } from './AccountRow';
+import { useListOptions } from './useListOptions';
 import { FilterSheet } from './FilterSheet';
 
 export function StartPage({ data }: { data: DataFile }) {
   const today = useToday();
-  const [options, setOptions] = useState<ListOptions>(DEFAULT_LIST_OPTIONS);
+  const [options, setOptions] = useListOptions();
   const [filterOpen, setFilterOpen] = useState(false);
 
   const filtered = isFiltered(options);

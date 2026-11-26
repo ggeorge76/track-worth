@@ -122,7 +122,10 @@ export function TagPicker({
   );
 }
 
-/** Text input offering previously used balance sources. */
+/**
+ * Text input offering previously used balance sources as chips below it, filtered by what's
+ * typed. Not a <datalist>: Android shows that as a full-screen list over the keyboard and input.
+ */
 export function BalanceSourceInput({
   id,
   value,
@@ -134,25 +137,40 @@ export function BalanceSourceInput({
   onChange: (value: string) => void;
   sources: readonly string[];
 }) {
-  const listId = useId();
+  // Filter by what's typed; once the box holds a saved source, offer the others to switch to.
+  const typed = sources.includes(value) ? '' : value.trim().toLocaleLowerCase();
+  const matches = sources
+    .filter((s) => s !== value && s.toLocaleLowerCase().includes(typed))
+    .slice(0, 6);
   return (
     <>
       <input
         id={id}
         className={inputClass}
-        list={listId}
         value={value}
         maxLength={60}
+        autoComplete="off"
         placeholder="Where you check this balance, e.g. HDFC NetBanking"
         onChange={(e) => {
           onChange(e.target.value);
         }}
       />
-      <datalist id={listId}>
-        {sources.map((s) => (
-          <option key={s} value={s} />
-        ))}
-      </datalist>
+      {matches.length > 0 && (
+        <div role="group" aria-label="Sources you’ve used" className="mt-2 flex flex-wrap gap-2">
+          {matches.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => {
+                onChange(s);
+              }}
+              className="rounded-full bg-subtle px-3 py-1 text-sm text-ink-soft ring-1 ring-line hover:bg-brand-soft hover:text-brand-ink"
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      )}
     </>
   );
 }
