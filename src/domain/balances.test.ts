@@ -4,6 +4,7 @@ import {
   allEntriesHaveDefaultSign,
   deleteBalance,
   defaultSign,
+  recordBalances,
   signedAmount,
   signOf,
   restoreBalance,
@@ -151,5 +152,29 @@ describe('deleteBalance / restoreBalance', () => {
 
   it('rejects unknown entries', () => {
     expect(() => deleteBalance(file, 'nope')).toThrow();
+  });
+});
+
+describe('recordBalances', () => {
+  it('records several balances for one date, updating any already there', () => {
+    const data = makeFile({
+      accounts: [makeAccount({ id: 'a' }), makeAccount({ id: 'b', name: 'B' })],
+      balances: [makeEntry({ id: 'old', accountId: 'a', date: '2026-11-26', amountMinor: 1 })],
+    });
+    const ids = idSequence('n');
+    const next = recordBalances(
+      data,
+      '2026-11-26',
+      [
+        { accountId: 'a', amountMinor: 500 },
+        { accountId: 'b', amountMinor: -200 },
+      ],
+      { now: NOW, newId: ids },
+    );
+    expect(next.balances.map((e) => [e.id, e.accountId, e.date, e.amountMinor])).toEqual([
+      ['old', 'a', '2026-11-26', 500],
+      ['n-1', 'b', '2026-11-26', -200],
+    ]);
+    expect(recordBalances(data, '2026-11-26', [], { now: NOW, newId: ids })).toBe(data);
   });
 });

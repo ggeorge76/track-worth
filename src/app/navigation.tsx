@@ -26,6 +26,7 @@ export function sectionOf(route: Route): (typeof NAV_ITEMS)[number]['route'] {
     case 'settings':
       return route.name;
     case 'home':
+    case 'update-all':
     case 'account':
     case 'new-account':
     case 'not-found':

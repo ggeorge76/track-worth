@@ -95,6 +95,14 @@ export function StartPage({ data }: { data: DataFile }) {
         </div>
         <RatesNote unconverted={totals.unconverted} problem={loaded?.problem} />
         <NetWorthTrend data={counted} fx={fx} />
+        {data.accounts.some((acc) => !acc.archived) && (
+          <a
+            href={hrefFor({ name: 'update-all' })}
+            className="mt-4 flex w-full items-center justify-center rounded-xl bg-brand py-3 font-semibold text-white shadow-sm hover:bg-brand-strong"
+          >
+            Update all balances
+          </a>
+        )}
       </section>
 
       {data.accounts.length === 0 ? (

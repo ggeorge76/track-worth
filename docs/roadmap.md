@@ -33,7 +33,7 @@ Windows and Linux).
 - [x] Net worth over time (R-D3), change over the period (R-D4), assets and liabilities (R-D2)
 - [x] Balance over time on account details (R-B4)
 - [x] Breakdown by tag and liquidity on an Insights page (R-D5)
-- [ ] "Update all" quick-entry flow (R-B2)
+- [x] "Update all" quick-entry screen (R-B2)
 - [x] Export JSON and CSV (R-S2)
 - [x] Dark mode and a brighter visual refresh (R-S3)
 - [x] Offline use: shows the device copy and keeps editing offline, uploads later (N-8, ADR-0015)
