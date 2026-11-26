@@ -10,16 +10,13 @@ by release-please from Conventional Commit messages. Don't edit released section
 
 ### Features
 
-* **accounts:** "Update all" screen to update every balance at once ([26dd9ca](https://github.com/ggeorge76/track-worth/commit/26dd9ca4bd8c46e0d64da5eeefdb7c0aa71fb44e))
 * **accounts:** "Update all" screen to update every balance at once ([49be125](https://github.com/ggeorge76/track-worth/commit/49be125a5cff5bb8e4a0a2fa269885f09ecc4537))
 * **accounts:** make the Update all link a small pill, not a big button ([1edbc42](https://github.com/ggeorge76/track-worth/commit/1edbc42077eceaf8ca4184675596a464abc395ed))
 
 
 ### Bug Fixes
 
-* **accounts:** source chips instead of a datalist, emoji-aware name sort, remembered list view ([23adcde](https://github.com/ggeorge76/track-worth/commit/23adcde9e0c63909b9357bcbae70c3086a846e96))
 * **accounts:** source chips instead of a datalist, emoji-aware name sort, remembered list view ([35a91d5](https://github.com/ggeorge76/track-worth/commit/35a91d5331f0f6b1223aebf26bca7625c7553bc8))
-* **branding:** Android icon without the name; gradient "Worth" in the logo ([8d41352](https://github.com/ggeorge76/track-worth/commit/8d41352e163696698b9c78e6c27a76d2b839f12f))
 * **branding:** Android icon without the name; gradient "Worth" in the logo ([0c3edbc](https://github.com/ggeorge76/track-worth/commit/0c3edbc011b3b65f0c2ae501bc48d9d4bd5c6ac3))
 
 ## [0.1.0](https://github.com/ggeorge76/track-worth/releases/tag/v0.1.0) (2026-11-25)
