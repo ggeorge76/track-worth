@@ -35,7 +35,7 @@ beforeEach(() => {
 describe('StartPage', () => {
   it('lists accounts with their current balance and net worth', () => {
     renderWithData(<Routes />, file);
-    expect(rowNames()).toEqual(['Axis card', '💵 HDFC', 'PPF']); // emoji prefix ignored
+    expect(rowNames()).toEqual(['💵 HDFC', 'Axis card', 'PPF']); // emoji included in the sort
     expect(
       screen.getByRole('link', { name: /💵 HDFC.*Cash.*Updated today.*1,234\.50/ }),
     ).toBeInTheDocument();
@@ -146,6 +146,35 @@ describe('StartPage', () => {
   it('says "1 account", not "1 accounts"', () => {
     renderWithData(<Routes />, makeFile({ accounts: [makeAccount({ id: 'only' })] }));
     expect(screen.getByRole('button', { name: /^1 account$/ })).toBeInTheDocument();
+  });
+
+  it('remembers sort, filters and grouping across sessions', async () => {
+    const user = userEvent.setup();
+    const first = renderWithData(<Routes />, file);
+    await user.click(screen.getByRole('button', { name: /Filter/ }));
+    await user.click(screen.getByRole('button', { name: 'Sort by Liquidity' }));
+    await user.click(screen.getByRole('button', { name: 'Cash' }));
+    await user.click(screen.getByRole('button', { name: 'Close' }));
+    await user.click(screen.getByRole('button', { name: 'Group by tag' }));
+    first.unmount();
+
+    // A new session (app restarted) starts with the same view.
+    renderWithData(<Routes />, file);
+    expect(screen.getByRole('button', { name: 'Group by tag' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(screen.getByRole('button', { name: /1 of 3 accounts/ })).toBeInTheDocument();
+  });
+
+  it('falls back to the default view if what was saved can’t be read', () => {
+    localStorage.setItem('trackworth.accountList', '{"sort":"sideways"}');
+    renderWithData(<Routes />, file);
+    expect(screen.getByRole('button', { name: /^3 accounts/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Group by tag' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
   });
 
   it('shows a way out when filters match nothing', async () => {
