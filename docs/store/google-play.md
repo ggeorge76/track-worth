@@ -25,6 +25,10 @@ YOUR DATA, IN YOUR DRIVE
 • The app can only see the files it creates: nothing else in your Drive.
 • There is no TrackWorth server and no TrackWorth account. The developer never sees your data.
 
+QUICK TO UPDATE
+• Update every balance on one screen: one date for all, each account shows its last balance,
+  and "Same" confirms an unchanged one in a tap.
+
 NEVER CONNECTED TO YOUR BANK
 • No bank logins, no aggregators, no screen-scraping. You enter balances yourself.
 
