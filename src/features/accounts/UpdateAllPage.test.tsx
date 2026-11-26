@@ -145,7 +145,7 @@ describe('UpdateAllPage', () => {
     window.history.replaceState({ idx: 0 }, '', '#/');
     const user = userEvent.setup();
     renderWithData(<Routes />, file);
-    await user.click(screen.getByRole('link', { name: 'Update all balances' }));
+    await user.click(screen.getByRole('link', { name: 'Update all balances →' }));
     expect(await screen.findByRole('heading', { name: 'Update all' })).toBeInTheDocument();
   });
 });
