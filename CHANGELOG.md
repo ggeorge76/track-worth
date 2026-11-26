@@ -5,6 +5,20 @@ All notable changes to this project are documented here. The format follows
 [Semantic Versioning](https://semver.org/). From the first release on, this file is maintained
 by release-please from Conventional Commit messages. Don't edit released sections by hand.
 
+## [0.1.1](https://github.com/ggeorge76/track-worth/compare/v0.1.0...v0.1.1) (2026-11-26)
+
+
+### Features
+
+* **accounts:** "Update all" screen to update every balance at once ([49be125](https://github.com/ggeorge76/track-worth/commit/49be125a5cff5bb8e4a0a2fa269885f09ecc4537))
+* **accounts:** make the Update all link a small pill, not a big button ([1edbc42](https://github.com/ggeorge76/track-worth/commit/1edbc42077eceaf8ca4184675596a464abc395ed))
+
+
+### Bug Fixes
+
+* **accounts:** source chips instead of a datalist, emoji-aware name sort, remembered list view ([35a91d5](https://github.com/ggeorge76/track-worth/commit/35a91d5331f0f6b1223aebf26bca7625c7553bc8))
+* **branding:** Android icon without the name; gradient "Worth" in the logo ([0c3edbc](https://github.com/ggeorge76/track-worth/commit/0c3edbc011b3b65f0c2ae501bc48d9d4bd5c6ac3))
+
 ## [0.1.0](https://github.com/ggeorge76/track-worth/releases/tag/v0.1.0) (2026-11-25)
 
 
