@@ -82,13 +82,19 @@ describe('NewAccountPage', () => {
     });
   });
 
-  it('suggests balance sources used before', () => {
+  it('suggests balance sources used before as chips, filtered by what’s typed', async () => {
+    const user = userEvent.setup();
     renderWithData(<Routes />, file);
     const input = screen.getByLabelText('Balance source (optional)');
-    const list = document.getElementById(input.getAttribute('list') ?? '');
-    expect([...(list?.querySelectorAll('option') ?? [])].map((o) => o.value)).toEqual([
-      'HDFC NetBanking',
-    ]);
+    const group = () => screen.queryByRole('group', { name: 'Sources you’ve used' });
+    expect(group()).toHaveTextContent('HDFC NetBanking');
+    await user.type(input, 'zer');
+    expect(group()).not.toBeInTheDocument(); // no match
+    await user.clear(input);
+    await user.type(input, 'hdfc');
+    await user.click(screen.getByRole('button', { name: 'HDFC NetBanking' }));
+    expect(input).toHaveValue('HDFC NetBanking');
+    expect(group()).not.toBeInTheDocument();
   });
 
   it('keeps the new account on this device when it can’t be uploaded yet (ADR-0015)', async () => {

@@ -46,15 +46,12 @@ export interface AccountGroup {
 
 const lower = (s: string) => s.toLocaleLowerCase();
 /**
- * Sort key for names: ignores leading emoji and symbols, so "💵 HDFC" sorts under H. Many users
- * prefix names with an emoji as an icon.
+ * Names sort by their full text, emoji included: many people use a leading emoji as a category
+ * icon, so accounts with the same emoji stay together (emoji first, then digits, then A–Z).
+ * Also the second-level sort for every other sort key.
  */
-export function nameSortKey(name: string): string {
-  return name.replace(/^[^\p{L}\p{N}]+/u, '') || name;
-}
-
 const byName = (a: Account, b: Account) =>
-  nameSortKey(a.name).localeCompare(nameSortKey(b.name), undefined, { sensitivity: 'base' });
+  a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
 
 function compare(key: SortKey, a: Account, b: Account): number {
   switch (key) {

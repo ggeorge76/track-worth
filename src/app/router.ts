@@ -11,6 +11,7 @@ export type Route =
   | { name: 'settings' }
   | { name: 'insights' }
   | { name: 'currencies' }
+  | { name: 'update-all' }
   | { name: 'not-found' };
 
 const ACCOUNT_PATH = /^\/accounts\/([^/]+)$/;
@@ -22,6 +23,7 @@ export function parseHash(hash: string): Route {
   if (path === '/settings') return { name: 'settings' };
   if (path === '/insights') return { name: 'insights' };
   if (path === '/currencies') return { name: 'currencies' };
+  if (path === '/update') return { name: 'update-all' };
   const match = ACCOUNT_PATH.exec(path);
   if (match?.[1]) return { name: 'account', id: decodeURIComponent(match[1]) };
   return { name: 'not-found' };
@@ -40,6 +42,8 @@ export function hrefFor(route: Route): string {
       return '#/insights';
     case 'currencies':
       return '#/currencies';
+    case 'update-all':
+      return '#/update';
     case 'account':
       return `#/accounts/${encodeURIComponent(route.id)}`;
   }

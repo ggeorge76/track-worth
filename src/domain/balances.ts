@@ -97,3 +97,20 @@ export function restoreBalance(data: DataFile, entry: BalanceEntry): DataFile {
   if (!accountExists || taken) return data;
   return dataFileSchema.parse({ ...data, balances: [...data.balances, entry] });
 }
+
+/**
+ * Record several balances for one date in a single change ("Update all", R-B2). Each works like
+ * `upsertBalance`: a date that already has an entry for that account is updated.
+ */
+export function recordBalances(
+  data: DataFile,
+  date: string,
+  balances: readonly { accountId: string; amountMinor: number }[],
+  options: ChangeOptions,
+): DataFile {
+  return balances.reduce(
+    (file, b) =>
+      upsertBalance(file, { accountId: b.accountId, date, amountMinor: b.amountMinor }, options),
+    data,
+  );
+}
