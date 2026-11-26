@@ -60,9 +60,16 @@ Java 17.
 - **Build:** `bun run android:release` builds a signed AAB for all architectures into
   `src-tauri/gen/android/app/build/outputs/bundle/universalRelease/`. Without the properties file,
   the release build is left unsigned.
-- **CI** (later): set `TRACKWORTH_UPLOAD_STORE_FILE` (the keystore, decoded from a secret) and
-  `TRACKWORTH_UPLOAD_STORE_PASSWORD`, or point `TRACKWORTH_UPLOAD_PROPERTIES` at a properties
-  file.
+- **CI:** the `android` job in `.github/workflows/release.yml` builds a signed AAB and APK for
+  every release and attaches them as `TrackWorth_<version>_android.aab` / `.apk`. It needs two
+  repository secrets:
+  - `TRACKWORTH_UPLOAD_KEYSTORE_BASE64`: the keystore, base64-encoded
+    (`base64 -i ~/.android/trackworth-upload.jks | gh secret set TRACKWORTH_UPLOAD_KEYSTORE_BASE64`);
+  - `TRACKWORTH_UPLOAD_STORE_PASSWORD`: its password.
+
+  To build Android for an existing release, run the workflow by hand (Actions → Release → Run
+  workflow) with the tag, e.g. `v0.1.0`.
+
 - **OAuth:** after the first upload, Play shows the **app signing key** SHA-1 (Setup → App
   signing). Add it to the Android OAuth client for `com.trackworth.app`. To test a locally signed
   release build, also add the upload key's SHA-1:
