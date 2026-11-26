@@ -46,7 +46,7 @@ Windows and Linux).
 - [x] Android sign-in behind the same `auth_*` commands (ADR-0019)
 - [x] Export on Android ("Save to…" picker) and release signing with the Play upload key
 - [x] Distribution: Google Play (store listing drafted in `docs/store/google-play.md`)
-- [ ] CI build of the signed AAB (needs approval: workflow change)
+- [x] CI build of the signed AAB and APK, attached to each GitHub Release
 - [ ] Play Console: app created, internal test, Play App Signing SHA-1 in the OAuth client,
       12-tester closed test for 14 days, then production
 - [ ] Android updates through Google Play (no in-app updater on Android)
