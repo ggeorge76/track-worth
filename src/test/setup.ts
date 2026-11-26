@@ -15,3 +15,8 @@ globalThis.fetch = () => Promise.reject(new TypeError('No network in tests'));
 
 // jsdom doesn't implement scrolling; pages scroll to the top on navigation (router.ts).
 window.scrollTo = () => undefined;
+
+// Device preferences (theme, list options) live in localStorage; start every test fresh.
+afterEach(() => {
+  localStorage.clear();
+});
