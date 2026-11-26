@@ -6,7 +6,6 @@ import {
   matchesFilter,
   shownLiquidity,
   toggleLiquidity,
-  nameSortKey,
   tagsInUse,
   type ListOptions,
 } from './accountList';
@@ -103,16 +102,30 @@ describe('buildAccountList', () => {
 });
 
 describe('helpers', () => {
-  it('sorts names by their first letter or digit, ignoring leading emoji and symbols', () => {
-    expect(nameSortKey('💵 - HDFC')).toBe('HDFC');
-    expect(nameSortKey('2nd home')).toBe('2nd home');
-    expect(nameSortKey('🏠')).toBe('🏠');
+  it('sorts by the full name, emoji included, so same-emoji accounts stay together', () => {
+    const names = ['Alpha', '💵 Cash box', '🏦 Bank', 'zeta', '💵 Account', '2nd home'];
     const sorted = buildAccountList(
-      [makeAccount({ id: 'z', name: 'Zeta' }), makeAccount({ id: 'h', name: '💵 HDFC' })],
+      names.map((name, i) => makeAccount({ id: String(i), name })),
       [],
       DEFAULT_LIST_OPTIONS,
-    ).groups[0]?.rows.map((r) => r.account.id);
-    expect(sorted).toEqual(['h', 'z']);
+    ).groups[0]?.rows.map((r) => r.account.name);
+    expect(sorted).toEqual(['🏦 Bank', '💵 Account', '💵 Cash box', '2nd home', 'Alpha', 'zeta']);
+  });
+
+  it('uses the full name (emoji included) as the second-level sort', () => {
+    const accounts = [
+      makeAccount({ id: 'a', name: 'Zeta', liquidity: 3, tag: 'Cash' }),
+      makeAccount({ id: 'b', name: '💵 Wallet', liquidity: 3, tag: 'Cash' }),
+      makeAccount({ id: 'c', name: 'Alpha', liquidity: 3, tag: 'Cash' }),
+      makeAccount({ id: 'd', name: 'Fund', liquidity: 5, tag: 'Equity' }),
+    ];
+    const order = (key: 'liquidity' | 'tag', direction: 'asc' | 'desc') =>
+      buildAccountList(accounts, [], {
+        ...DEFAULT_LIST_OPTIONS,
+        sort: { key, direction },
+      }).groups[0]?.rows.map((r) => r.account.name);
+    expect(order('liquidity', 'desc')).toEqual(['Fund', '💵 Wallet', 'Alpha', 'Zeta']);
+    expect(order('tag', 'asc')).toEqual(['💵 Wallet', 'Alpha', 'Zeta', 'Fund']);
   });
 
   it('knows when filters are active', () => {

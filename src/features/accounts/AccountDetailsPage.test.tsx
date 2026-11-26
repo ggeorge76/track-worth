@@ -148,12 +148,14 @@ describe('AccountDetailsPage', () => {
 
     await user.click(screen.getByRole('button', { name: 'Edit balance source' }));
     const source = within(screen.getByRole('dialog')).getByLabelText('Balance source');
-    const options = [
-      ...(document.getElementById(source.getAttribute('list') ?? '')?.querySelectorAll('option') ??
-        []),
-    ];
-    expect(options.map((o) => o.value)).toEqual(['Axis', 'ESAF', 'Zerodha']);
+    // Holding a saved source, it offers the others to switch to.
+    const chips = () =>
+      within(screen.getByRole('group', { name: 'Sources you’ve used' }))
+        .getAllByRole('button')
+        .map((b) => b.textContent);
+    expect(chips()).toEqual(['Axis', 'Zerodha']);
     await user.clear(source);
+    expect(chips()).toEqual(['Axis', 'ESAF', 'Zerodha']);
     await user.click(screen.getByRole('button', { name: 'Save' }));
     await waitFor(() => {
       expect(dataIn(client)?.accounts[0]).not.toHaveProperty('balanceSource');
