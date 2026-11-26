@@ -60,6 +60,9 @@ Windows and Linux).
 
 ## Later / ideas
 
+- TypeScript 7, once typescript-eslint supports it (typescript-eslint/typescript-eslint#10940;
+  Dependabot holds back TypeScript majors until then)
+
 - Full CSV importer (#2)
 
 - Google Picker "open existing file" (R-S4)
