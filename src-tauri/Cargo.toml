@@ -1,6 +1,6 @@
 [package]
 name = "trackworth"
-version = "0.1.1" # bumped together with package.json by release-please
+version = "0.1.2" # bumped together with package.json by release-please
 description = "Track account balances and net worth. Your data stays in your Google Drive."
 authors = ["TrackWorth contributors"]
 repository = "https://github.com/ggeorge76/track-worth"
