@@ -1,7 +1,7 @@
 {
   "name": "trackworth",
   "private": true,
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Desktop app to manually track account balances and net worth. Your data lives in your own Google Drive.",
   "type": "module",
   "engines": {
