@@ -6,6 +6,8 @@
       "include-component-in-tag": false,
       "package-name": "trackworth",
       "changelog-path": "CHANGELOG.md",
+      "draft": true,
+      "force-tag-creation": true,
       "bump-minor-pre-major": true,
       "bump-patch-for-minor-pre-major": true,
       "extra-files": [

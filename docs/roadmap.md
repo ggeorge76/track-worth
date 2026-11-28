@@ -37,7 +37,7 @@ Windows and Linux).
 - [x] Export JSON and CSV (R-S2)
 - [x] Dark mode and a brighter visual refresh (R-S3)
 - [x] Offline use: shows the device copy and keeps editing offline, uploads later (N-8, ADR-0015)
-- [ ] Publish releases only after all OS builds finish (draft → publish) (ADR-0007 follow-up)
+- [x] Publish releases only after all OS builds finish (draft → publish) (ADR-0007 follow-up)
 - [ ] OS code signing: Apple Developer ID + notarization, Windows signing (ADR-0008 follow-up)
 
 ## M3: Android
