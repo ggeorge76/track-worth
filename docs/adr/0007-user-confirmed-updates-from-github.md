@@ -58,7 +58,9 @@ User data is never touched by an update. Schema changes go through migrations (A
   again**. Users would have to reinstall manually. Back it up (see `docs/setup/releasing.md`).
 - Bad, because there is a short window while CI uploads per-OS assets in which `latest.json`
   may not list every platform yet. The check fails quietly and retries an hour later.
-  Follow-up: publish the release only after all builds finish (draft releases).
+  Resolved: releases are created as drafts and published only after every build has uploaded
+  (`publish` job in `.github/workflows/release.yml`), so `latest.json` is complete when apps
+  first see it.
 
 ### Confirmation
 
