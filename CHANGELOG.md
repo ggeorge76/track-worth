@@ -10,7 +10,6 @@ by release-please from Conventional Commit messages. Don't edit released section
 
 ### Bug Fixes
 
-* **auth:** say when Google refuses Android sign-in instead of "cancelled" ([961c19c](https://github.com/ggeorge76/track-worth/commit/961c19c1964c26265ab2c6f7353168f98f4dd986))
 * **auth:** say when Google refuses Android sign-in instead of "cancelled" ([f7b102a](https://github.com/ggeorge76/track-worth/commit/f7b102a7b530ff3c568baf5b3383d1e7a0a67613))
 
 ## [0.1.1](https://github.com/ggeorge76/track-worth/compare/v0.1.0...v0.1.1) (2026-11-26)
