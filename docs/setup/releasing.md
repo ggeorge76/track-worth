@@ -37,10 +37,22 @@ How a change reaches installed apps (ADR-0007, ADR-0008, ADR-0010).
 1. Merge `dev` into `main` (via PR).
 2. release-please opens or updates a PR named `chore(main): release X.Y.Z`. Review the
    generated CHANGELOG.
-3. Merge it. This creates tag `vX.Y.Z` and the GitHub Release.
-4. The `desktop` job builds installers for macOS (universal), Windows and Linux, signs the update
-   bundles, and uploads them plus `latest.json` to the release. This takes about 15–25 minutes.
-5. Installed apps see the update within an hour (or on next launch) and offer it to the user.
+3. Before merging, tidy the release PR: remove duplicate CHANGELOG entries (merge commits repeat
+   them) and set `src-tauri/Cargo.lock`'s `trackworth` version to the new one (release-please
+   doesn't update the lock file).
+4. Merge it with a merge commit. This creates tag `vX.Y.Z` and the GitHub Release **as a draft**
+   (`draft` + `force-tag-creation` in `release-please-config.json`; the tag is created right
+   away so release-please finds it next time).
+5. The `desktop` job builds installers for macOS (universal), Windows and Linux, signs the update
+   bundles, and uploads them plus `latest.json`. The `android` job uploads the signed AAB and
+   APK. This takes about 15–25 minutes.
+6. When every build has succeeded, the `publish` job makes the release public and marks it
+   latest. If a build fails, the release stays a draft that users can't see. Re-run the failed
+   job ("Re-run failed jobs"), and `publish` runs after it.
+7. Installed desktop apps see the update within an hour (or on next launch) and offer it to the
+   user. Upload the AAB to Google Play yourself (closed testing or production).
+8. Sync `main` back into `dev` with a PR from a branch made from `main`, merged with a merge
+   commit.
 
 ## Smoke test before announcing
 
